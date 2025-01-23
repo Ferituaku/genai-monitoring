@@ -9,7 +9,7 @@ import ChartRequest from "@/components/ChartRequest";
 const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("24H");
   const timeRanges = ["24H", "7D", "1M", "3M", "CUSTOM"];
-  //waktu/time frame masih dummy belum ada penyesuaian dengan data yg difetch, sama custom belum dikasih date range picker
+  //waktu/time frame masih dummy belum ada penyesuaian dengan data yg difetch dari api database openlitnye, sama custom belum dikasih date range picker
 
   const areaChartData = [
     //Data masih dummy menyesuaikan request per waktu tertentu
@@ -143,6 +143,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-6 mb-6">
+          {/*data masih dummy makanya ada problem di data, belum ambil dari fetch api  */}
           <DonutChart title="Generation by categories" data={[70, 30]} />
           <DonutChart title="Generation by categories" data={[60, 40]} />
           <DonutChart title="Generation by categories" data={[80, 20]} />
