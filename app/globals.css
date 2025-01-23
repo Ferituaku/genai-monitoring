@@ -2,20 +2,92 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+body {
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 220 15% 95%;
+    /* Background utama lebih terang */
+    --foreground: 220 20% 10%;
+    /* Teks utama lebih gelap */
+    --card: "#3F79D2";
+    /* Warna kartu putih */
+    --card-foreground: 220 20% 10%;
+    /* Teks pada kartu */
+    --popover: 0 0% 100%;
+    /* Warna elemen popover */
+    --popover-foreground: 220 20% 10%;
+    /* Teks pada popover */
+    --primary: 200 70% 40%;
+    /* Warna utama biru */
+    --primary-foreground: 0 0% 100%;
+    /* Teks pada elemen utama */
+    --secondary: 220 15% 85%;
+    /* Warna sekunder */
+    --secondary-foreground: 220 20% 20%;
+    /* Teks pada elemen sekunder */
+    --muted: 220 15% 90%;
+    /* Elemen yang tidak terlalu mencolok */
+    --muted-foreground: 220 20% 30%;
+    /* Teks pada elemen muted */
+    --accent: 50 80% 50%;
+    /* Warna aksen hijau */
+    --accent-foreground: 0 0% 100%;
+    /* Teks pada elemen aksen */
+    --destructive: 0 70% 50%;
+    /* Warna merah untuk aksi destruktif */
+    --destructive-foreground: 0 0% 100%;
+    /* Teks pada elemen destruktif */
+    --border: 220 15% 80%;
+    /* Warna border */
+    --input: 220 15% 90%;
+    /* Warna input */
+    --ring: 200 70% 40%;
+    /* Warna ring (fokus elemen) */
+    --chart-1: 200 65% 55%;
+    /* Warna grafik 1 */
+    --chart-2: 160 60% 45%;
+    /* Warna grafik 2 */
+    --chart-3: 30 80% 55%;
+    /* Warna grafik 3 */
+    --chart-4: 50 70% 50%;
+    /* Warna grafik 4 */
+    --chart-5: 340 75% 55%;
+    /* Warna grafik 5 */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 220 20% 10%;
+    --foreground: 0 0% 98%;
+    --card: 220 20% 15%;
+    --card-foreground: 0 0% 98%;
+    --popover: 220 20% 15%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 200 70% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 20% 20%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 220 20% 25%;
+    --muted-foreground: 220 20% 90%;
+    --accent: 50 80% 40%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 70% 40%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 20% 20%;
+    --input: 220 20% 25%;
+    --ring: 200 70% 40%;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
 }
