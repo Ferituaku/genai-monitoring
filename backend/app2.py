@@ -4,7 +4,7 @@ import json
 app = Flask(__name__)
 
 # Load JSON data from the file
-with open('pricing.json', 'r') as file:
+with open('.\lib\llm\token\pricing.json', 'r') as file:
     data = json.load(file)
 
 @app.route('/data', methods=['GET'])
