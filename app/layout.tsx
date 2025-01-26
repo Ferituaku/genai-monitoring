@@ -14,27 +14,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-// const ibmPlexSans = localFont({
-//   src: [
-//     { path: "/fonts/IBMPlexSans-Regular.ttf", weight: "400", style: "normal" },
-//     { path: "/fonts/IBMPlexSans-Medium.ttf", weight: "500", style: "normal" },
-//     {
-//       path: "/fonts/IBMPlexSans-SemiBold.ttf",
-//       weight: "600",
-//       style: "normal",
-//     },
-//     { path: "/fonts/IBMPlexSans-Bold.ttf", weight: "700", style: "normal" },
-//   ],
-// });
-
-// const bebasNeue = localFont({
-//   src: [
-//     { path: "/fonts/BebasNeue-Regular.ttf", weight: "400", style: "normal" },
-//   ],
-//   variable: "--font-bebas-neue",
-// });${ibmPlexSans.className} ${bebasNeue.variable}
-
 export const metadata: Metadata = {
   title: "AI Monitoring Web Application",
   description: "Observe and monitoring your Generative AI Projects",

@@ -12,7 +12,7 @@ const Dashboard: React.FC = () => {
   //waktu/time frame masih dummy belum ada penyesuaian dengan data yg difetch dari api database openlitnye, sama custom belum dikasih date range picker
 
   const areaChartData = [
-    //Data masih dummy menyesuaikan request per waktu tertentu
+    //Data masih dummy belum menyesuaikan request per waktu tertentu
     { name: "Jan", success: 400, error: 240 },
     { name: "Feb", success: 300, error: 139 },
     { name: "Mar", success: 200, error: 980 },
@@ -24,7 +24,7 @@ const Dashboard: React.FC = () => {
     <div className="min-h-screen">
       <div className="ml-60 p-2 pt-20">
         <div
-          className="items-center gap-4 pl-2 pr-0 rounded-3xl shadow-md py-2 px-4 w-80 mb-4"
+          className="sticky top-1 items-center gap-4 pl-2 pr-0 rounded-3xl shadow-md py-2 px-4 w-80 mb-4"
           style={{ backgroundColor: "#3F79D2" }}
         >
           {timeRanges.map((range) => (

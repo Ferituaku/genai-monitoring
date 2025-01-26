@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { ChevronLeft, Moon, Sun } from "lucide-react";
 import { ChevronRight } from "lucide-react";
-import { menuItems } from "@/components/SidebarIcons";
+import { menuItems } from "@/components/SidebarItems";
 import SideButton from "./SidebarButton";
 
 const Sidebar = () => {

@@ -1,110 +1,256 @@
 "use client";
-import React from "react";
+
+import {
+  Search,
+  ArrowUpDown,
+  ChevronDown,
+  SlidersHorizontal,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+
+// request data table
+interface RequestData {
+  createdAt: string;
+  projectName: string;
+  modelName: string;
+  completionTokens: number;
+  promptTokens: number;
+  totalTokens: number;
+  costUsage: string;
+}
+
+
 
 const Request = () => {
   return (
-    <>
-      <div className="pt-20 fixed ml-60 inline-flex items-center text-xs font-small text-left gap-3">
-        <div className="relative ">
-          <input
+    <div className="p-6 pl-64 pt-20">
+      {/* Header Controls */}
+      <div className="flex sticky top-16 items-center gap-4 mb-6">
+        <div className="relative flex-1 max-w-md  shadow-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+          <Input
             type="text"
-            id="default_outlined"
-            className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-            placeholder=" "
+            placeholder="Search project"
+            className="pl-10 bg-white/5 border-gray-700 focus:border-blue-600"
           />
-          <label
-            htmlFor="default_outlined"
-            className="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-70 top-2 z-10 origin-[0] peer-focus:bg-white peer-focus:dark:bg-gray-900 rounded-xl px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 start-1 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto"
-          >
-            Search project name
-          </label>
         </div>
-        <input
-          type="date"
-          placeholder="Select Date"
-          className="input input-bordered bg-gray-800 "
-        />
-      </div>
-      <div className="flex min-h-screen bg-gray-900 mt-3 ">
-        <div className="overflow-auto pt-32 lg:overflow-visible w-full">
-          <table className="table w-full text-gray-400 left-60 table-pin-rows">
-            <thead>
-              <tr className="bg-gray-800">
-                <th className="p-3 text-left text-sm font-semibold">Name</th>
-                <th className="p-3 text-left text-sm font-semibold">
-                  Provider
-                </th>
-                <th className="p-3 text-left text-sm font-semibold">Model</th>
-                <th className="p-3 text-left text-sm font-semibold">
-                  Prompt Tokens
-                </th>
-                <th className="p-3 text-left text-sm font-semibold">
-                  Total Tokens
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="bg-gray hover:bg-gray-700 transition-colors">
-                <td className="p-3">Project 1</td>
-                <td className="p-3">Provider 1</td>
-                <td className="p-3">Model 1</td>
-                <td className="p-3">1000</td>
-                <td className="p-3">5000</td>
-              </tr>
-              <tr className="bg-gray hover:bg-gray-700 transition-colors">
-                <td className="p-3">Project 2</td>
-                <td className="p-3">Provider 2</td>
-                <td className="p-3">Model 2</td>
-                <td className="p-3">2000</td>
-                <td className="p-3">8000</td>
-              </tr>
-              <tr className="bg-gray hover:bg-gray-700 transition-colors">
-                <td className="p-3">Project 3</td>
-                <td className="p-3">Provider 3</td>
-                <td className="p-3">Model 3</td>
-                <td className="p-3">3000</td>
-                <td className="p-3">12000</td>
-              </tr>
-              <tr className="bg-gray hover:bg-gray-700 transition-colors">
-                <td className="p-3">Project 3</td>
-                <td className="p-3">Provider 3</td>
-                <td className="p-3">Model 3</td>
-                <td className="p-3">3000</td>
-                <td className="p-3">12000</td>
-              </tr>
-              <tr className="bg-gray hover:bg-gray-700 transition-colors">
-                <td className="p-3">Project 3</td>
-                <td className="p-3">Provider 3</td>
-                <td className="p-3">Model 3</td>
-                <td className="p-3">3000</td>
-                <td className="p-3">12000</td>
-              </tr>
-              <tr className="bg-gray hover:bg-gray-700 transition-colors">
-                <td className="p-3">Project 3</td>
-                <td className="p-3">Provider 3</td>
-                <td className="p-3">Model 3</td>
-                <td className="p-3">3000</td>
-                <td className="p-3">12000</td>
-              </tr>
-              <tr className="bg-gray hover:bg-gray-700 transition-colors">
-                <td className="p-3">Project 3</td>
-                <td className="p-3">Provider 3</td>
-                <td className="p-3">Model 3</td>
-                <td className="p-3">3000</td>
-                <td className="p-3">12000</td>
-              </tr>
-              <tr className="bg-gray hover:bg-gray-700 transition-colors">
-                <td className="p-3">Project 3</td>
-                <td className="p-3">Provider 3</td>
-                <td className="p-3">Model 3</td>
-                <td className="p-3">3000</td>
-                <td className="p-3">12000</td>
-              </tr>
-            </tbody>
-          </table>
+
+        <div className="flex items-center gap-4">
+          <Input
+            type="date"
+            className="bg-white/5 border-gray-700 focus:border-blue-600"
+          />
+        </div>
+        <div className="flex absolute right-0 gap-2">
+          <Select defaultValue="10">
+            <SelectTrigger className="w-24 bg-blue-600 hover:bg-blue-700 text-white border-0">
+              <span className="flex items-center gap-2">
+                Size: <SelectValue />
+              </span>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button variant="secondary" className="border-gray-700 bg-white/5">
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+
+          <Button variant="secondary" className="border-gray-700 bg-white/5 ">
+            <SlidersHorizontal className="h-4 w-4 " />
+          </Button>
         </div>
       </div>
-    </>
+
+      {/* Table */}
+      <div className="rounded-lg shadow-xl bg-white/5">
+        <table className="w-full">
+          <thead>
+            <tr className="sticky top-28 border-b border-gray-700 bg-slate-500">
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-100">
+                Created At
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-100">
+                Project name
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-100">
+                Model name
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-100">
+                Completion Tokens
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-100">
+                Prompt Tokens
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-100">
+                Total Tokens
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-100">
+                Cost usage
+              </th>
+            </tr>
+          </thead>
+          {/* Data table masih dummy ntar coba terapin jadi components di map per row*/}
+          <tbody>
+            <tr className="border-b border-gray-700 hover:bg-slate/5 transition-colors">
+              <td className="px-4 py-3 text-sm">January 13 4:39 PM</td>
+              <td className="px-4 py-3 text-sm">AppFerro</td>
+              <td className="px-4 py-3 text-sm">Gpt-4o</td>
+              <td className="px-4 py-3 text-sm">40</td>
+              <td className="px-4 py-3 text-sm">10</td>
+              <td className="px-4 py-3 text-sm">50</td>
+              <td className="px-4 py-3 text-sm">$0.0002828</td>
+            </tr>
+            <tr className="border-b border-gray-700 hover:bg-slate/5 transition-colors">
+              <td className="px-4 py-3 text-sm">January 13 4:39 PM</td>
+              <td className="px-4 py-3 text-sm">AppFerro</td>
+              <td className="px-4 py-3 text-sm">Gpt-4o</td>
+              <td className="px-4 py-3 text-sm">40</td>
+              <td className="px-4 py-3 text-sm">10</td>
+              <td className="px-4 py-3 text-sm">50</td>
+              <td className="px-4 py-3 text-sm">$0.0002828</td>
+            </tr>
+            <tr className="border-b border-gray-700 hover:bg-slate/5 transition-colors">
+              <td className="px-4 py-3 text-sm">January 13 4:39 PM</td>
+              <td className="px-4 py-3 text-sm">AppFerro</td>
+              <td className="px-4 py-3 text-sm">Gpt-4o</td>
+              <td className="px-4 py-3 text-sm">40</td>
+              <td className="px-4 py-3 text-sm">10</td>
+              <td className="px-4 py-3 text-sm">50</td>
+              <td className="px-4 py-3 text-sm">$0.0002828</td>
+            </tr>
+            <tr className="border-b border-gray-700 hover:bg-slate/5 transition-colors">
+              <td className="px-4 py-3 text-sm">January 13 4:39 PM</td>
+              <td className="px-4 py-3 text-sm">AppFerro</td>
+              <td className="px-4 py-3 text-sm">Gpt-4o</td>
+              <td className="px-4 py-3 text-sm">40</td>
+              <td className="px-4 py-3 text-sm">10</td>
+              <td className="px-4 py-3 text-sm">50</td>
+              <td className="px-4 py-3 text-sm">$0.0002828</td>
+            </tr>
+            <tr className="border-b border-gray-700 hover:bg-slate/5 transition-colors">
+              <td className="px-4 py-3 text-sm">January 13 4:39 PM</td>
+              <td className="px-4 py-3 text-sm">AppFerro</td>
+              <td className="px-4 py-3 text-sm">Gpt-4o</td>
+              <td className="px-4 py-3 text-sm">40</td>
+              <td className="px-4 py-3 text-sm">10</td>
+              <td className="px-4 py-3 text-sm">50</td>
+              <td className="px-4 py-3 text-sm">$0.0002828</td>
+            </tr>
+            <tr className="border-b border-gray-700 hover:bg-slate/5 transition-colors">
+              <td className="px-4 py-3 text-sm">January 13 4:39 PM</td>
+              <td className="px-4 py-3 text-sm">AppFerro</td>
+              <td className="px-4 py-3 text-sm">Gpt-4o</td>
+              <td className="px-4 py-3 text-sm">40</td>
+              <td className="px-4 py-3 text-sm">10</td>
+              <td className="px-4 py-3 text-sm">50</td>
+              <td className="px-4 py-3 text-sm">$0.0002828</td>
+            </tr>
+            <tr className="border-b border-gray-700 hover:bg-slate/5 transition-colors">
+              <td className="px-4 py-3 text-sm">January 13 4:39 PM</td>
+              <td className="px-4 py-3 text-sm">AppFerro</td>
+              <td className="px-4 py-3 text-sm">Gpt-4o</td>
+              <td className="px-4 py-3 text-sm">40</td>
+              <td className="px-4 py-3 text-sm">10</td>
+              <td className="px-4 py-3 text-sm">50</td>
+              <td className="px-4 py-3 text-sm">$0.0002828</td>
+            </tr>
+            <tr className="border-b border-gray-700 hover:bg-slate/5 transition-colors">
+              <td className="px-4 py-3 text-sm">January 13 4:39 PM</td>
+              <td className="px-4 py-3 text-sm">AppFerro</td>
+              <td className="px-4 py-3 text-sm">Gpt-4o</td>
+              <td className="px-4 py-3 text-sm">40</td>
+              <td className="px-4 py-3 text-sm">10</td>
+              <td className="px-4 py-3 text-sm">50</td>
+              <td className="px-4 py-3 text-sm">$0.0002828</td>
+            </tr>
+            <tr className="border-b border-gray-700 hover:bg-slate/5 transition-colors">
+              <td className="px-4 py-3 text-sm">January 13 4:39 PM</td>
+              <td className="px-4 py-3 text-sm">AppFerro</td>
+              <td className="px-4 py-3 text-sm">Gpt-4o</td>
+              <td className="px-4 py-3 text-sm">40</td>
+              <td className="px-4 py-3 text-sm">10</td>
+              <td className="px-4 py-3 text-sm">50</td>
+              <td className="px-4 py-3 text-sm">$0.0002828</td>
+            </tr>
+            <tr className="border-b border-gray-700 hover:bg-slate/5 transition-colors">
+              <td className="px-4 py-3 text-sm">January 13 4:39 PM</td>
+              <td className="px-4 py-3 text-sm">AppFerro</td>
+              <td className="px-4 py-3 text-sm">Gpt-4o</td>
+              <td className="px-4 py-3 text-sm">40</td>
+              <td className="px-4 py-3 text-sm">10</td>
+              <td className="px-4 py-3 text-sm">50</td>
+              <td className="px-4 py-3 text-sm">$0.0002828</td>
+            </tr>
+            <tr className="border-b border-gray-700 hover:bg-slate/5 transition-colors">
+              <td className="px-4 py-3 text-sm">January 13 4:39 PM</td>
+              <td className="px-4 py-3 text-sm">AppFerro</td>
+              <td className="px-4 py-3 text-sm">Gpt-4o</td>
+              <td className="px-4 py-3 text-sm">40</td>
+              <td className="px-4 py-3 text-sm">10</td>
+              <td className="px-4 py-3 text-sm">50</td>
+              <td className="px-4 py-3 text-sm">$0.0002828</td>
+            </tr>
+            <tr className="border-b border-gray-700 hover:bg-slate/5 transition-colors">
+              <td className="px-4 py-3 text-sm">January 13 4:39 PM</td>
+              <td className="px-4 py-3 text-sm">AppFerro</td>
+              <td className="px-4 py-3 text-sm">Gpt-4o</td>
+              <td className="px-4 py-3 text-sm">40</td>
+              <td className="px-4 py-3 text-sm">10</td>
+              <td className="px-4 py-3 text-sm">50</td>
+              <td className="px-4 py-3 text-sm">$0.0002828</td>
+            </tr>
+            <tr className="border-b border-gray-700 hover:bg-slate/5 transition-colors">
+              <td className="px-4 py-3 text-sm">January 13 4:39 PM</td>
+              <td className="px-4 py-3 text-sm">AppFerro</td>
+              <td className="px-4 py-3 text-sm">Gpt-4o</td>
+              <td className="px-4 py-3 text-sm">40</td>
+              <td className="px-4 py-3 text-sm">10</td>
+              <td className="px-4 py-3 text-sm">50</td>
+              <td className="px-4 py-3 text-sm">$0.0002828</td>
+            </tr>
+            <tr className="border-b border-gray-700 hover:bg-slate/5 transition-colors">
+              <td className="px-4 py-3 text-sm">January 13 4:39 PM</td>
+              <td className="px-4 py-3 text-sm">AppFerro</td>
+              <td className="px-4 py-3 text-sm">Gpt-4o</td>
+              <td className="px-4 py-3 text-sm">40</td>
+              <td className="px-4 py-3 text-sm">10</td>
+              <td className="px-4 py-3 text-sm">50</td>
+              <td className="px-4 py-3 text-sm">$0.0002828</td>
+            </tr>
+            <tr className="border-b border-gray-700 hover:bg-white/5 transition-colors">
+              <td className="px-4 py-3 text-sm">January 13 4:39 PM</td>
+              <td className="px-4 py-3 text-sm">AppDinal</td>
+              <td className="px-4 py-3 text-sm">Gpt-4o</td>
+              <td className="px-4 py-3 text-sm">40</td>
+              <td className="px-4 py-3 text-sm">10</td>
+              <td className="px-4 py-3 text-sm">50</td>
+              <td className="px-4 py-3 text-sm">$0.0002828</td>
+            </tr>
+            <tr className="hover:bg-white/5 transition-colors">
+              <td className="px-4 py-3 text-sm">January 13 4:39 PM</td>
+              <td className="px-4 py-3 text-sm">AppFaiq</td>
+              <td className="px-4 py-3 text-sm">Gpt-4o</td>
+              <td className="px-4 py-3 text-sm">40</td>
+              <td className="px-4 py-3 text-sm">10</td>
+              <td className="px-4 py-3 text-sm">50</td>
+              <td className="px-4 py-3 text-sm">$0.0002828</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 };
 
