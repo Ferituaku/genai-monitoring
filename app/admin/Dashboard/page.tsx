@@ -24,7 +24,7 @@ const Dashboard: React.FC = () => {
     <div className="min-h-screen">
       <div className="ml-60 p-2 pt-20">
         <div
-          className="sticky top-1 items-center gap-4 pl-2 pr-0 rounded-3xl shadow-md py-2 px-4 w-80 mb-4"
+          className=" items-center gap-4 pl-2 pr-0 rounded-3xl shadow-md py-2 px-4 w-80 mb-4"
           style={{ backgroundColor: "#3F79D2" }}
         >
           {timeRanges.map((range) => (
@@ -139,7 +139,6 @@ const Dashboard: React.FC = () => {
             data={areaChartData}
             onDetailClick={() => console.log("View Detail clicked")}
           />
-          ;
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-6 mb-6">
