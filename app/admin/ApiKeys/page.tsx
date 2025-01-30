@@ -48,7 +48,7 @@ const ApiKeys = () => {
   ];
 
   return (
-    <div className="flex ml-60 flex-col space-y-6 p-4">
+    <div className="flex flex-col space-y-6 p-4">
       <Card>
         <CardHeader>
           <CardTitle className="text-xl font-semibold">API Keys</CardTitle>
