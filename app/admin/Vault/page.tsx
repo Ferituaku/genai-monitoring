@@ -106,7 +106,7 @@ const page = () => {
     //     </CardContent>
     //   </Card>
     // </div>
-    <div className="p-6 pl-64 pt-5">
+    <div className="p-6 pt-5">
       <div className="flex justify-end p-4">
         <Button
           onClick={() => setIsAddModalOpen(true)}

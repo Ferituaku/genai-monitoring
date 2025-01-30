@@ -188,7 +188,7 @@ const RequestRow = ({ data }: { data: RequestData }) => {
 
 const Request = () => {
   return (
-    <div className="min-h-screen ml-64">
+    <div className="min-h-screen">
       <div className="sticky top-2 right-0 z-10 pt-4">
         <div className="flex flex-col lg:flex-row gap-4 mb-4 justify-between">
           <div className="flex flex-col sm:flex-row gap-4">
