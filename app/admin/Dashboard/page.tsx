@@ -45,7 +45,7 @@ const Dashboard: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           <MetricCard
             title="Total Request"
-            value={String(<Totalrequests/>)}
+            value={<Totalrequests/>}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -67,7 +67,7 @@ const Dashboard: React.FC = () => {
           />
           <MetricCard
             title="Avg tokens per request"
-            value={String(<Avgtoken />)}
+            value={<Avgtoken />}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -89,7 +89,7 @@ const Dashboard: React.FC = () => {
           />
           <MetricCard
             title="Avg Cost per request"
-            value= {String(<Avgcost />)}
+            value= {<Avgcost />}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -111,7 +111,7 @@ const Dashboard: React.FC = () => {
           />
           <MetricCard
             title="Avg Request Duration"
-            value= {String(<Avgduration />)}
+            value= {<Avgduration />}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -157,52 +157,60 @@ const Dashboard: React.FC = () => {
               </div>
         </div> 
 
-        <div className="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-1 gap-6 mb-6">
-            <MetricCard
-              title="Avg prompt tokens / request"
-              value="153"
-              icon={
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-slate-600
-                  "
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16m-7 6h7"
-                  />
-                </svg>
-              }
-              subValue=""
-            />           
-            <MetricCard
-              title="Avg completion tokens / request"
-              value="153"
-              icon={
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-slate-600
-                  "
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16m-7 6h7"
-                  />
-                </svg>
-              }
-              subValue=""
-            />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mb-6">
+            <div className="mb-4 bg-white p-4 rounded-lg shadow-lg">
+              <Requestpertime/>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-6 mb-6">
+              <MetricCard
+                title="Avg prompt tokens / request"
+                value="153"
+                icon={
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-slate-600
+                    "
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16m-7 6h7"
+                    />
+                  </svg>
+                }
+                subValue=""
+              />           
+              <MetricCard
+                title="Avg completion tokens / request"
+                value="153"
+                icon={
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-slate-600
+                    "
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16m-7 6h7"
+                    />
+                  </svg>
+                }
+                subValue=""
+              />
           </div>
+        </div>
+
+        
+         
 
        
       </div>
