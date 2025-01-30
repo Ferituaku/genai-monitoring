@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader } from "./ui/card";
 
 const MetricCard: React.FC<{
   title: string;
-  value: string;
+  value: string | React.ReactNode;
   subValue: string;
   icon: React.ReactNode;
 }> = ({ title, value, icon, subValue }) => {

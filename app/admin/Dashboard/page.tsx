@@ -44,7 +44,8 @@ const Dashboard: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           <MetricCard
             title="Total Request"
-            value={String(<Totalrequests />)}
+            value={<Totalrequests/>}
+
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -66,7 +67,7 @@ const Dashboard: React.FC = () => {
           />
           <MetricCard
             title="Avg tokens per request"
-            value={String(<Avgtoken />)}
+            value={<Avgtoken />}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -88,7 +89,7 @@ const Dashboard: React.FC = () => {
           />
           <MetricCard
             title="Avg Cost per request"
-            value={String(<Avgcost />)}
+            value= {<Avgcost />}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -110,7 +111,9 @@ const Dashboard: React.FC = () => {
           />
           <MetricCard
             title="Avg Request Duration"
-            value={String(<Avgduration />)}
+
+            value= {<Avgduration />}
+
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"

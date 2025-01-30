@@ -230,6 +230,29 @@ class Angka(Resource):
                 row[0]: [row[0].capitalize(), f"{float(row[1]):.2f}%"] for row in Gen_by_category_result
             }
 
+            Avg_prompt_tokens_query ="""
+            WITH total_compilation AS (
+                    SELECT COUNT(
+                        CASE 
+                            WHEN SpanName IN ('openai.chat.completions') THEN 1
+                            ELSE NULL
+                        END
+                    ) AS total_compilation_boy
+                    FROM otel_traces
+                ),
+                token_counts AS (
+                    SELECT 45406
+                    AS total_tokens
+                    
+                )
+                SELECT total_compilation_boy, total_tokens, Round((total_tokens/total_compilation_boy),5)  AS Avg_prompt_tokens
+                FROM total_compilation, token_counts
+            """
+
+            Avg_prompt_tokens = client.query(Avg_prompt_tokens_query).result_rows[0][2]
+            total_compilation_boy = client.query(Avg_prompt_tokens_query).result_rows[0][0]
+            total_tokens = client.query(Avg_prompt_tokens_query).result_rows[0][1]
+
 
 
             # Mengembalikan hasil dalam format JSON     
@@ -242,7 +265,10 @@ class Angka(Resource):
                 "Prompt_Unset": Request_Data_Result["status_unset"],
                 "Prompt_Error": Request_Data_Result["status_error"],
                 "Gen_by_category" : Gen_by_category,
-                **Cost_by_app 
+                **Cost_by_app ,
+                "Avg_prompt_tokens" : Avg_prompt_tokens,
+                "total_token, " : total_tokens, 
+                "total_compilation_boy": total_compilation_boy
                 
             })
         except Exception as e:
