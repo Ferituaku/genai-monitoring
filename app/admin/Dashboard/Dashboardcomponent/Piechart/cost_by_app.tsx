@@ -35,16 +35,16 @@ export default function Costbyapp() {
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <div className="aspect-square relative">
+    <div className="aspect-square relative scale-75">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
             data={chartData}
             cx="50%"
             cy="50%"
-            innerRadius={60} // Membuat pie chart bulat penuh
+            innerRadius={40} // Membuat pie chart bulat penuh
             outerRadius="100%" // Mengisi ruang yang tersedia
-            paddingAngle={2}
+            paddingAngle={0}
             dataKey="value"
             label={false} // Menghilangkan label
           >
