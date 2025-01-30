@@ -68,6 +68,7 @@ const Dashboard: React.FC = () => {
           <MetricCard
             title="Avg tokens per request"
             value={<Avgtoken />}
+            value={<Avgtoken />}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -89,6 +90,7 @@ const Dashboard: React.FC = () => {
           />
           <MetricCard
             title="Avg Cost per request"
+            value= {<Avgcost />}
             value= {<Avgcost />}
             icon={
               <svg
