@@ -35,8 +35,8 @@ export default function Costbyapp() {
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <div className="min-h-screen p-2 flex justify-center items-center">
-      <ResponsiveContainer width={400} height={400}>
+    <div className="aspect-square relative">
+      <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
             data={chartData}
@@ -49,7 +49,10 @@ export default function Costbyapp() {
             label={false} // Menghilangkan label
           >
             {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              <Cell
+                key={`cell-${index}`}
+                fill={COLORS[index % COLORS.length]}
+              />
             ))}
           </Pie>
           <Tooltip />

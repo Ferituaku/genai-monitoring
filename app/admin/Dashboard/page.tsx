@@ -132,75 +132,87 @@ const Dashboard: React.FC = () => {
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-6 mb-6">
-          <div className="mb-4 bg-white p-4 rounded-lg shadow-lg">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          <div className=" col-span-2 mb-2 bg-white p-6 rounded-lg shadow-lg min-h-[400px]">
+            <h2 className="text-md font-light text-slate-700 mb-4">
+              Request per Time
+            </h2>
             <Requestpertime />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mb-6">
-            <div className="mb-4 bg-white p-4 rounded-lg shadow-lg">
-              <h1>cost by app</h1>
+          <div className="grid grid-cols-1 sm:grid-cols-2 mb-2 gap-4">
+            <div className="bg-white p-4 rounded-lg shadow-lg">
+              <h2 className="text-md font-light text-slate-700 mb-4">
+                Cost by app
+              </h2>
               <Costbyapp />
             </div>
-            <div className="mb-4 bg-white p-4 rounded-lg shadow-lg">
-              <h1>Generate by category</h1>
+            <div className="bg-white p-4 rounded-lg shadow-lg">
+              <h2 className="text-md font-light text-slate-700 mb-4">
+                Generate by category
+              </h2>
               <Genbycategory />
             </div>
-            <div className="mb-4 bg-white p-4 rounded-lg shadow-lg">
-              <h1>Generate by category</h1>
+            <div className="bg-white p-4 rounded-lg shadow-lg">
+              <h2 className="text-md font-light text-slate-700 mb-4">
+                Generate by category
+              </h2>
               <Genbycategory />
             </div>
-            <div className="mb-4 bg-white p-4 rounded-lg shadow-lg">
-              <h1>Generate by category</h1>
+            <div className="bg-white p-4 rounded-lg shadow-lg">
+              <h2 className="text-md font-light text-slate-700 mb-4">
+                Generate by category
+              </h2>
               <Genbycategory />
             </div>
           </div>
         </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-1 gap-6 mb-6">
-          <MetricCard
-            title="Avg prompt tokens / request"
-            value="153"
-            icon={
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-slate-600
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4  ">
+          <div className="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-1 gap-6 mb-4">
+            <MetricCard
+              title="Avg prompt tokens / request"
+              value="153"
+              icon={
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-slate-600
                   "
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16m-7 6h7"
-                />
-              </svg>
-            }
-            subValue=""
-          />
-          <MetricCard
-            title="Avg completion tokens / request"
-            value="153"
-            icon={
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-slate-600
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16m-7 6h7"
+                  />
+                </svg>
+              }
+              subValue=""
+            />
+            <MetricCard
+              title="Avg completion tokens / request"
+              value="153"
+              icon={
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-slate-600
                   "
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16m-7 6h7"
-                />
-              </svg>
-            }
-            subValue=""
-          />
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16m-7 6h7"
+                  />
+                </svg>
+              }
+              subValue=""
+            />
+          </div>
         </div>
       </div>
     </div>

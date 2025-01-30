@@ -22,10 +22,12 @@ export default function Genbycategory() {
         }
 
         // Format ulang data agar sesuai dengan format pie chart
-        const formattedData = Object.entries(data.Gen_by_category).map(([key, value]: any) => ({
-          name: value[0], // Nama kategori (Chat, Embedding, dll.)
-          value: parseFloat(value[1].replace("%", "")), // Menghapus '%' sebelum konversi ke angka
-        }));
+        const formattedData = Object.entries(data.Gen_by_category).map(
+          ([key, value]: any) => ({
+            name: value[0], // Nama kategori (Chat, Embedding, dll.)
+            value: parseFloat(value[1].replace("%", "")), // Menghapus '%' sebelum konversi ke angka
+          })
+        );
 
         setChartData(formattedData);
         setIsLoading(false);
@@ -40,8 +42,8 @@ export default function Genbycategory() {
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <div className="min-h-screen p-4 flex justify-center items-center">
-      <ResponsiveContainer width={400} height={400}>
+    <div className="aspect-square relative">
+      <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
             data={chartData}
@@ -54,7 +56,10 @@ export default function Genbycategory() {
             label
           >
             {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              <Cell
+                key={`cell-${index}`}
+                fill={COLORS[index % COLORS.length]}
+              />
             ))}
           </Pie>
           <Tooltip />
