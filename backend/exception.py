@@ -157,7 +157,7 @@ class Traces(Resource):
                 
         return formatted_data
 
-api.add_resource(Traces, '/api/traces/', '/api/traces/<string:appName>')
+api.add_resource(Traces, '/api/tracesExceptions/', '/api/tracesExceptions/<string:appName>')
 
 if __name__ == '__main__':
     app.run(debug=True)
