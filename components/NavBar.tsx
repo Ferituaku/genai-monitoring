@@ -20,7 +20,7 @@ const NavBar = () => {
   const pathname = usePathname();
 
   return (
-    <header className="sticky ml-60 left-0 right-0 z-50 flex h-[60px] items-center justify-between px-4 sm:px-10 transition-all duration-300 top-4 pb-4">
+    <header className="sticky left-0 right-0 z-50 flex h-[60px] items-center justify-between px-4 sm:px-10 transition-all duration-300 top-4 pb-4">
       <div className="flex items-start">
         <h1 className="text-xl">Dashboard</h1>
       </div>

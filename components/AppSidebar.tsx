@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { JSX } from "react/jsx-dev-runtime";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -17,10 +17,56 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { useRouter } from "next/router";
 
-const AppSidebar = () => {
+interface SidebarProps {
+  userRole?: "admin" | "user" | "user1";
+  onSignOut?: () => void;
+  onSidebarToggle?: (isOpen: boolean) => void;
+  defaultOpen?: boolean;
+}
+
+export const AppSidebar = ({
+  userRole = "user",
+  onSignOut,
+  onSidebarToggle,
+  defaultOpen = true,
+}: SidebarProps) => {
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  // Handle sidebar state changes
+  const toggleSidebar = () => {
+    const newState = !isOpen;
+    setIsOpen(newState);
+    if (onSidebarToggle) {
+      onSidebarToggle(newState);
+    }
+  };
+
+  // Update parent on mount
+  useEffect(() => {
+    if (onSidebarToggle) {
+      onSidebarToggle(isOpen);
+    }
+  }, []);
+
+  const getProfilePath = () => {
+    switch (userRole) {
+      case "admin":
+        return "/admin/Profile";
+      case "user1":
+        return "/user1/Profile";
+      default:
+        return "/admin/Profile";
+    }
+  };
+  const handleSignOut = () => {
+    if (onSignOut) {
+      onSignOut();
+    }
+  };
 
   return (
     <>
@@ -30,7 +76,8 @@ const AppSidebar = () => {
           "fixed inset-y-0 left-2 top-2 bottom-2 z-30 flex flex-col",
           "bg-blue-600 text-white shadow-lg rounded-lg",
           "transition-all duration-300 ease-in-out",
-          isOpen ? "w-56" : "w-16"
+          isOpen ? "w-56" : "w-20",
+          "lg:relative lg:left-0"
         )}
       >
         <div className="flex items-center border-b border-blue-500/20 p-4">
@@ -51,9 +98,19 @@ const AppSidebar = () => {
             <DropdownMenuContent className="w-48" align="start">
               <DropdownMenuLabel>Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
+              <DropdownMenuItem>
+                <Link
+                  href={getProfilePath()}
+                  className="flex items-center cursor-pointer"
+                >
+                  Profile
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem>Database</DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600">
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={handleSignOut}
+              >
                 Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -73,11 +130,11 @@ const AppSidebar = () => {
           ))}
         </nav>
         <div
-          className="flex justify-end p-2 cursor-pointer opacity-25 hover:opacity-100 transition-all ease-in-out "
-          onClick={() => setIsOpen(!isOpen)}
+          className="flex justify-end p-2 cursor-pointer opacity-25 hover:opacity-100 transition-all ease-in-out mt-auto"
+          onClick={toggleSidebar}
         >
           {isOpen ? (
-            <ChevronLeft className="w-6 h-6 text-white transition-transform duration-300 " />
+            <ChevronLeft className="w-6 h-6 text-white transition-transform duration-300" />
           ) : (
             <ChevronRight className="w-6 h-6 text-white transition-transform duration-300" />
           )}

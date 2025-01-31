@@ -6,31 +6,45 @@ import MetricCard from "@/components/MetricCard";
 import DonutChart from "@/components/DonutChart";
 import ChartRequest from "@/components/ChartRequest";
 import TimeFrame from "@/components/TimeFrame";
+import Totalrequests from "./Dashboardcomponent/Angka/total_request";
+import Avgtoken from "./Dashboardcomponent/Angka/avg_token";
+import Avgcost from "./Dashboardcomponent/Angka/avg_cost";
+import Avgduration from "./Dashboardcomponent/Angka/avg_duration";
+import Requestpertime from "./Dashboardcomponent/Grafik/requestpertime";
+import Costbyapp from "./Dashboardcomponent/Piechart/cost_by_app";
+import Genbycategory from "./Dashboardcomponent/Piechart/gen_by_category";
 
 const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("24H");
   const timeRanges = ["24H", "7D", "1M", "3M", "CUSTOM"];
   //waktu/time frame masih dummy belum ada penyesuaian dengan data yg difetch dari api database openlitnye, sama custom belum dikasih date range picker
 
-  const areaChartData = [
-    //Data masih dummy belum menyesuaikan request per waktu tertentu
-    { name: "Jan", success: 400, error: 240 },
-    { name: "Feb", success: 300, error: 139 },
-    { name: "Mar", success: 200, error: 980 },
-    { name: "Apr", success: 278, error: 390 },
-    { name: "May", success: 189, error: 480 },
-  ];
-
   return (
     <div className="min-h-screen">
-      <div className="ml-60 p-2 sticky top-2 mt-3">
-        <TimeFrame />
-      </div>
-      <div className="ml-60 p-2 mt-2">
+      <div className="p-2 pt-20">
+        <div
+          className="items-center gap-4 pl-2 pr-0 rounded-3xl shadow-md py-2 px-4 w-80 mb-4"
+          style={{ backgroundColor: "#3F79D2" }}
+        >
+          {timeRanges.map((range) => (
+            <button
+              key={range}
+              onClick={() => setActiveTab(range)}
+              className={`px-4 py-2 rounded-3xl text-sm font-medium transition-colors ${
+                activeTab === range
+                  ? "bg-primary text-white"
+                  : "bg-light text-secondary hover:text-slate-200"
+              }`}
+            >
+              {range}
+            </button>
+          ))}
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           <MetricCard
             title="Total Request"
-            value="153"
+            value={<Totalrequests />}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -52,7 +66,7 @@ const Dashboard: React.FC = () => {
           />
           <MetricCard
             title="Avg tokens per request"
-            value="20.5"
+            value={<Avgtoken />}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -74,7 +88,7 @@ const Dashboard: React.FC = () => {
           />
           <MetricCard
             title="Avg Cost per request"
-            value="$0.00378"
+            value={<Avgcost />}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -96,7 +110,7 @@ const Dashboard: React.FC = () => {
           />
           <MetricCard
             title="Avg Request Duration"
-            value="2.9737s"
+            value={<Avgduration />}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -118,67 +132,90 @@ const Dashboard: React.FC = () => {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6 mb-6">
-          <ChartRequest
-            title="Requests"
-            data={areaChartData}
-            onDetailClick={() => console.log("View Detail clicked")}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          <div className=" col-span-2 mb-2 bg-white p-6 rounded-lg shadow-lg min-h-[400px]">
+            <h2 className="text-md font-light text-slate-700 mb-4">
+              Request per Time
+            </h2>
+            <Requestpertime />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 mb-2 gap-4">
+            <div className="bg-white p-4 rounded-lg shadow-lg">
+              <h2 className="text-md font-light text-slate-700 mb-4">
+                Cost by app
+              </h2>
+              <Costbyapp />
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow-lg">
+              <h2 className="text-md font-light text-slate-700 mb-4">
+                Generate by category
+              </h2>
+              <Genbycategory />
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow-lg">
+              <h2 className="text-md font-light text-slate-700 mb-4">
+                Generate by category
+              </h2>
+              <Genbycategory />
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow-lg">
+              <h2 className="text-md font-light text-slate-700 mb-4">
+                Generate by category
+              </h2>
+              <Genbycategory />
+            </div>
+          </div>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-4 gap-6 mb-6">
-          {/*data masih dummy makanya ada problem di data, belum ambil dari fetch api  */}
-          <DonutChart title="Generation by categories" data={[70, 30]} />
-          <DonutChart title="Generation by categories" data={[60, 40]} />
-          <DonutChart title="Generation by categories" data={[80, 20]} />
-          <DonutChart title="Generation by categories" data={[75, 25]} />
-        </div>
-
-        <div className="grid grid-row-2 md:grid-col-2 lg:grid-cols-4 gap-6 mb-6">
-          <MetricCard
-            title="Avg prompt token / request"
-            value="153"
-            icon={
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-slate-600
-                "
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16m-7 6h7"
-                />
-              </svg>
-            }
-            subValue=""
-          />
-          <MetricCard
-            title="Avg prompt token / request"
-            value="153"
-            icon={
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-slate-600
-                "
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16m-7 6h7"
-                />
-              </svg>
-            }
-            subValue=""
-          />
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4  ">
+          <div className="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-1 gap-6 mb-4 min-h-[450px]">
+            <MetricCard
+              title="Avg prompt tokens / request"
+              value="153"
+              icon={
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-slate-600
+                  "
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16m-7 6h7"
+                  />
+                </svg>
+              }
+              subValue=""
+            />
+            <MetricCard
+              title="Avg completion tokens / request"
+              value="153"
+              icon={
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-slate-600
+                  "
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16m-7 6h7"
+                  />
+                </svg>
+              }
+              subValue=""
+            />
+          </div>
+          <div className="col-span-2 mb-4 bg-white p-4 rounded-lg shadow-lg">
+            <Requestpertime />
+          </div>
         </div>
       </div>
     </div>

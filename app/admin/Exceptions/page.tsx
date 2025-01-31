@@ -17,7 +17,7 @@ import { Label } from "recharts";
 const page = () => {
   return (
     <div className="min-h-screen">
-      <div className="ml-60 p-4 top-0 rounded-md">
+      <div className="p-4 top-0 rounded-md">
         <div>
           <div className="flex flex-col mt-2">
             <div className="flex w-full justify-between">
