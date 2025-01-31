@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import { useState, useEffect } from "react";
 import {
@@ -37,47 +37,52 @@ import {
 } from "@/components/ui/card";
 import TimeFrame from "@/components/TimeFrame";
 
-interface RequestData {
-  timestamp: string;
-  trace_id: string;
-  app_name: string;
-  operation_name: string;
-  attributes: {
-    completion_tokens?: number;
-    prompt_tokens?: number;
-    total_tokens?: number;
-    cost?: string;
-    model?: string;
-    prompt?: string;
-    completion?: string;
-    duration?: string;
+interface TraceData {
+  Timestamp: string;
+  TraceId: string;
+  SpanId: string;
+  ParentSpanId: string;
+  ServiceName: string;
+  SpanName: string;
+  SpanAttributes: {
+    "gen_ai.request.model": string;
+    "gen_ai.usage.output_tokens": string;
+    "gen_ai.usage.input_tokens": string;
+    "gen_ai.usage.total_tokens": string;
+    "gen_ai.usage.cost": string;
   };
-  additional_info: {
-    
-  }
+  Duration: string;
+  "Events.Attributes": Array<{
+    "gen_ai.prompt"?: string;
+    "gen_ai.completion"?: string;
+  }>;
 }
 
-const RequestRow = ({ data }: { data: RequestData }) => {
+const RequestRow = ({ data }: { data: TraceData }) => {
   const formatDate = (timestamp: string) => {
     return new Date(timestamp).toLocaleString();
   };
 
-  const modelName = data.attributes?.model || "";
-  const completionTokens = data.attributes?.completion_tokens || 0;
-  const promptTokens = data.attributes?.prompt_tokens || 0;
-  const totalTokens = data.attributes?.total_tokens || 0;
-  const costUsage = data.attributes?.cost || "$0.00";
-  const duration = data.attributes?.duration || "0s";
+  const modelName = data.SpanAttributes?.["gen_ai.request.model"] || "";
+  const completionTokens = parseInt(data.SpanAttributes?.["gen_ai.usage.output_tokens"] || "0");
+  const promptTokens = parseInt(data.SpanAttributes?.["gen_ai.usage.input_tokens"] || "0");
+  const totalTokens = parseInt(data.SpanAttributes?.["gen_ai.usage.total_tokens"] || "0");
+  const costUsage = `$${parseFloat(data.SpanAttributes?.["gen_ai.usage.cost"] || "0").toFixed(10)}`;
+  const duration = `${(parseInt(data.Duration || "0") / 1_000_000_000).toFixed(2)}s`; // Convert nanoseconds to seconds
+
+  // Find prompt and completion from Events.Attributes
+  const prompt = data["Events.Attributes"]?.find(attr => "gen_ai.prompt" in attr)?.["gen_ai.prompt"] || "";
+  const completion = data["Events.Attributes"]?.find(attr => "gen_ai.completion" in attr)?.["gen_ai.completion"] || "";
 
   return (
     <Sheet>
       <SheetTrigger asChild>
         <tr className="border-b border-gray-700 hover:bg-slate-400/10 transition-colors cursor-pointer">
           <td className="px-6 py-4 whitespace-nowrap text-sm w-[180px]">
-            {formatDate(data.timestamp)}
+            {formatDate(data.Timestamp)}
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm w-[150px]">
-            {data.app_name}
+            {data.ServiceName}
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm w-[180px]">
             {modelName}
@@ -108,7 +113,7 @@ const RequestRow = ({ data }: { data: RequestData }) => {
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-gray-500" />
             <span className="text-sm text-gray-500">Created:</span>
-            <span className="text-sm">{formatDate(data.timestamp)}</span>
+            <span className="text-sm">{formatDate(data.Timestamp)}</span>
           </div>
           <div className="flex items-center gap-2">
             <Coins className="h-4 w-4 text-gray-500" />
@@ -150,7 +155,7 @@ const RequestRow = ({ data }: { data: RequestData }) => {
             <h3 className="text-sm font-medium mb-2">Prompt</h3>
             <div className="bg-blue-600/70 p-3 rounded-lg">
               <pre className="text-sm whitespace-pre-wrap">
-                {data.attributes?.prompt || "No prompt available"}
+                {prompt || "No prompt available"}
               </pre>
             </div>
           </div>
@@ -158,7 +163,7 @@ const RequestRow = ({ data }: { data: RequestData }) => {
             <h3 className="text-sm font-medium mb-2">Completion</h3>
             <div className="bg-blue-600/70 p-3 rounded-lg">
               <pre className="text-sm whitespace-pre-wrap">
-                {data.attributes?.completion || "No completion available"}
+                {completion || "No completion available"}
               </pre>
             </div>
           </div>
@@ -169,7 +174,7 @@ const RequestRow = ({ data }: { data: RequestData }) => {
 };
 
 const Request = () => {
-  const [traces, setTraces] = useState<RequestData[]>([]);
+  const [traces, setTraces] = useState<TraceData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [pageSize, setPageSize] = useState("10");
@@ -197,7 +202,7 @@ const Request = () => {
   }, []);
 
   const filteredTraces = traces.filter(trace => 
-    trace.app_name.toLowerCase().includes(searchTerm.toLowerCase())
+    trace.ServiceName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const displayedTraces = filteredTraces.slice(0, parseInt(pageSize));
@@ -290,7 +295,7 @@ const Request = () => {
               <tbody>
                 {displayedTraces.map((trace, index) => (
                   <RequestRow 
-                    key={`${trace.trace_id}-${index}`} // Menambahkan index untuk memastikan keunikan
+                    key={`${trace.TraceId}-${index}`}
                     data={trace} 
                   />
                 ))}
