@@ -155,105 +155,124 @@ class Angka(Resource):
                 f"app{i+1}": [row[0], f"{row[2]:.2f}%"] for i, row in enumerate(Cost_by_app_result[:5])
             }
 
-#             Cost_by_env_query = """
-# SELECT 
-#     c.environment, 
-#     (c.total_count / t.total_requests) * 100 AS percentage
-# FROM (
-#     SELECT 
-#         toString(coalesce(SpanAttributes['gen_ai.environment'], '')) AS environment,
-#         SUM(
-#             CASE 
-#                 WHEN SpanAttributes['gen_ai.environment'] IS NOT NULL 
-#                     AND SpanAttributes['gen_ai.environment'] != '' 
-#                 THEN 1 
-#                 ELSE 0 
-#             END
-#         ) AS total_count
-#     FROM otel_traces
-#     GROUP BY environment
-# ) AS c
-# JOIN (
-#     SELECT COUNT(*) AS total_requests FROM otel_traces
-# ) AS t
-# ON 1=1
-# ORDER BY c.total_count DESC
-# LIMIT 5;
-
-
-
-#             """
-
-#             # Eksekusi query
-#             Cost_by_env_result = client.query(Cost_by_env_query).result_rows
-
-#             # Periksa apakah hasilnya kosong
-#             if not Cost_by_env_result:
-#                 return jsonify({"error": "No data found"}), 500
-
-#             # Perbaiki akses indeks
-#             Cost_by_env = {
-#                 f"env{i+1}": [row[0], f"{row[1]:.2f}%"] for i, row in enumerate(Cost_by_env_result)
-#             }
-
-
             Gen_by_category_query =  """
             WITH cost_data AS (
                 SELECT 
-                    SUM(CASE WHEN SpanAttributes['gen_ai.operation.name'] = 'chat' THEN 1 ELSE 0 END) AS total_chat,
-                    SUM(CASE WHEN SpanAttributes['gen_ai.operation.name'] = 'embedding' THEN 1 ELSE 0 END) AS total_embedding
+                    SpanAttributes['gen_ai.operation.name'] AS operation_name,
+                    COUNT(*) AS total_count
                 FROM otel_traces
+                WHERE SpanAttributes['gen_ai.operation.name'] IS NOT NULL 
+                    AND SpanAttributes['gen_ai.operation.name'] <> ''
+                GROUP BY SpanAttributes['gen_ai.operation.name']
             ),
             total_cost AS (
-                SELECT (c.total_chat + c.total_embedding) AS overall FROM cost_data c
+                SELECT SUM(total_count) AS overall FROM cost_data
             )
             SELECT 
-                'chat' AS category, 
-                (c.total_chat / t.overall) * 100 AS percentage
-            FROM cost_data c, total_cost t
-
-            UNION ALL
-
-            SELECT 
-                'embedding' AS category, 
-                (c.total_embedding / t.overall) * 100 AS percentage
+                operation_name AS category,
+                (total_count / NULLIF(t.overall, 0)) * 100 AS percentage
             FROM cost_data c, total_cost t
             ORDER BY percentage DESC
             """
             Gen_by_category_result = client.query(Gen_by_category_query).result_rows
 
             if not Gen_by_category_result:
-                return jsonify({"error": "No data found"}), 500
+                return jsonify({"error": "No data found"})
+            else:
+                # Membuat dictionary JSON
+                Gen_by_category = {
+                    "Gen by category" : {
+                    row[0]: [row[0].capitalize(), f"{float(row[1]):.2f}%"]
+                    for row in Gen_by_category_result
+                    }
+                }
 
-            # Membuat dictionary dengan format yang diminta
-            Gen_by_category = {
-                row[0]: [row[0].capitalize(), f"{float(row[1]):.2f}%"] for row in Gen_by_category_result
+            Cost_by_env_query =  """
+            WITH cost_data AS (
+                SELECT 
+                   ResourceAttributes['deployment.environment'] AS operation_name,
+                    COUNT(*) AS total_count
+                FROM otel_traces
+                WHERE ResourceAttributes['deployment.environment'] IS NOT NULL 
+                    AND ResourceAttributes['deployment.environment'] <> ''
+                GROUP BY ResourceAttributes['deployment.environment']
+            ),
+            total_cost AS (
+                SELECT SUM(total_count) AS overall FROM cost_data
+            )
+            SELECT 
+                operation_name AS category,
+                (total_count / NULLIF(t.overall, 0)) * 100 AS percentage
+            FROM cost_data c, total_cost t
+            ORDER BY percentage DESC
+            """
+            Cost_by_env_result = client.query(Cost_by_env_query).result_rows
+
+            if not Cost_by_env_result:
+                return jsonify({"error": "No data found"})
+            else:
+                # Membuat dictionary JSON
+                Cost_by_env = {
+                    "cost by env" : {
+                    row[0]: [row[0].capitalize(), f"{float(row[1]):.2f}%"]
+                    for row in Cost_by_env_result
+                }
             }
 
             Avg_prompt_tokens_query ="""
-            WITH total_compilation AS (
+            WITH request_counts_ok AS (
                     SELECT COUNT(
                         CASE 
-                            WHEN SpanName IN ('openai.chat.completions') THEN 1
+                            WHEN StatusCode IN ('STATUS_CODE_OK') THEN 1
                             ELSE NULL
                         END
-                    ) AS total_compilation_boy
+                    ) AS total_requests_ok
                     FROM otel_traces
                 ),
-                token_counts AS (
-                    SELECT 45406
-                    AS total_tokens
-                    
+                prompt_counts AS (
+                    SELECT SUM(
+                        CASE 
+                            WHEN StatusCode IN ('STATUS_CODE_OK') THEN CAST(SpanAttributes['gen_ai.usage.input_tokens'] AS Float64)
+                            ELSE 0
+                        END
+                    ) AS total_prompt
+                    FROM otel_traces
                 )
-                SELECT total_compilation_boy, total_tokens, Round((total_tokens/total_compilation_boy),5)  AS Avg_prompt_tokens
-                FROM total_compilation, token_counts
+                SELECT total_requests_ok, total_prompt, Round((total_prompt/total_requests_ok),6)  AS avg_prompt
+                FROM request_counts_ok, prompt_counts
             """
 
             Avg_prompt_tokens = client.query(Avg_prompt_tokens_query).result_rows[0][2]
-            total_compilation_boy = client.query(Avg_prompt_tokens_query).result_rows[0][0]
-            total_tokens = client.query(Avg_prompt_tokens_query).result_rows[0][1]
+            total_prompt_tokens = client.query(Avg_prompt_tokens_query).result_rows[0][1]
 
+            Avg_completion_tokens_query ="""
+            WITH request_counts_ok AS (
+                SELECT COUNT(
+                    CASE 
+                        WHEN StatusCode = 'STATUS_CODE_OK' 
+                            AND SpanAttributes['gen_ai.operation.name'] = 'chat' 
+                        THEN 1 
+                        ELSE NULL
+                    END
+                ) AS total_requests_ok
+                FROM otel_traces
+                ),
+                prompt_counts AS (
+                    SELECT SUM(
+                        CASE 
+                            WHEN StatusCode IN ('STATUS_CODE_OK') THEN toFloat64OrNull(SpanAttributes['gen_ai.usage.output_tokens'])  
+                            ELSE 0
+                        END
+                    ) AS total_prompt
+                    FROM otel_traces
+                )
+                SELECT total_requests_ok, total_prompt, Round((total_prompt/total_requests_ok),6)  AS avg_prompt
+                FROM request_counts_ok, prompt_counts
+            """
 
+            Avg_completion_tokens = client.query(Avg_completion_tokens_query).result_rows[0][2]
+            total_completion_tokens = client.query(Avg_completion_tokens_query).result_rows[0][1]
+            
 
             # Mengembalikan hasil dalam format JSON     
             return jsonify({
@@ -264,11 +283,13 @@ class Angka(Resource):
                 "Prompt_OK": Request_Data_Result["status_ok"],
                 "Prompt_Unset": Request_Data_Result["status_unset"],
                 "Prompt_Error": Request_Data_Result["status_error"],
-                "Gen_by_category" : Gen_by_category,
+                **Gen_by_category,
                 **Cost_by_app ,
-                "Avg_prompt_tokens" : Avg_prompt_tokens,
-                "total_token, " : total_tokens, 
-                "total_compilation_boy": total_compilation_boy
+                **Cost_by_env,
+                "avg_prompt_tokens" : Avg_prompt_tokens,
+                "avg_completion_tokens" : Avg_completion_tokens,
+                "Completion": total_completion_tokens,
+                "Prompt": total_prompt_tokens
                 
             })
         except Exception as e:

@@ -13,6 +13,10 @@ import Avgduration from "./Dashboardcomponent/Angka/avg_duration";
 import Requestpertime from "./Dashboardcomponent/Grafik/requestpertime";
 import Costbyapp from "./Dashboardcomponent/Piechart/cost_by_app";
 import Genbycategory from "./Dashboardcomponent/Piechart/gen_by_category";
+import Costbyenv from "./Dashboardcomponent/Piechart/cost_by_env";
+import Avgprompttokens from "./Dashboardcomponent/Angka/avg_prompt_tokens";
+import Avgcompletiontokens from "./Dashboardcomponent/Angka/avg_completion_tokens";
+import Tokenusage from "./Dashboardcomponent/Grafik/tokenusage";
 
 const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("24H");
@@ -142,7 +146,7 @@ const Dashboard: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 mb-2 gap-4">
             <div className="bg-white p-4 rounded-lg shadow-lg">
               <h2 className="text-md font-light text-slate-700 mb-4">
-                Cost by app
+                Cost by application
               </h2>
               <Costbyapp />
             </div>
@@ -154,13 +158,13 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg">
               <h2 className="text-md font-light text-slate-700 mb-4">
-                Generate by category
+                Cost by environment
               </h2>
-              <Genbycategory />
+              <Costbyenv />
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg">
               <h2 className="text-md font-light text-slate-700 mb-4">
-                Generate by category
+                ini mau diisi apa boy?
               </h2>
               <Genbycategory />
             </div>
@@ -170,7 +174,7 @@ const Dashboard: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-1 gap-6 mb-4 min-h-[450px]">
             <MetricCard
               title="Avg prompt tokens / request"
-              value="153"
+              value= {<Avgprompttokens/>}
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -192,7 +196,7 @@ const Dashboard: React.FC = () => {
             />
             <MetricCard
               title="Avg completion tokens / request"
-              value="153"
+              value={<Avgcompletiontokens/>}
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -214,7 +218,7 @@ const Dashboard: React.FC = () => {
             />
           </div>
           <div className="col-span-2 mb-4 bg-white p-4 rounded-lg shadow-lg">
-            <Requestpertime />
+            <Tokenusage />
           </div>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#A28DFF"];
 
-export default function Genbycategory() {
+export default function Costbyenv() {
   const [chartData, setChartData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -17,8 +17,8 @@ export default function Genbycategory() {
         console.log("Fetched Data:", data);
 
         // Format ulang data untuk pie chart
-        if (data["Gen by category"]) {
-          const categoryData = data["Gen by category"];
+        if (data["cost by env"]) {
+          const categoryData = data["cost by env"];
           const formattedData = Object.entries(categoryData).map(([key, value]: any) => ({
             name: value[0], // Mengambil nama (e.g., "Chat", "Embedding")
             value: parseFloat(value[1].replace("%", "")), // Mengkonversi "94.55%" menjadi 94.55
