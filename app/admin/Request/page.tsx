@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Search,
   ArrowUpDown,
@@ -38,78 +38,61 @@ import {
 import TimeFrame from "@/components/TimeFrame";
 
 interface RequestData {
-  id: string;
-  createdAt: string;
-  projectName: string;
-  modelName: string;
-  completionTokens: number;
-  promptTokens: number;
-  totalTokens: number;
-  costUsage: string;
-  prompt: string;
-  completion: string;
-  duration: string;
-  status: string;
+  timestamp: string;
+  trace_id: string;
+  app_name: string;
+  operation_name: string;
+  attributes: {
+    completion_tokens?: number;
+    prompt_tokens?: number;
+    total_tokens?: number;
+    cost?: string;
+    model?: string;
+    prompt?: string;
+    completion?: string;
+    duration?: string;
+  };
+  additional_info: {
+    
+  }
 }
 
-// Sample data with additional details
-const RequestDataContent: RequestData[] = [
-  {
-    id: "1",
-    createdAt: "January 13 4:39 PM",
-    projectName: "AppFerro",
-    modelName: "GPT-4",
-    completionTokens: 40,
-    promptTokens: 10,
-    totalTokens: 50,
-    costUsage: "$0.0002828",
-    prompt: "What is the best way to implement authentication in Next.js?",
-    completion:
-      "There are several approaches to implementing authentication in Next.js...",
-    duration: "2.3s",
-    status: "completed",
-  },
-  {
-    id: "2",
-    createdAt: "January 13 4:39 PM",
-    projectName: "AppDinal",
-    modelName: "Astra-OpenAi-3.5",
-    completionTokens: 40,
-    promptTokens: 10,
-    totalTokens: 50,
-    costUsage: "$0.0002828",
-    prompt: "Siapa nama bapak kau?",
-    completion: "Tidak tahu, tapi yang jelas bukan NurCholis",
-    duration: "2.3s",
-    status: "completed",
-  },
-];
-
 const RequestRow = ({ data }: { data: RequestData }) => {
+  const formatDate = (timestamp: string) => {
+    return new Date(timestamp).toLocaleString();
+  };
+
+  const modelName = data.attributes?.model || "";
+  const completionTokens = data.attributes?.completion_tokens || 0;
+  const promptTokens = data.attributes?.prompt_tokens || 0;
+  const totalTokens = data.attributes?.total_tokens || 0;
+  const costUsage = data.attributes?.cost || "$0.00";
+  const duration = data.attributes?.duration || "0s";
+
   return (
     <Sheet>
       <SheetTrigger asChild>
         <tr className="border-b border-gray-700 hover:bg-slate-400/10 transition-colors cursor-pointer">
           <td className="px-6 py-4 whitespace-nowrap text-sm w-[180px]">
-            {data.createdAt}
+            {formatDate(data.timestamp)}
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm w-[150px]">
-            {data.projectName}
+            {data.app_name}
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm w-[180px]">
-            {data.modelName}
+            {modelName}
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-right w-[150px]">
-            {data.completionTokens}
+            {completionTokens}
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-right w-[120px]">
-            {data.promptTokens}
+            {promptTokens}
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-right w-[120px]">
-            {data.totalTokens}
+            {totalTokens}
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-right w-[120px]">
-            {data.costUsage}
+            {costUsage}
           </td>
         </tr>
       </SheetTrigger>
@@ -121,62 +104,61 @@ const RequestRow = ({ data }: { data: RequestData }) => {
           </SheetDescription>
         </SheetHeader>
 
-        {/* Request Overview */}
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-gray-500" />
             <span className="text-sm text-gray-500">Created:</span>
-            <span className="text-sm">{data.createdAt}</span>
+            <span className="text-sm">{formatDate(data.timestamp)}</span>
           </div>
           <div className="flex items-center gap-2">
             <Coins className="h-4 w-4 text-gray-500" />
             <span className="text-sm text-gray-500">Cost:</span>
-            <span className="text-sm">{data.costUsage}</span>
+            <span className="text-sm">{costUsage}</span>
           </div>
           <div className="flex items-center gap-2">
             <Tags className="h-4 w-4 text-gray-500" />
             <span className="text-sm text-gray-500">Model:</span>
-            <span className="text-sm">{data.modelName}</span>
+            <span className="text-sm">{modelName}</span>
           </div>
           <div className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4 text-gray-500" />
             <span className="text-sm text-gray-500">Duration:</span>
-            <span className="text-sm">{data.duration}</span>
+            <span className="text-sm">{duration}</span>
           </div>
         </div>
 
-        {/* Token Usage */}
         <div className="mb-6">
           <h3 className="text-sm font-medium mb-2">Token Usage</h3>
           <div className="grid grid-cols-3 gap-4 bg-blue-600/70 p-3 rounded-lg">
             <div>
               <div className="text-xs text-gray-700">Prompt</div>
-              <div className="text-sm font-medium">{data.promptTokens}</div>
+              <div className="text-sm font-medium">{promptTokens}</div>
             </div>
             <div>
               <div className="text-xs text-gray-700">Completion</div>
-              <div className="text-sm font-medium">{data.completionTokens}</div>
+              <div className="text-sm font-medium">{completionTokens}</div>
             </div>
             <div>
               <div className="text-xs text-gray-700">Total</div>
-              <div className="text-sm font-medium">{data.totalTokens}</div>
+              <div className="text-sm font-medium">{totalTokens}</div>
             </div>
           </div>
         </div>
 
-        {/* Prompt & Completion */}
         <div className="space-y-4">
           <div>
             <h3 className="text-sm font-medium mb-2">Prompt</h3>
             <div className="bg-blue-600/70 p-3 rounded-lg">
-              <pre className="text-sm whitespace-pre-wrap">{data.prompt}</pre>
+              <pre className="text-sm whitespace-pre-wrap">
+                {data.attributes?.prompt || "No prompt available"}
+              </pre>
             </div>
           </div>
           <div>
             <h3 className="text-sm font-medium mb-2">Completion</h3>
             <div className="bg-blue-600/70 p-3 rounded-lg">
               <pre className="text-sm whitespace-pre-wrap">
-                {data.completion}
+                {data.attributes?.completion || "No completion available"}
               </pre>
             </div>
           </div>
@@ -187,6 +169,47 @@ const RequestRow = ({ data }: { data: RequestData }) => {
 };
 
 const Request = () => {
+  const [traces, setTraces] = useState<RequestData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pageSize, setPageSize] = useState("10");
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchTraces = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://localhost:5000/api/traces/');
+        if (!response.ok) {
+          throw new Error('Failed to fetch traces');
+        }
+        const data = await response.json();
+        setTraces(data);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTraces();
+  }, []);
+
+  const filteredTraces = traces.filter(trace => 
+    trace.app_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const displayedTraces = filteredTraces.slice(0, parseInt(pageSize));
+
+  if (loading) {
+    return <div className="min-h-screen ml-64 flex items-center justify-center">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="min-h-screen ml-64 flex items-center justify-center text-red-500">{error}</div>;
+  }
+
   return (
     <div className="min-h-screen ml-64">
       <div className="sticky top-2 right-0 z-10 pt-4">
@@ -201,11 +224,13 @@ const Request = () => {
                 type="text"
                 placeholder="Cari proyek"
                 className="pl-10 bg-white/5 border-gray-700 hover:bg-slate-400/10 transition-colors focus:border-blue-600"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
           <div className="flex gap-2 justify-end items-center">
-            <Select defaultValue="10">
+            <Select value={pageSize} onValueChange={setPageSize}>
               <SelectTrigger className="w-28 bg-blue-600 hover:bg-blue-700 text-white border-0">
                 <span className="flex items-center gap-2">
                   Ukuran: <SelectValue />
@@ -234,7 +259,7 @@ const Request = () => {
       </div>
 
       <div className="sticky top-20 bg-white rounded-lg shadow-sm">
-        <Card className="rounded-md ">
+        <Card className="rounded-md">
           <div className="max-h-[calc(100vh-180px)] overflow-y-auto">
             <table className="w-full">
               <thead className="sticky top-0 bg-gray-200 z-10">
@@ -263,8 +288,11 @@ const Request = () => {
                 </tr>
               </thead>
               <tbody>
-                {RequestDataContent.map((row) => (
-                  <RequestRow key={row.id} data={row} />
+                {displayedTraces.map((trace, index) => (
+                  <RequestRow 
+                    key={`${trace.trace_id}-${index}`} // Menambahkan index untuk memastikan keunikan
+                    data={trace} 
+                  />
                 ))}
               </tbody>
             </table>
