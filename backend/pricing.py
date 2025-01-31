@@ -1,10 +1,14 @@
 from flask import Flask, jsonify, request
 import json
+import os
 
 app = Flask(__name__)
 
+base_path = os.path.dirname(os.path.abspath(__file__))
+pricing_json_path = os.path.join(base_path, '..', 'lib', 'llm', 'token', 'pricing.json')
+
 # Load JSON data from the file
-with open('.\lib\llm\token\pricing.json', 'r') as file:
+with open(pricing_json_path, 'r') as file:
     data = json.load(file)
 
 @app.route('/data', methods=['GET'])
