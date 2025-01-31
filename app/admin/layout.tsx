@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import "../globals.css";
 import NavBar from "../../components/NavBar";
-import Sidebar from "../../components/AppSidebar";
+import Sidebar from "../../components/Sidebar/AppSidebar";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 

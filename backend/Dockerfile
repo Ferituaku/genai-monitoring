@@ -1,4 +1,4 @@
-FROM python:3.6-slim-buster
+FROM python:3.9
 
 WORKDIR /app
 
@@ -8,6 +8,6 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-EXPOSE 4000
+EXPOSE 5001
 
-CMD ["flask", "run", "--host=0.0.0.0", "--port=4000"]
+CMD ["flask", "run", "--host=0.0.0.0", "--port=5001"]

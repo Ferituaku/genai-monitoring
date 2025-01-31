@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -64,15 +64,31 @@ const RequestRow = ({ data }: { data: TraceData }) => {
   };
 
   const modelName = data.SpanAttributes?.["gen_ai.request.model"] || "";
-  const completionTokens = parseInt(data.SpanAttributes?.["gen_ai.usage.output_tokens"] || "0");
-  const promptTokens = parseInt(data.SpanAttributes?.["gen_ai.usage.input_tokens"] || "0");
-  const totalTokens = parseInt(data.SpanAttributes?.["gen_ai.usage.total_tokens"] || "0");
-  const costUsage = `$${parseFloat(data.SpanAttributes?.["gen_ai.usage.cost"] || "0").toFixed(10)}`;
-  const duration = `${(parseInt(data.Duration || "0") / 1_000_000_000).toFixed(2)}s`; // Convert nanoseconds to seconds
+  const completionTokens = parseInt(
+    data.SpanAttributes?.["gen_ai.usage.output_tokens"] || "0"
+  );
+  const promptTokens = parseInt(
+    data.SpanAttributes?.["gen_ai.usage.input_tokens"] || "0"
+  );
+  const totalTokens = parseInt(
+    data.SpanAttributes?.["gen_ai.usage.total_tokens"] || "0"
+  );
+  const costUsage = `$${parseFloat(
+    data.SpanAttributes?.["gen_ai.usage.cost"] || "0"
+  ).toFixed(10)}`;
+  const duration = `${(parseInt(data.Duration || "0") / 1_000_000_000).toFixed(
+    2
+  )}s`; // Convert nanoseconds to seconds
 
   // Find prompt and completion from Events.Attributes
-  const prompt = data["Events.Attributes"]?.find(attr => "gen_ai.prompt" in attr)?.["gen_ai.prompt"] || "";
-  const completion = data["Events.Attributes"]?.find(attr => "gen_ai.completion" in attr)?.["gen_ai.completion"] || "";
+  const prompt =
+    data["Events.Attributes"]?.find((attr) => "gen_ai.prompt" in attr)?.[
+      "gen_ai.prompt"
+    ] || "";
+  const completion =
+    data["Events.Attributes"]?.find((attr) => "gen_ai.completion" in attr)?.[
+      "gen_ai.completion"
+    ] || "";
 
   return (
     <Sheet>
@@ -101,7 +117,7 @@ const RequestRow = ({ data }: { data: TraceData }) => {
           </td>
         </tr>
       </SheetTrigger>
-      <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
+      <SheetContent className="w-full max-w-4xl sm:w-[90vw] lg:w-[60vw] resize">
         <SheetHeader className="mb-6">
           <SheetTitle className="text-xl font-bold">Request Details</SheetTitle>
           <SheetDescription>
@@ -184,15 +200,17 @@ const Request = () => {
     const fetchTraces = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5000/api/tracesRequest/');
+        const response = await fetch(
+          "http://localhost:5000/api/tracesRequest/"
+        );
         if (!response.ok) {
-          throw new Error('Failed to fetch traces');
+          throw new Error("Failed to fetch traces");
         }
         const data = await response.json();
         setTraces(data);
         setError(null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
         setLoading(false);
       }
@@ -201,18 +219,26 @@ const Request = () => {
     fetchTraces();
   }, []);
 
-  const filteredTraces = traces.filter(trace => 
+  const filteredTraces = traces.filter((trace) =>
     trace.ServiceName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const displayedTraces = filteredTraces.slice(0, parseInt(pageSize));
 
   if (loading) {
-    return <div className="min-h-screen ml-64 flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen ml-64 flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="min-h-screen ml-64 flex items-center justify-center text-red-500">{error}</div>;
+    return (
+      <div className="min-h-screen ml-64 flex items-center justify-center text-red-500">
+        {error}
+      </div>
+    );
   }
 
   return (
@@ -294,10 +320,7 @@ const Request = () => {
               </thead>
               <tbody>
                 {displayedTraces.map((trace, index) => (
-                  <RequestRow 
-                    key={`${trace.TraceId}-${index}`}
-                    data={trace} 
-                  />
+                  <RequestRow key={`${trace.TraceId}-${index}`} data={trace} />
                 ))}
               </tbody>
             </table>

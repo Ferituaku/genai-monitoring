@@ -21,7 +21,7 @@ const NavBar = () => {
 
   return (
     <header className="sticky left-0 right-0 z-50 flex h-[60px] items-center justify-between px-4 sm:px-10 transition-all duration-300 top-4 pb-4">
-      <div className="flex items-start">
+      <div className="flex items-start sm:ml-60 lg:ml-10">
         <h1 className="text-xl">Dashboard</h1>
       </div>
       <div className="flex items-center gap-4 pl-2 rounded-lg shadow-md py-2 px-4 bg-blue-600">
