@@ -48,9 +48,9 @@ class Traces(Resource):
     def get(self, appName=None):
         try:
             if appName:
-                query = f"SELECT * FROM otel_traces WHERE ServiceName = '{appName}' ORDER BY Timestamp DESC"
+                query = f"SELECT * FROM otel_traces WHERE ServiceName = '{appName}' AND StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET') ORDER BY Timestamp DESC"
             else:
-                query = 'SELECT * FROM otel_traces ORDER BY Timestamp DESC'
+                query = "SELECT * FROM otel_traces WHERE StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET') ORDER BY Timestamp DESC"
                 
             traces = client.query(query).result_rows
             return self.format_traces(traces)
