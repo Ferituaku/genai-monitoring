@@ -23,7 +23,7 @@ interface Models {
   [key: string]: ModelData;
 }
 
-const API_BASE_URL = "http://localhost:5000/data";
+const API_BASE_URL = 'http://localhost:5000/data';
 
 const ModelPriceManager = () => {
   const [modelName, setModelName] = useState("");
@@ -53,7 +53,7 @@ const ModelPriceManager = () => {
       setModels(data);
     } catch (error) {
       setError("Failed to fetch models data");
-      console.error("Fetch error:", error);
+      console.error('Fetch error:', error);
     } finally {
       setLoading(false);
     }
@@ -78,16 +78,13 @@ const ModelPriceManager = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/${modelName}/${selectedDetail}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ value: parseFloat(newPrice) }),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/${modelName}/${selectedDetail}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ value: parseFloat(newPrice) }),
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -100,7 +97,7 @@ const ModelPriceManager = () => {
       setMode("view");
     } catch (error) {
       setError("Failed to update price");
-      console.error("Update error:", error);
+      console.error('Update error:', error);
     } finally {
       setLoading(false);
     }
@@ -112,12 +109,12 @@ const ModelPriceManager = () => {
     setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/${newModelName}`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          [newDetailName]: parseFloat(newDetailPrice),
+          [newDetailName]: parseFloat(newDetailPrice)
         }),
       });
 
@@ -133,7 +130,7 @@ const ModelPriceManager = () => {
       setMode("view");
     } catch (error) {
       setError("Failed to create model");
-      console.error("Create error:", error);
+      console.error('Create error:', error);
     } finally {
       setLoading(false);
     }
@@ -144,12 +141,9 @@ const ModelPriceManager = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/${modelName}/${selectedDetail}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/${modelName}/${selectedDetail}`, {
+        method: 'DELETE',
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -161,7 +155,7 @@ const ModelPriceManager = () => {
       setError(null);
     } catch (error) {
       setError("Failed to delete detail");
-      console.error("Delete error:", error);
+      console.error('Delete error:', error);
     } finally {
       setLoading(false);
     }
@@ -190,12 +184,8 @@ const ModelPriceManager = () => {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <Tabs
-            value={mode}
-            onValueChange={(value) =>
-              setMode(value as "view" | "edit" | "create")
-            }
-          >
+
+          <Tabs value={mode} onValueChange={(value) => setMode(value as "view" | "edit" | "create")}>
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="view">View/Edit</TabsTrigger>
               <TabsTrigger value="create">Create New</TabsTrigger>
@@ -205,7 +195,6 @@ const ModelPriceManager = () => {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Model Name</label>
-
                   <Select
                     value={newModelName}
                     onValueChange={setNewModelName}
@@ -257,12 +246,7 @@ const ModelPriceManager = () => {
                   </Button>
                   <Button
                     onClick={handleCreateModel}
-                    disabled={
-                      !newModelName ||
-                      !newDetailName ||
-                      !newDetailPrice ||
-                      loading
-                    }
+                    disabled={!newModelName || !newDetailName || !newDetailPrice || loading}
                   >
                     {loading ? (
                       <>
@@ -324,13 +308,11 @@ const ModelPriceManager = () => {
                 {selectedDetail && (
                   <>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">
-                        Current Price
-                      </label>
+                      <label className="text-sm font-medium">Current Price</label>
                       <Input
                         type="text"
                         readOnly
-                        value={currentPrice?.toString() || ""}
+                        value={currentPrice?.toString() || ''}
                         className="bg-muted"
                       />
                     </div>
@@ -371,9 +353,7 @@ const ModelPriceManager = () => {
                       </Button>
                       <Button
                         onClick={handleUpdatePrice}
-                        disabled={
-                          !modelName || !selectedDetail || !newPrice || loading
-                        }
+                        disabled={!modelName || !selectedDetail || !newPrice || loading}
                       >
                         {loading ? (
                           <>
