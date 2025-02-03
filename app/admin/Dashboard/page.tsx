@@ -17,6 +17,7 @@ import Costbyenv from "./Dashboardcomponent/Piechart/cost_by_env";
 import Avgprompttokens from "./Dashboardcomponent/Angka/avg_prompt_tokens";
 import Avgcompletiontokens from "./Dashboardcomponent/Angka/avg_completion_tokens";
 import Tokenusage from "./Dashboardcomponent/Grafik/tokenusage";
+import TopModel from "./Dashboardcomponent/Piechart/top_model";
 
 const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("24H");
@@ -164,9 +165,9 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg">
               <h2 className="text-md font-light text-slate-700 mb-4">
-                ini mau diisi apa boy?
+                Top Models
               </h2>
-              <Genbycategory />
+              <TopModel />
             </div>
           </div>
         </div>

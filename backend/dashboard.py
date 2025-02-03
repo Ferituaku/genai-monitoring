@@ -272,7 +272,40 @@ class Angka(Resource):
 
             Avg_completion_tokens = client.query(Avg_completion_tokens_query).result_rows[0][2]
             total_completion_tokens = client.query(Avg_completion_tokens_query).result_rows[0][1]
-            
+            Top_Model_query = """
+            WITH model_count AS (
+                SELECT 
+                    SpanAttributes['gen_ai.request.model'] AS model,
+                    COUNT(CASE WHEN StatusCode = 'STATUS_CODE_OK' THEN 1 END) AS total_count_model
+                FROM otel_traces
+                GROUP BY model
+            ),
+            total_all_model AS (
+                SELECT 
+                    COUNT(CASE WHEN StatusCode = 'STATUS_CODE_OK' THEN 1 END) AS total_all
+                FROM otel_traces
+            )
+            SELECT 
+                model, 
+                (m.total_count_model / t.total_all) * 100 AS percentage
+            FROM model_count m, total_all_model t
+            ORDER BY percentage DESC
+            LIMIT 5
+            """
+
+            Top_Model_result = client.query(Top_Model_query).result_rows
+
+            if not Top_Model_result:
+                return jsonify({"error": "No data found"})
+            else:
+                # Membuat dictionary JSON
+                Top_Model = {
+                    "Top Model": {
+                        row[0]: [row[0].capitalize(), f"{float(row[1]):.2f}%"]
+                        for row in Top_Model_result
+                    }
+                }
+
 
             # Mengembalikan hasil dalam format JSON     
             return jsonify({
@@ -289,7 +322,8 @@ class Angka(Resource):
                 "avg_prompt_tokens" : Avg_prompt_tokens,
                 "avg_completion_tokens" : Avg_completion_tokens,
                 "Completion": total_completion_tokens,
-                "Prompt": total_prompt_tokens
+                "Prompt": total_prompt_tokens,
+                **Top_Model
                 
             })
         except Exception as e:
