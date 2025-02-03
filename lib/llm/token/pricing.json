@@ -525,9 +525,6 @@
             "promptPrice": 0.0088,
             "completionPrice": 0.0088
         },
-        "dinalChat": {
-            "completionPrice": 0.0006,
-            "promptPrice": 0.0009
-        }
+        "test-model-1.0": 0.000976
     }
 }
