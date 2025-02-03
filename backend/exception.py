@@ -1,7 +1,7 @@
-from flask import Flask, jsonify, abort
+from flask import Flask, jsonify, abort, request
 from flask_restful import Api, Resource
 import clickhouse_connect
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -20,6 +20,11 @@ client = clickhouse_connect.get_client(
 class Traces(Resource):
     def get(self, appName=None):  
         try:
+            days = request.args.get('days', default=7, type=int)
+            
+            # Hitung tanggal mulai (hari ini - days)
+            start_date = datetime.now() - timedelta(days=days)
+            
             # Query utama untuk mendapatkan traces
             query = """
             SELECT 
@@ -43,10 +48,13 @@ class Traces(Resource):
                 Events.Attributes
             FROM otel_traces 
             WHERE StatusCode IN ('STATUS_CODE_ERROR')
+            AND Timestamp >= '{start_date}'
             """
             if appName:
                 query += f" AND ServiceName = '{appName}'"
             query += " ORDER BY Timestamp DESC"
+
+            query = query.format(start_date=start_date.strftime('%Y-%m-%d %H:%M:%S'))
 
             # Jalankan query
             traces = client.query(query).result_rows

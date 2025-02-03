@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -8,7 +8,7 @@ import {
   Clock,
   AlertCircle,
   Server,
-  FileCode
+  FileCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,22 +19,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
+import { Card } from "@/components/ui/card";
 import TimeFrame from "@/components/TimeFrame";
+import ExceptionRow from "./ExeptionRow/page";
+import { useSearchParams } from "next/navigation";
 
 interface ErrorTraceData {
   Timestamp: string;
@@ -50,152 +39,76 @@ interface ErrorTraceData {
   "Events.Attributes": Array<Record<string, string>>;
 }
 
-const ExceptionRow = ({ data }: { data: ErrorTraceData }) => {
-  const formatDate = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString();
-  };
-
-  const duration = `${(parseInt(data.Duration || "0") / 1_000_000_000).toFixed(2)}s`;
-
-  return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <tr className="border-b border-gray-700 hover:bg-slate-400/10 transition-colors cursor-pointer">
-          <td className="px-6 py-4 whitespace-nowrap text-sm w-[180px]">
-            {formatDate(data.Timestamp)}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm w-[150px]">
-            {data.ServiceName}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm w-[180px]">
-            {data.SpanName}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm w-[150px]">
-            {data.StatusMessage || "Unknown Error"}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-right w-[120px]">
-            {duration}
-          </td>
-        </tr>
-      </SheetTrigger>
-      <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
-        <SheetHeader className="mb-6">
-          <SheetTitle className="text-xl font-bold">Error Details</SheetTitle>
-          <SheetDescription>
-            Detailed information about this error
-          </SheetDescription>
-        </SheetHeader>
-
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-500">Timestamp:</span>
-            <span className="text-sm">{formatDate(data.Timestamp)}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Server className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-500">Service:</span>
-            <span className="text-sm">{data.ServiceName}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <FileCode className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-500">Operation:</span>
-            <span className="text-sm">{data.SpanName}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 text-red-500" />
-            <span className="text-sm text-gray-500">Status:</span>
-            <span className="text-sm text-red-500">ERROR</span>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-sm font-medium mb-2">Error Message</h3>
-            <div className="bg-red-500/10 p-3 rounded-lg border border-red-500/20">
-              <pre className="text-sm whitespace-pre-wrap text-red-500">
-                {data.StatusMessage || "No error message available"}
-              </pre>
-            </div>
-          </div>
-          
-          <div>
-            <h3 className="text-sm font-medium mb-2">Trace Details</h3>
-            <div className="bg-blue-600/10 p-3 rounded-lg">
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="text-gray-500">Trace ID:</div>
-                <div>{data.TraceId}</div>
-                <div className="text-gray-500">Span ID:</div>
-                <div>{data.SpanId}</div>
-                <div className="text-gray-500">Parent Span ID:</div>
-                <div>{data.ParentSpanId || "None"}</div>
-                <div className="text-gray-500">Duration:</div>
-                <div>{duration}</div>
-              </div>
-            </div>
-          </div>
-
-          {Object.keys(data.SpanAttributes).length > 0 && (
-            <div>
-              <h3 className="text-sm font-medium mb-2">Attributes</h3>
-              <div className="bg-blue-600/10 p-3 rounded-lg">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  {Object.entries(data.SpanAttributes).map(([key, value]) => (
-                    <>
-                      <div className="text-gray-500">{key}:</div>
-                      <div>{value}</div>
-                    </>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-};
-
 const Exceptions = () => {
   const [traces, setTraces] = useState<ErrorTraceData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [pageSize, setPageSize] = useState("10");
   const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const days = searchParams.get("days") || "7"; //buat handle time frame show data
 
   useEffect(() => {
     const fetchTraces = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5000/api/tracesExceptions/');
+        const response = await fetch(
+          `http://localhost:5000/api/tracesExceptions/?days=${days}`
+        );
         if (!response.ok) {
-          throw new Error('Failed to fetch traces');
+          throw new Error("Failed to fetch traces");
         }
         const data = await response.json();
         setTraces(data);
         setError(null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
         setLoading(false);
       }
     };
 
     fetchTraces();
-  }, []);
+  }, [days]);
 
-  const filteredTraces = traces.filter(trace => 
-    trace.ServiceName.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredTraces = traces.filter((trace) =>
+    trace.ServiceName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const displayedTraces = filteredTraces.slice(0, parseInt(pageSize));
 
   if (loading) {
-    return <div className="min-h-screen ml-64 flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="text-center">
+        <div role="status">
+          <svg
+            aria-hidden="true"
+            className="inline w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+            viewBox="0 0 100 101"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+              fill="currentColor"
+            />
+            <path
+              d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+              fill="currentFill"
+            />
+          </svg>
+          <span className="sr-only">Loading...</span>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="min-h-screen ml-64 flex items-center justify-center text-red-500">{error}</div>;
+    return (
+      <div className="min-h-screen ml-64 flex items-center justify-center text-red-500">
+        {error}
+      </div>
+    );
   }
 
   return (
@@ -248,7 +161,7 @@ const Exceptions = () => {
 
       <div className="sticky top-20 bg-white rounded-lg shadow-sm">
         <Card className="rounded-md">
-          <div className="max-h-[calc(100vh-180px)] overflow-y-auto">
+          <div className="max-h-[calc(100vh-180px)] overflow-y-scroll">
             <table className="w-full">
               <thead className="sticky top-0 bg-gray-200 z-10">
                 <tr className="border-b border-gray-700">
@@ -262,7 +175,7 @@ const Exceptions = () => {
                     Operation
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">
-                    Error Message
+                    Exception Type
                   </th>
                   <th className="px-6 py-3 text-right text-sm font-medium text-slate-700">
                     Duration
@@ -271,9 +184,9 @@ const Exceptions = () => {
               </thead>
               <tbody>
                 {displayedTraces.map((trace, index) => (
-                  <ExceptionRow 
+                  <ExceptionRow
                     key={`${trace.TraceId}-${index}`}
-                    data={trace} 
+                    data={trace}
                   />
                 ))}
               </tbody>
