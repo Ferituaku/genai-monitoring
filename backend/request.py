@@ -1,14 +1,13 @@
-from flask import Flask, jsonify, abort
+from flask import Flask, jsonify, abort, request
 from flask_restful import Api, Resource
 import clickhouse_connect
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
 
-# Koneksi ClickHouse
 client = clickhouse_connect.get_client(
     host='openlit.my.id',
     port=8123,
@@ -20,6 +19,12 @@ client = clickhouse_connect.get_client(
 class Traces(Resource):
     def get(self, appName=None):  
         try:
+            # Ambil parameter days dari query string, default 7 hari
+            days = request.args.get('days', default=7, type=int)
+            
+            # Hitung tanggal mulai (hari ini - days)
+            start_date = datetime.now() - timedelta(days=days)
+            
             # Query utama untuk mendapatkan traces
             query = """
             SELECT 
@@ -43,10 +48,14 @@ class Traces(Resource):
                 Events.Attributes
             FROM otel_traces 
             WHERE StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET')
+            AND Timestamp >= '{start_date}'
             """
             if appName:
                 query += f" AND ServiceName = '{appName}'"
             query += " ORDER BY Timestamp DESC"
+
+            # Format tanggal untuk query
+            query = query.format(start_date=start_date.strftime('%Y-%m-%d %H:%M:%S'))
 
             # Jalankan query
             traces = client.query(query).result_rows
@@ -54,17 +63,11 @@ class Traces(Resource):
 
             if not traces:
                 print("Query tidak mengembalikan data, mengembalikan dummy data...")
-                return jsonify([{
-                    "Events.Timestamp": ["2025-01-18T00:08:34.063315"],
-                    "Events.Name": ["Dummy Event"],
-                    "Events.Attributes": ["Dummy Attribute"]
-                }])
 
             formatted_traces = []
             for row in traces:
                 print(f"Row mentah: {row}")  # Debugging
                 
-                # Pastikan panjang row cukup sebelum mengakses indeks
                 try:
                     trace_data = {
                         "Timestamp": row[0].isoformat() if isinstance(row[0], datetime) else str(row[0]),
