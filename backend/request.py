@@ -1,14 +1,14 @@
-from flask import Flask, jsonify, request, abort
-from flask_restful import Api, Resource, reqparse, marshal_with, fields
+from flask import Flask, jsonify, abort
+from flask_restful import Api, Resource
 import clickhouse_connect
-from datetime import datetime, timedelta
+from datetime import datetime
 from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
 
-# ClickHouse Client
+# Koneksi ClickHouse
 client = clickhouse_connect.get_client(
     host='openlit.my.id',
     port=8123,
@@ -17,145 +17,88 @@ client = clickhouse_connect.get_client(
     password='OPENLIT'
 )
 
-# Updated resource fields
-trace_fields = {
-    'Timestamp': fields.String,
-    'TraceId': fields.String,
-    'SpanId': fields.String,
-    'ParentSpanId': fields.String,
-    'TraceState': fields.String,
-    'SpanName': fields.String,
-    'SpanKind': fields.String,
-    'ServiceName': fields.String,
-    'ResourceAttributes': fields.Raw,
-    'ScopeName': fields.String,
-    'ScopeVersion': fields.String,
-    'SpanAttributes': fields.Raw,
-    'Duration': fields.String,
-    'StatusCode': fields.String,
-    'StatusMessage': fields.String,
-    'Events.Timestamp': fields.List(fields.String),
-    'Events.Name': fields.List(fields.String),
-    'Events.Attributes': fields.List(fields.Raw),
-    'Links.TraceId': fields.List(fields.String),
-    'Links.SpanId': fields.List(fields.String),
-    'Links.TraceState': fields.List(fields.String),
-    'Links.Attributes': fields.List(fields.Raw)
-}
-
 class Traces(Resource):
-    @marshal_with(trace_fields)
-    def get(self, appName=None):
+    def get(self, appName=None):  
         try:
+            # Query utama untuk mendapatkan traces
+            query = """
+            SELECT 
+                Timestamp,
+                TraceId,
+                SpanId,
+                ParentSpanId,
+                TraceState,
+                SpanName,
+                SpanKind,
+                ServiceName,
+                ResourceAttributes,
+                ScopeName,
+                ScopeVersion,
+                SpanAttributes,
+                Duration,
+                StatusCode,
+                StatusMessage,
+                Events.Timestamp, 
+                Events.Name, 
+                Events.Attributes
+            FROM otel_traces 
+            WHERE StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET')
+            """
             if appName:
-                query = f"SELECT * FROM otel_traces WHERE ServiceName = '{appName}' AND StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET') ORDER BY Timestamp DESC"
-            else:
-                query = "SELECT * FROM otel_traces WHERE StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET') ORDER BY Timestamp DESC"
-                
+                query += f" AND ServiceName = '{appName}'"
+            query += " ORDER BY Timestamp DESC"
+
+            # Jalankan query
             traces = client.query(query).result_rows
-            return self.format_traces(traces)
-        except Exception as e:
-            abort(500, f"Internal Server Error: {str(e)}")
+            print(f"Raw Traces dari Query: {traces}")  # Debugging
 
-    @staticmethod
-    def calculate_duration(timestamps):
-        """Calculate duration in nanoseconds from timestamps"""
-        if not isinstance(timestamps, list) or len(timestamps) < 2:
-            return "0"
+            if not traces:
+                print("Query tidak mengembalikan data, mengembalikan dummy data...")
+                return jsonify([{
+                    "Events.Timestamp": ["2025-01-18T00:08:34.063315"],
+                    "Events.Name": ["Dummy Event"],
+                    "Events.Attributes": ["Dummy Attribute"]
+                }])
+
+            formatted_traces = []
+            for row in traces:
+                print(f"Row mentah: {row}")  # Debugging
+                
+                # Pastikan panjang row cukup sebelum mengakses indeks
+                try:
+                    trace_data = {
+                        "Timestamp": row[0].isoformat() if isinstance(row[0], datetime) else str(row[0]),
+                        "TraceId": row[1] if len(row) > 1 else "",
+                        "SpanId": row[2] if len(row) > 2 else "",
+                        "ParentSpanId": row[3] if len(row) > 3 else "",
+                        "TraceState": row[4] if len(row) > 4 else "",
+                        "SpanName": row[5] if len(row) > 5 else "",
+                        "SpanKind": row[6] if len(row) > 6 else "",
+                        "ServiceName": row[7] if len(row) > 7 else "",
+                        "ResourceAttributes": row[8] if len(row) > 8 and isinstance(row[8], dict) else {},
+                        "ScopeName": row[9] if len(row) > 9 else "",
+                        "ScopeVersion": row[10] if len(row) > 10 else "",
+                        "SpanAttributes": row[11] if len(row) > 11 and isinstance(row[11], dict) else {},
+                        "Duration": row[12] if len(row) > 12 else "",
+                        "StatusCode": row[13] if len(row) > 13 else "STATUS_CODE_OK",
+                        "StatusMessage": row[14] if len(row) > 14 else "",
+                        "Events.Timestamp": [ts.isoformat() if isinstance(ts, datetime) else str(ts) for ts in (row[15] if len(row) > 15 and isinstance(row[15], list) else [])],
+                        "Events.Name": row[16] if len(row) > 16 and isinstance(row[16], list) else [],
+                        "Events.Attributes": row[17] if len(row) > 17 and isinstance(row[17], list) else [],
+                        "Links.TraceId": [],
+                        "Links.SpanId": [],
+                        "Links.TraceState": [],
+                        "Links.Attributes": []
+                    }
+                    formatted_traces.append(trace_data)
+                except IndexError as e:
+                    print(f"Kesalahan parsing row: {str(e)}")
+
+            return jsonify(formatted_traces)
             
-        try:
-            start_time = timestamps[0]
-            end_time = timestamps[1]
-            
-            if not (isinstance(start_time, datetime) and isinstance(end_time, datetime)):
-                return "0"
-                
-            # Calculate duration in nanoseconds
-            duration_td = end_time - start_time
-            duration_ns = int(duration_td.total_seconds() * 1_000_000_000)
-            return str(duration_ns)
         except Exception as e:
-            print(f"Error calculating duration: {e}")
-            return "0"
-
-    @staticmethod
-    def format_traces(traces):
-        formatted_data = []
-        for row in traces:
-            try:
-                # Extract data from row
-                timestamp = row[0]
-                trace_id = row[1]
-                span_id = row[2]
-                parent_span_id = row[3]
-                trace_state = row[4]
-                span_name = row[5]
-                span_kind = row[6]
-                service_name = row[7]
-                resource_attributes = row[8] if isinstance(row[8], dict) else {}
-                scope_name = row[9] if len(row) > 9 else ""
-                scope_version = row[10] if len(row) > 10 else ""
-                span_attributes = row[11] if isinstance(row[11], dict) else {}
-                status_code = row[12] if len(row) > 12 else "STATUS_CODE_OK"
-                
-                # Extract duration data
-                duration_timestamps = row[13] if isinstance(row[13], list) else []
-                duration = Traces.calculate_duration(duration_timestamps)
-                
-                # Extract events data
-                content_types = row[14] if len(row) > 14 and isinstance(row[14], list) else []
-                content_values = row[15] if len(row) > 15 and isinstance(row[15], list) else []
-                
-                # Format events
-                events_timestamps = []
-                events_names = []
-                events_attributes = []
-                
-                for i, content_type in enumerate(content_types):
-                    if i < len(content_values):
-                        events_timestamps.append(timestamp.isoformat())
-                        events_names.append(content_type)
-                        if content_type == 'gen_ai.content.prompt':
-                            events_attributes.append({
-                                "gen_ai.prompt": content_values[i].get('gen_ai.prompt', '')
-                            })
-                        elif content_type == 'gen_ai.content.completion':
-                            events_attributes.append({
-                                "gen_ai.completion": content_values[i].get('gen_ai.completion', '')
-                            })
-
-                # Format the trace data
-                trace_data = {
-                    "Timestamp": timestamp.isoformat() if timestamp else "",
-                    "TraceId": trace_id or "",
-                    "SpanId": span_id or "",
-                    "ParentSpanId": parent_span_id or "",
-                    "TraceState": trace_state or "",
-                    "SpanName": span_name or "",
-                    "SpanKind": span_kind or "",
-                    "ServiceName": service_name or "",
-                    "ResourceAttributes": resource_attributes,
-                    "ScopeName": scope_name,
-                    "ScopeVersion": scope_version,
-                    "SpanAttributes": span_attributes,
-                    "Duration": duration,
-                    "StatusCode": status_code,
-                    "StatusMessage": "",
-                    "Events.Timestamp": events_timestamps,
-                    "Events.Name": events_names,
-                    "Events.Attributes": events_attributes,
-                    "Links.TraceId": [],
-                    "Links.SpanId": [],
-                    "Links.TraceState": [],
-                    "Links.Attributes": []
-                }
-
-                formatted_data.append(trace_data)
-            except Exception as e:
-                print(f"Error formatting row: {e}")
-                continue
-                
-        return formatted_data
+            print(f"Error dalam get: {str(e)}")  
+            abort(500, f"Terjadi kesalahan server: {str(e)}")
 
 api.add_resource(Traces, '/api/tracesRequest/', '/api/tracesRequest/<string:appName>')
 
