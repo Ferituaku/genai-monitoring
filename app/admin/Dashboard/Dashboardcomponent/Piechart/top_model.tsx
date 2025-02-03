@@ -2,17 +2,22 @@
 
 import React, { useState, useEffect } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { useSearchParams } from "next/navigation";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#A28DFF"];
 
 export default function TopModel() {
   const [chartData, setChartData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const searchParams = useSearchParams();  // Mengambil query parameter dari URL
+
+  // Mendapatkan nilai 'days' dari parameter query URL
+  const days = searchParams.get("days");
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch("http://127.0.0.1:5000/dashboard");
+        const response = await fetch(`http://127.0.0.1:5000/dashboard?days=${days}`);
         const data = await response.json();
         console.log("Fetched Data:", data);
 
@@ -34,7 +39,7 @@ export default function TopModel() {
       }
     }
     fetchData();
-  }, []);
+  }, [days]);
 
   if (isLoading) return <div>Loading...</div>;
 

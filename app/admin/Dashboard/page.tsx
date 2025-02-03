@@ -27,25 +27,10 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen">
       <div className="p-2 pt-20">
-        <div
-          className="items-center gap-4 pl-2 pr-0 rounded-3xl shadow-md py-2 px-4 w-80 mb-4"
-          style={{ backgroundColor: "#3F79D2" }}
-        >
-          {timeRanges.map((range) => (
-            <button
-              key={range}
-              onClick={() => setActiveTab(range)}
-              className={`px-4 py-2 rounded-3xl text-sm font-medium transition-colors ${
-                activeTab === range
-                  ? "bg-primary text-white"
-                  : "bg-light text-secondary hover:text-slate-200"
-              }`}
-            >
-              {range}
-            </button>
-          ))}
-        </div>
-
+      
+      <div className="flex relative items-center gap-4">
+              <TimeFrame />
+      </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           <MetricCard
             title="Total Request"

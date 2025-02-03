@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   LineChart,
   Line,
@@ -26,11 +27,15 @@ export default function Tokenusage() {
   const [requestData, setRequestData] = useState<any[]>([]); // Tipe data bisa lebih diperjelas
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const searchParams = useSearchParams();  // Mengambil query parameter dari URL
+
+  // Mendapatkan nilai 'days' dari parameter query URL
+  const days = searchParams.get("days");
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch("http://127.0.0.1:5000/dashboard");
+        const response = await fetch(`http://127.0.0.1:5000/dashboard?days=${days}`);
         const data: StatsData = await response.json();
         console.log("Fetched Data:", data);
 
@@ -57,7 +62,7 @@ export default function Tokenusage() {
     }
 
     fetchData();
-  }, []);
+  }, [days]);
 
   if (isLoading)
     return (

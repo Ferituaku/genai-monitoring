@@ -5,13 +5,13 @@ import React, { useState, useEffect } from "react";
 const TimeFrame = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState("7D"); // Default 7 hari
+  const [activeTab, setActiveTab] = useState("7D");
   const timeRanges: Record<string, number | null> = {
     "24H": 1,
     "7D": 7,
     "1M": 30,
     "3M": 90,
-    CUSTOM: null, // Bisa dikembangkan untuk input manual
+    CUSTOM: null,
   };
 
   useEffect(() => {
@@ -28,42 +28,18 @@ const TimeFrame = () => {
     setActiveTab(range);
     const days = timeRanges[range];
 
-    // Update parameter URL
     const params = new URLSearchParams(searchParams);
     if (days !== null) {
       params.set("days", days.toString());
     } else {
-      params.delete("days"); // CUSTOM bisa menggunakan input tambahan
+      params.delete("days");
     }
 
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  // return (
-  // <div
-  //   className="items-center gap-4 pl-2 pr-0 rounded-3xl shadow-md py-2 px-4 w-80 "
-  //   style={{ backgroundColor: "#3F79D2" }}
-  // >
-  //     {timeRanges.map((range) => (
-  //       <button
-  //         key={range}
-  //         onClick={() => setActiveTab(range)}
-  //         className={`px-4 py-2 rounded-3xl text-sm font-medium transition-colors ${
-  //           activeTab === range
-  //             ? "bg-primary text-white"
-  //             : "bg-light text-secondary hover:text-slate-200"
-  //         }`}
-  //       >
-  //         {range}
-  //       </button>
-  //     ))}
-  //   </div>
-  // );
   return (
-    <div
-      className="items-center gap-4 pl-2 pr-0 rounded-3xl shadow-md py-2 px-4 w-80 "
-      style={{ backgroundColor: "#3F79D2" }}
-    >
+    <div className="items-center gap-4 pl-2 pr-0 rounded-3xl shadow-md py-2 px-4 w-80 " style={{ backgroundColor: "#3F79D2" }}>
       {Object.keys(timeRanges).map((range) => (
         <button
           key={range}
