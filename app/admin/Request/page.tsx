@@ -10,6 +10,13 @@ import {
   Clock,
   Coins,
   Tags,
+  Braces,
+  AlarmClock,
+  Ticket,
+  Boxes,
+  Container,
+  ClipboardType,
+  DoorClosed,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -79,8 +86,8 @@ const RequestRow = ({ data }: { data: TraceData }) => {
   const duration = `${(parseInt(data.Duration || "0") / 1_000_000_000).toFixed(
     2
   )}s`; // Convert nanoseconds to seconds
-
-  // Find prompt and completion from Events.Attributes
+  const environment = 
+  // Find prompt and completion from Events.Attributes (masih tidak kebaca sebagai output, prompt dan response stringnya)
   const prompt =
     data["Events.Attributes"]?.find((attr) => "gen_ai.prompt" in attr)?.[
       "gen_ai.prompt"
@@ -117,69 +124,105 @@ const RequestRow = ({ data }: { data: TraceData }) => {
           </td>
         </tr>
       </SheetTrigger>
-      <SheetContent className="w-full max-w-4xl sm:w-[90vw] lg:w-[60vw] resize">
-        <SheetHeader className="mb-6">
-          <SheetTitle className="text-xl font-bold">Request Details</SheetTitle>
+      <SheetContent className="w-full max-w-4xl sm:w-[55vw] lg:w-[50vw] resize">
+        <SheetHeader className="mb-8">
+          <SheetTitle className="text-sm sm:text-xs font-bold">
+            Request Details
+          </SheetTitle>
           <SheetDescription>
             Detailed information about this request
           </SheetDescription>
         </SheetHeader>
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-500">Created:</span>
-            <span className="text-sm">{formatDate(data.Timestamp)}</span>
+        <div className="flex items-start flex-wrap gap-3 mb-4">
+          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+            <Clock className="h-4 w-4 text-white sm:text-xs" />
+            <span className="text-sm text-white sm:text-xs">Created:</span>
+            <span className="text-sm text-white sm:text-xs">
+              {formatDate(data.Timestamp)}
+            </span>
           </div>
-          <div className="flex items-center gap-2">
-            <Coins className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-500">Cost:</span>
-            <span className="text-sm">{costUsage}</span>
+          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+            <Coins className="h-4 w-4 text-white sm:text-xs" />
+            <span className="text-sm text-white sm:text-xs">Cost:</span>
+            <span className="text-sm text-white sm:text-xs">{costUsage}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Tags className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-500">Model:</span>
-            <span className="text-sm">{modelName}</span>
+          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+            <Boxes className="h-4 w-4 text-white sm:text-xs" />
+            <span className="text-sm text-white sm:text-xs">Model:</span>
+            <span className="text-sm text-white sm:text-xs">{modelName}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-500">Duration:</span>
-            <span className="text-sm">{duration}</span>
+          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+            <AlarmClock className="h-4 w-4 text-white sm:text-xs" />
+            <span className="text-sm text-white sm:text-xs">
+              Request Duration:
+            </span>
+            <span className="text-sm text-white sm:text-xs">{duration}</span>
           </div>
-        </div>
-
-        <div className="mb-6">
-          <h3 className="text-sm font-medium mb-2">Token Usage</h3>
-          <div className="grid grid-cols-3 gap-4 bg-blue-600/70 p-3 rounded-lg">
-            <div>
-              <div className="text-xs text-gray-700">Prompt</div>
-              <div className="text-sm font-medium">{promptTokens}</div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-700">Completion</div>
-              <div className="text-sm font-medium">{completionTokens}</div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-700">Total</div>
-              <div className="text-sm font-medium">{totalTokens}</div>
-            </div>
+          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+            <Braces className="h-4 w-4 text-white sm:text-xs" />
+            <span className="text-sm text-white sm:text-xs">Promt Token:</span>
+            <span className="text-sm text-white sm:text-xs">
+              {promptTokens}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+            <Ticket className="h-4 w-4 text-white sm:text-xs" />
+            <span className="text-sm text-white sm:text-xs">Total Token:</span>
+            <span className="text-sm text-white sm:text-xs">{totalTokens}</span>
+          </div>
+          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+            <MessageSquare className="h-4 w-4 text-white sm:text-xs" />
+            <span className="text-sm text-white sm:text-xs">Completion:</span>
+            <span className="text-sm text-white sm:text-xs">
+              {completionTokens}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+            <Container className="h-4 w-4 text-white sm:text-xs" />
+            <span className="text-sm text-white sm:text-xs">Environment:</span>
+            <span className="text-sm text-white sm:text-xs">
+              {completionTokens}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+            <ClipboardType className="h-4 w-4 text-white sm:text-xs" />
+            <span className="text-sm text-white sm:text-xs">Type:</span>
+            <span className="text-sm text-white sm:text-xs">
+              {completionTokens}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+            <DoorClosed className="h-4 w-4 text-white sm:text-xs" />
+            <span className="text-sm text-white sm:text-xs">Endpoint:</span>
+            <span className="text-sm text-white sm:text-xs">
+              {completionTokens}
+            </span>
           </div>
         </div>
 
         <div className="space-y-4">
           <div>
             <h3 className="text-sm font-medium mb-2">Prompt</h3>
-            <div className="bg-blue-600/70 p-3 rounded-lg">
-              <pre className="text-sm whitespace-pre-wrap">
+            <div className="bg-black p-3 rounded-md">
+              <pre className="text-sm text-white whitespace-pre-wrap">
                 {prompt || "No prompt available"}
               </pre>
             </div>
           </div>
           <div>
-            <h3 className="text-sm font-medium mb-2">Completion</h3>
-            <div className="bg-blue-600/70 p-3 rounded-lg">
-              <pre className="text-sm whitespace-pre-wrap">
-                {completion || "No completion available"}
+            <h3 className="text-sm font-medium mb-2">Response</h3>
+            <div className="bg-black p-3 rounded-lg">
+              <pre className="text-sm text-white whitespace-pre-wrap">
+                {completion || "No response available"}
+              </pre>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-sm font-medium mb-2">Trace</h3>
+            <div className="bg-black p-3 rounded-lg">
+              <pre className="text-sm text-white whitespace-pre-wrap">
+                {completion || "No trace available"}
               </pre>
             </div>
           </div>
