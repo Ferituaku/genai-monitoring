@@ -1,11 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
-  Search,
-  ArrowUpDown,
-  ChevronDown,
-  SlidersHorizontal,
   MessageSquare,
   Clock,
   Coins,
@@ -18,15 +13,7 @@ import {
   ClipboardType,
   DoorClosed,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+
 import {
   Sheet,
   SheetContent,
@@ -35,15 +22,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import TimeFrame from "@/components/TimeFrame";
-import { useSearchParams } from "next/navigation";
 
 interface TraceData {
   Timestamp: string;
