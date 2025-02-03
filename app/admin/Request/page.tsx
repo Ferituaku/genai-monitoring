@@ -43,6 +43,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import TimeFrame from "@/components/TimeFrame";
+import { useSearchParams } from "next/navigation";
+import RequestRow from "./RequestRow/page";
 
 interface TraceData {
   Timestamp: string;
@@ -87,199 +89,199 @@ interface TraceData {
   "Links.Attributes": any[];
 }
 
-const RequestRow = ({ data }: { data: TraceData }) => {
-  const formatDate = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString();
-  };
+// const RequestRow = ({ data }: { data: TraceData }) => {
+//   const formatDate = (timestamp: string) => {
+//     return new Date(timestamp).toLocaleString();
+//   };
 
-  const modelName = data.SpanAttributes?.["gen_ai.request.model"] || "";
-  const completionTokens = parseInt(
-    data.SpanAttributes?.["gen_ai.usage.output_tokens"] || "0"
-  );
-  const promptTokens = parseInt(
-    data.SpanAttributes?.["gen_ai.usage.input_tokens"] || "0"
-  );
-  const totalTokens = parseInt(
-    data.SpanAttributes?.["gen_ai.usage.total_tokens"] || "0"
-  );
-  const costUsage = `$${parseFloat(
-    data.SpanAttributes?.["gen_ai.usage.cost"] || "0"
-  ).toFixed(10)}`;
-  const duration = `${(parseInt(data.Duration || "0") / 1_000_000_000).toFixed(
-    2
-  )}s`; // Convert nanoseconds to seconds
-  const environment = data.ResourceAttributes["deployment.environment"] || "";
-  const type = data.SpanAttributes["gen_ai.operation.name"] || "";
-  const endpoint = data.SpanAttributes["gen_ai.endpoint"] || "";
+//   const modelName = data.SpanAttributes?.["gen_ai.request.model"] || "";
+//   const completionTokens = parseInt(
+//     data.SpanAttributes?.["gen_ai.usage.output_tokens"] || "0"
+//   );
+//   const promptTokens = parseInt(
+//     data.SpanAttributes?.["gen_ai.usage.input_tokens"] || "0"
+//   );
+//   const totalTokens = parseInt(
+//     data.SpanAttributes?.["gen_ai.usage.total_tokens"] || "0"
+//   );
+//   const costUsage = `$${parseFloat(
+//     data.SpanAttributes?.["gen_ai.usage.cost"] || "0"
+//   ).toFixed(10)}`;
+//   const duration = `${(parseInt(data.Duration || "0") / 1_000_000_000).toFixed(
+//     2
+//   )}s`; // Convert nanoseconds to seconds
+//   const environment = data.ResourceAttributes["deployment.environment"] || "";
+//   const type = data.SpanAttributes["gen_ai.operation.name"] || "";
+//   const endpoint = data.SpanAttributes["gen_ai.endpoint"] || "";
 
-  // Find prompt and completion from Events.Attributes (masih tidak kebaca sebagai output, prompt dan response stringnya)
-  const prompt =
-    data["Events.Attributes"]?.find((attr) => "gen_ai.prompt" in attr)?.[
-      "gen_ai.prompt"
-    ] || "";
-  const completion =
-    data["Events.Attributes"]?.find((attr) => "gen_ai.completion" in attr)?.[
-      "gen_ai.completion"
-    ] || "";
-  const formatTraceData = () => {
-    const root = {
-      root: {
-        Timestamp: data.Timestamp,
-        TraceId: data.TraceId,
-        SpanId: data.SpanId,
-        ParentSpanId: data.ParentSpanId,
-        TraceState: data.TraceState,
-        SpanName: data.SpanName,
-        SpanKind: data.SpanKind,
-        ServiceName: data.ServiceName,
-        ResourceAttributes: data.ResourceAttributes,
-        ScopeName: data.ScopeName,
-        ScopeVersion: data.ScopeVersion,
-        SpanAttributes: data.SpanAttributes,
-        Duration: data.Duration,
-        StatusCode: data.StatusCode,
-        StatusMessage: data.StatusMessage,
-        "Events.Timestamp": data["Events.Timestamp"],
-        "Events.Name": data["Events.Name"],
-        "Events.Attributes": data["Events.Attributes"],
-        "Links.TraceId": data["Links.TraceId"],
-        "Links.SpanId": data["Links.SpanId"],
-        "Links.TraceState": data["Links.TraceState"],
-        "Links.Attributes": data["Links.Attributes"],
-      },
-    };
+//   // Find prompt and completion from Events.Attributes (masih tidak kebaca sebagai output, prompt dan response stringnya)
+//   const prompt =
+//     data["Events.Attributes"]?.find((attr) => "gen_ai.prompt" in attr)?.[
+//       "gen_ai.prompt"
+//     ] || "";
+//   const completion =
+//     data["Events.Attributes"]?.find((attr) => "gen_ai.completion" in attr)?.[
+//       "gen_ai.completion"
+//     ] || "";
+//   const formatTraceData = () => {
+//     const root = {
+//       root: {
+//         Timestamp: data.Timestamp,
+//         TraceId: data.TraceId,
+//         SpanId: data.SpanId,
+//         ParentSpanId: data.ParentSpanId,
+//         TraceState: data.TraceState,
+//         SpanName: data.SpanName,
+//         SpanKind: data.SpanKind,
+//         ServiceName: data.ServiceName,
+//         ResourceAttributes: data.ResourceAttributes,
+//         ScopeName: data.ScopeName,
+//         ScopeVersion: data.ScopeVersion,
+//         SpanAttributes: data.SpanAttributes,
+//         Duration: data.Duration,
+//         StatusCode: data.StatusCode,
+//         StatusMessage: data.StatusMessage,
+//         "Events.Timestamp": data["Events.Timestamp"],
+//         "Events.Name": data["Events.Name"],
+//         "Events.Attributes": data["Events.Attributes"],
+//         "Links.TraceId": data["Links.TraceId"],
+//         "Links.SpanId": data["Links.SpanId"],
+//         "Links.TraceState": data["Links.TraceState"],
+//         "Links.Attributes": data["Links.Attributes"],
+//       },
+//     };
 
-    return JSON.stringify(root, null, 2);
-  };
-  
-  return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <tr className="border-b border-gray-700 hover:bg-slate-400/10 transition-colors cursor-pointer">
-          <td className="px-6 py-4 whitespace-nowrap text-sm w-[180px]">
-            {formatDate(data.Timestamp)}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm w-[150px]">
-            {data.ServiceName}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm w-[180px]">
-            {modelName}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-right w-[150px]">
-            {completionTokens}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-right w-[120px]">
-            {promptTokens}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-right w-[120px]">
-            {totalTokens}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-right w-[120px]">
-            {costUsage}
-          </td>
-        </tr>
-      </SheetTrigger>
-      <SheetContent className="w-full max-w-4xl sm:w-[55vw] lg:w-[50vw] resize overflow-y-scroll">
-        <SheetHeader className="mb-8">
-          <SheetTitle className="text-sm sm:text-xs font-bold">
-            Request Details
-          </SheetTitle>
-          <SheetDescription>
-            Detailed information about this request
-          </SheetDescription>
-        </SheetHeader>
+//     return JSON.stringify(root, null, 2);
+//   };
 
-        <div className="flex items-start flex-wrap gap-3 mb-4">
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <Clock className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Created:</span>
-            <span className="text-sm text-white sm:text-xs">
-              {formatDate(data.Timestamp)}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <Coins className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Cost:</span>
-            <span className="text-sm text-white sm:text-xs">{costUsage}</span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <Boxes className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Model:</span>
-            <span className="text-sm text-white sm:text-xs">{modelName}</span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <AlarmClock className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">
-              Request Duration:
-            </span>
-            <span className="text-sm text-white sm:text-xs">{duration}</span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <Braces className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Promt Token:</span>
-            <span className="text-sm text-white sm:text-xs">
-              {promptTokens}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <Ticket className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Total Token:</span>
-            <span className="text-sm text-white sm:text-xs">{totalTokens}</span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <MessageSquare className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Completion:</span>
-            <span className="text-sm text-white sm:text-xs">
-              {completionTokens}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <Container className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Environment:</span>
-            <span className="text-sm text-white sm:text-xs">{environment}</span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <ClipboardType className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Type:</span>
-            <span className="text-sm text-white sm:text-xs">{type}</span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <DoorClosed className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Endpoint:</span>
-            <span className="text-sm text-white sm:text-xs">{endpoint}</span>
-          </div>
-        </div>
+//   return (
+//     <Sheet>
+//       <SheetTrigger asChild>
+//         <tr className="border-b border-gray-700 hover:bg-slate-400/10 transition-colors cursor-pointer">
+//           <td className="px-6 py-4 whitespace-nowrap text-sm w-[180px]">
+//             {formatDate(data.Timestamp)}
+//           </td>
+//           <td className="px-6 py-4 whitespace-nowrap text-sm w-[150px]">
+//             {data.ServiceName}
+//           </td>
+//           <td className="px-6 py-4 whitespace-nowrap text-sm w-[180px]">
+//             {modelName}
+//           </td>
+//           <td className="px-6 py-4 whitespace-nowrap text-sm text-right w-[150px]">
+//             {completionTokens}
+//           </td>
+//           <td className="px-6 py-4 whitespace-nowrap text-sm text-right w-[120px]">
+//             {promptTokens}
+//           </td>
+//           <td className="px-6 py-4 whitespace-nowrap text-sm text-right w-[120px]">
+//             {totalTokens}
+//           </td>
+//           <td className="px-6 py-4 whitespace-nowrap text-sm text-right w-[120px]">
+//             {costUsage}
+//           </td>
+//         </tr>
+//       </SheetTrigger>
+//       <SheetContent className="w-full max-w-4xl sm:w-[55vw] lg:w-[50vw] resize overflow-y-scroll">
+//         <SheetHeader className="mb-8">
+//           <SheetTitle className="text-sm sm:text-xs font-bold">
+//             Request Details
+//           </SheetTitle>
+//           <SheetDescription>
+//             Detailed information about this request
+//           </SheetDescription>
+//         </SheetHeader>
 
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-sm font-medium mb-2">Prompt</h3>
-            <div className="bg-black p-3 rounded-md">
-              <pre className="text-sm text-white whitespace-pre-wrap">
-                {prompt || "No prompt available"}
-              </pre>
-            </div>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium mb-2">Response</h3>
-            <div className="bg-black p-3 rounded-lg">
-              <pre className="text-sm text-white whitespace-pre-wrap">
-                {completion || "No response available"}
-              </pre>
-            </div>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium mb-2">Trace</h3>
-            <div className="bg-black p-3 max-h-screen rounded-lg overflow-y-scroll">
-              <pre className="text-sm text-white whitespace-pre-wrap">
-                {formatTraceData()}
-              </pre>
-            </div>
-          </div>
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-};
+//         <div className="flex items-start flex-wrap gap-3 mb-4">
+//           <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+//             <Clock className="h-4 w-4 text-white sm:text-xs" />
+//             <span className="text-sm text-white sm:text-xs">Created:</span>
+//             <span className="text-sm text-white sm:text-xs">
+//               {formatDate(data.Timestamp)}
+//             </span>
+//           </div>
+//           <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+//             <Coins className="h-4 w-4 text-white sm:text-xs" />
+//             <span className="text-sm text-white sm:text-xs">Cost:</span>
+//             <span className="text-sm text-white sm:text-xs">{costUsage}</span>
+//           </div>
+//           <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+//             <Boxes className="h-4 w-4 text-white sm:text-xs" />
+//             <span className="text-sm text-white sm:text-xs">Model:</span>
+//             <span className="text-sm text-white sm:text-xs">{modelName}</span>
+//           </div>
+//           <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+//             <AlarmClock className="h-4 w-4 text-white sm:text-xs" />
+//             <span className="text-sm text-white sm:text-xs">
+//               Request Duration:
+//             </span>
+//             <span className="text-sm text-white sm:text-xs">{duration}</span>
+//           </div>
+//           <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+//             <Braces className="h-4 w-4 text-white sm:text-xs" />
+//             <span className="text-sm text-white sm:text-xs">Promt Token:</span>
+//             <span className="text-sm text-white sm:text-xs">
+//               {promptTokens}
+//             </span>
+//           </div>
+//           <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+//             <Ticket className="h-4 w-4 text-white sm:text-xs" />
+//             <span className="text-sm text-white sm:text-xs">Total Token:</span>
+//             <span className="text-sm text-white sm:text-xs">{totalTokens}</span>
+//           </div>
+//           <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+//             <MessageSquare className="h-4 w-4 text-white sm:text-xs" />
+//             <span className="text-sm text-white sm:text-xs">Completion:</span>
+//             <span className="text-sm text-white sm:text-xs">
+//               {completionTokens}
+//             </span>
+//           </div>
+//           <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+//             <Container className="h-4 w-4 text-white sm:text-xs" />
+//             <span className="text-sm text-white sm:text-xs">Environment:</span>
+//             <span className="text-sm text-white sm:text-xs">{environment}</span>
+//           </div>
+//           <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+//             <ClipboardType className="h-4 w-4 text-white sm:text-xs" />
+//             <span className="text-sm text-white sm:text-xs">Type:</span>
+//             <span className="text-sm text-white sm:text-xs">{type}</span>
+//           </div>
+//           <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+//             <DoorClosed className="h-4 w-4 text-white sm:text-xs" />
+//             <span className="text-sm text-white sm:text-xs">Endpoint:</span>
+//             <span className="text-sm text-white sm:text-xs">{endpoint}</span>
+//           </div>
+//         </div>
+
+//         <div className="space-y-4">
+//           <div>
+//             <h3 className="text-sm font-medium mb-2">Prompt</h3>
+//             <div className="bg-black p-3 rounded-md">
+//               <pre className="text-sm text-white whitespace-pre-wrap">
+//                 {prompt || "No prompt available"}
+//               </pre>
+//             </div>
+//           </div>
+//           <div>
+//             <h3 className="text-sm font-medium mb-2">Response</h3>
+//             <div className="bg-black p-3 rounded-lg">
+//               <pre className="text-sm text-white whitespace-pre-wrap">
+//                 {completion || "No response available"}
+//               </pre>
+//             </div>
+//           </div>
+//           <div>
+//             <h3 className="text-sm font-medium mb-2">Trace</h3>
+//             <div className="bg-black p-3 max-h-screen rounded-lg overflow-y-scroll">
+//               <pre className="text-sm text-white whitespace-pre-wrap">
+//                 {formatTraceData()}
+//               </pre>
+//             </div>
+//           </div>
+//         </div>
+//       </SheetContent>
+//     </Sheet>
+//   );
+// };
 
 const Request = () => {
   const [traces, setTraces] = useState<TraceData[]>([]);
@@ -288,12 +290,15 @@ const Request = () => {
   const [pageSize, setPageSize] = useState("10");
   const [error, setError] = useState<string | null>(null);
 
+  const searchParams = useSearchParams();
+  const days = searchParams.get("days") || "7"; //buat handle time frame show data
+
   useEffect(() => {
     const fetchTraces = async () => {
       try {
         setLoading(true);
         const response = await fetch(
-          "http://localhost:5000/api/tracesRequest/"
+          `http://localhost:5000/api/tracesRequest/?days=${days}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch traces");
@@ -309,7 +314,7 @@ const Request = () => {
     };
 
     fetchTraces();
-  }, []);
+  }, [days]);
 
   const filteredTraces = traces.filter((trace) =>
     trace.ServiceName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -319,8 +324,26 @@ const Request = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen ml-64 flex items-center justify-center">
-        Loading...
+      <div className="text-center">
+        <div role="status">
+          <svg
+            aria-hidden="true"
+            className="inline w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+            viewBox="0 0 100 101"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+              fill="currentColor"
+            />
+            <path
+              d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+              fill="currentFill"
+            />
+          </svg>
+          <span className="sr-only">Loading...</span>
+        </div>
       </div>
     );
   }
