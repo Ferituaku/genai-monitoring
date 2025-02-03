@@ -49,20 +49,42 @@ interface TraceData {
   TraceId: string;
   SpanId: string;
   ParentSpanId: string;
+  TraceState: string;
   ServiceName: string;
   SpanName: string;
+  SpanKind: string;
+  ScopeName: string;
+  ScopeVersion: string;
+  StatusCode: string;
+  StatusMessage: string;
   SpanAttributes: {
     "gen_ai.request.model": string;
     "gen_ai.usage.output_tokens": string;
     "gen_ai.usage.input_tokens": string;
     "gen_ai.usage.total_tokens": string;
     "gen_ai.usage.cost": string;
+    "gen_ai.operation.name": string;
+    "gen_ai.endpoint": string;
+    [key: string]: string;
+  };
+  ResourceAttributes: {
+    "deployment.environment": string;
+    "telemetry.sdk.version": string;
+    "service.name": string;
+    "telemetry.sdk.language": string;
+    "telemetry.sdk.name": string;
   };
   Duration: string;
   "Events.Attributes": Array<{
     "gen_ai.prompt"?: string;
     "gen_ai.completion"?: string;
   }>;
+  "Events.Name": string[];
+  "Events.Timestamp": string[];
+  "Links.TraceId": string[];
+  "Links.SpanId": string[];
+  "Links.TraceState": string[];
+  "Links.Attributes": any[];
 }
 
 const RequestRow = ({ data }: { data: TraceData }) => {
@@ -86,7 +108,10 @@ const RequestRow = ({ data }: { data: TraceData }) => {
   const duration = `${(parseInt(data.Duration || "0") / 1_000_000_000).toFixed(
     2
   )}s`; // Convert nanoseconds to seconds
-  const environment = 
+  const environment = data.ResourceAttributes["deployment.environment"] || "";
+  const type = data.SpanAttributes["gen_ai.operation.name"] || "";
+  const endpoint = data.SpanAttributes["gen_ai.endpoint"] || "";
+
   // Find prompt and completion from Events.Attributes (masih tidak kebaca sebagai output, prompt dan response stringnya)
   const prompt =
     data["Events.Attributes"]?.find((attr) => "gen_ai.prompt" in attr)?.[
@@ -96,7 +121,37 @@ const RequestRow = ({ data }: { data: TraceData }) => {
     data["Events.Attributes"]?.find((attr) => "gen_ai.completion" in attr)?.[
       "gen_ai.completion"
     ] || "";
+  const formatTraceData = () => {
+    const root = {
+      root: {
+        Timestamp: data.Timestamp,
+        TraceId: data.TraceId,
+        SpanId: data.SpanId,
+        ParentSpanId: data.ParentSpanId,
+        TraceState: data.TraceState,
+        SpanName: data.SpanName,
+        SpanKind: data.SpanKind,
+        ServiceName: data.ServiceName,
+        ResourceAttributes: data.ResourceAttributes,
+        ScopeName: data.ScopeName,
+        ScopeVersion: data.ScopeVersion,
+        SpanAttributes: data.SpanAttributes,
+        Duration: data.Duration,
+        StatusCode: data.StatusCode,
+        StatusMessage: data.StatusMessage,
+        "Events.Timestamp": data["Events.Timestamp"],
+        "Events.Name": data["Events.Name"],
+        "Events.Attributes": data["Events.Attributes"],
+        "Links.TraceId": data["Links.TraceId"],
+        "Links.SpanId": data["Links.SpanId"],
+        "Links.TraceState": data["Links.TraceState"],
+        "Links.Attributes": data["Links.Attributes"],
+      },
+    };
 
+    return JSON.stringify(root, null, 2);
+  };
+  
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -124,7 +179,7 @@ const RequestRow = ({ data }: { data: TraceData }) => {
           </td>
         </tr>
       </SheetTrigger>
-      <SheetContent className="w-full max-w-4xl sm:w-[55vw] lg:w-[50vw] resize">
+      <SheetContent className="w-full max-w-4xl sm:w-[55vw] lg:w-[50vw] resize overflow-y-scroll">
         <SheetHeader className="mb-8">
           <SheetTitle className="text-sm sm:text-xs font-bold">
             Request Details
@@ -181,23 +236,17 @@ const RequestRow = ({ data }: { data: TraceData }) => {
           <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
             <Container className="h-4 w-4 text-white sm:text-xs" />
             <span className="text-sm text-white sm:text-xs">Environment:</span>
-            <span className="text-sm text-white sm:text-xs">
-              {completionTokens}
-            </span>
+            <span className="text-sm text-white sm:text-xs">{environment}</span>
           </div>
           <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
             <ClipboardType className="h-4 w-4 text-white sm:text-xs" />
             <span className="text-sm text-white sm:text-xs">Type:</span>
-            <span className="text-sm text-white sm:text-xs">
-              {completionTokens}
-            </span>
+            <span className="text-sm text-white sm:text-xs">{type}</span>
           </div>
           <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
             <DoorClosed className="h-4 w-4 text-white sm:text-xs" />
             <span className="text-sm text-white sm:text-xs">Endpoint:</span>
-            <span className="text-sm text-white sm:text-xs">
-              {completionTokens}
-            </span>
+            <span className="text-sm text-white sm:text-xs">{endpoint}</span>
           </div>
         </div>
 
@@ -220,9 +269,9 @@ const RequestRow = ({ data }: { data: TraceData }) => {
           </div>
           <div>
             <h3 className="text-sm font-medium mb-2">Trace</h3>
-            <div className="bg-black p-3 rounded-lg">
+            <div className="bg-black p-3 max-h-screen rounded-lg overflow-y-scroll">
               <pre className="text-sm text-white whitespace-pre-wrap">
-                {completion || "No trace available"}
+                {formatTraceData()}
               </pre>
             </div>
           </div>
