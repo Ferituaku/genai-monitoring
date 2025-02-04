@@ -30,6 +30,47 @@ class PricingManager:
             print(f"Error saving data: {str(e)}")
             return False
 
+    def validate_model_data(self, model, new_data):
+        """Validate data based on model type."""
+        if model == "audio" or model == "embeddings":
+            # Validasi untuk audio/embeddings - harus numeric
+            for key, value in new_data.items():
+                if not isinstance(value, (int, float)):
+                    return False, "Value must be numeric for audio/embeddings models"
+                    
+        elif model == "chat":
+            # Validasi untuk chat - check setiap model yang ditambahkan
+            for model_name, model_data in new_data.items():
+                if not isinstance(model_data, dict):
+                    return False, "Chat model data must be an object"
+                if "completionPrice" not in model_data or "promptPrice" not in model_data:
+                    return False, "Chat model must have completionPrice and promptPrice"
+                if not isinstance(model_data["completionPrice"], (int, float)) or \
+                not isinstance(model_data["promptPrice"], (int, float)):
+                    return False, "Price values must be numeric"
+                    
+        elif model == "images":
+            # Validasi untuk images - struktur fleksibel
+            if not isinstance(new_data, dict):
+                return False, "Image model data must be an object"
+            
+            # Validasi setiap kategori
+            for model_name, categories in new_data.items():
+                if not isinstance(categories, dict):
+                    return False, f"Model '{model_name}' must contain categories object"
+                    
+                # Validasi setiap size dalam kategori
+                for category, sizes in categories.items():
+                    if not isinstance(sizes, dict):
+                        return False, f"Category '{category}' in model '{model_name}' must contain sizes object"
+                        
+                    # Validasi harga untuk setiap size
+                    for size, price in sizes.items():
+                        if not isinstance(price, (int, float)):
+                            return False, f"Price for {model_name}/{category}/{size} must be numeric"
+                            
+        return True, "Validation successful"
+
     def get_all_data(self):
         """Get all pricing data."""
         return self.data
@@ -40,8 +81,10 @@ class PricingManager:
 
     def add_model_data(self, model, new_data):
         """Add new data to a model."""
-        if not isinstance(new_data, dict):
-            return False, "Invalid data format"
+        # Validate data format first
+        is_valid, message = self.validate_model_data(model, new_data)
+        if not is_valid:
+            return False, message
 
         if model not in self.data:
             self.data[model] = {}
@@ -60,7 +103,48 @@ class PricingManager:
         if model not in self.data or data_model not in self.data[model]:
             return False, "Model or data not found"
 
-        self.data[model][data_model] = new_value
+        if model == "chat":
+            if not isinstance(new_value, dict):
+                return False, "Chat model data must be an object"
+            if "completionPrice" not in new_value or "promptPrice" not in new_value:
+                return False, "Chat model must have completionPrice and promptPrice"
+            if not isinstance(new_value["completionPrice"], (int, float)) or \
+            not isinstance(new_value["promptPrice"], (int, float)):
+                return False, "Price values must be numeric"
+            
+            self.data[model][data_model] = new_value
+            
+        elif model == "images":
+            # Ambil data existing
+            existing_data = self.data[model][data_model]
+            
+            # Validasi new_value
+            if not isinstance(new_value, dict):
+                return False, "Image model data must be an object"
+                
+            # Update hanya kategori yang dikirim, pertahankan yang lain
+            for category, sizes in new_value.items():
+                if not isinstance(sizes, dict):
+                    return False, f"Category '{category}' must contain sizes object"
+                    
+                for size, price in sizes.items():
+                    if not isinstance(price, (int, float)):
+                        return False, f"Price for {category}/{size} must be numeric"
+            
+            # Merge data lama dengan data baru
+            if existing_data:
+                for category, sizes in new_value.items():
+                    existing_data[category] = sizes
+                self.data[model][data_model] = existing_data
+            else:
+                self.data[model][data_model] = new_value
+                
+        else:
+            # Untuk audio/embeddings
+            if not isinstance(new_value, (int, float)):
+                return False, "Value must be numeric for audio/embeddings models"
+            self.data[model][data_model] = new_value
+
         return True, "Data updated successfully"
 
     def delete_model_data(self, model, data_model):
@@ -126,7 +210,7 @@ class PricingAPI:
         if new_value is None:
             return jsonify({"error": "Missing 'value' in request body"}), 400
 
-        success, message = self.pricing_manager.update_model_data(model, data_model, new_value)
+        success, message = self.pricing_manager.update_model_data(model, data_model, new_value)  # Kirim new_value
         if not success:
             return jsonify({"error": message}), 404
 
