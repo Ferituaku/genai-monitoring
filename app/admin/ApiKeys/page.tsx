@@ -35,16 +35,6 @@ const ApiKeys = () => {
       created: "1/13/2025, 2:22:05 PM",
       permissions: "Read/Write",
     },
-    {
-      name: "Main",
-      created: "1/13/2025, 2:23:03 PM",
-      permissions: "Read/Write",
-    },
-    {
-      name: "coba1",
-      created: "1/13/2025, 4:14:24 PM",
-      permissions: "Read/Write",
-    },
   ];
 
   return (
