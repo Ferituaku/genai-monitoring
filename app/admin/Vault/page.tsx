@@ -59,53 +59,6 @@ const page = () => {
     // Add your delete logic here
   };
   return (
-    // <div className="p-6 pl-64 pt-5">
-    //   <Card>
-    //     <CardContent>
-    //       <table className="w-full rounded-lg">
-    //         <thead>
-    //           <tr className="sticky top-2 border-b border-gray-500">
-    //             <th className="px-4 py-3 text-left border-r border-gray-500 text-sm font-medium text-gray-500">
-    //               Key
-    //             </th>
-    //             <th className="px-4 py-3 text-left border-r border-gray-500 text-sm font-medium text-gray-500">
-    //               Created By
-    //             </th>
-    //             <th className="px-4 py-3 text-left border-r border-gray-500 text-sm font-medium text-gray-500">
-    //               Last Updated On
-    //             </th>
-    //             <th className="px-4 py-3 text-left  border-gray-500 text-sm font-medium text-gray-500">
-    //               Actions
-    //             </th>
-    //           </tr>
-    //         </thead>
-    //         <tbody>
-    //           <tr>
-    //             <TableCell className="px-4 py-3 border-b border-gray-500 text-sm">
-    //               STAGING_TAX_API-KEY
-    //             </TableCell>
-    //             <TableCell className="px-4 py-3 border-b border-gray-500 text-sm">
-    //               John Doe
-    //             </TableCell>
-    //             <TableCell className="px-4 py-3 border-b border-gray-500 text-sm">
-    //               2023-01-01
-    //             </TableCell>
-    //             <TableCell className="px-4 py-3 border-b border-gray-500 text-sm">
-    //               <div className="flex justify-start   space-x-2">
-    //                 <Button variant="ghost" size="icon">
-    //                   <SquarePen className="h-4 w-4 text-gray-500" />
-    //                 </Button>
-    //                 <Button variant="ghost" size="icon">
-    //                   <Trash2 className="h-4 w-4 text-red-500" />
-    //                 </Button>
-    //               </div>
-    //             </TableCell>
-    //           </tr>
-    //         </tbody>
-    //       </table>
-    //     </CardContent>
-    //   </Card>
-    // </div>
     <div className="p-6 pt-5">
       <div className="flex justify-end p-4">
         <Button
