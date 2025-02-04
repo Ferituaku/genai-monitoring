@@ -1,23 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import {
-  Search,
-  ArrowUpDown,
-  ChevronDown,
-  SlidersHorizontal,
-  MessageSquare,
-  Clock,
-  Coins,
-  Tags,
-  Braces,
-  AlarmClock,
-  Ticket,
-  Boxes,
-  Container,
-  ClipboardType,
-  DoorClosed,
-} from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Search, ArrowUpDown, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -27,24 +11,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import TimeFrame from "@/components/TimeFrame";
 import { useSearchParams } from "next/navigation";
 import RequestRow from "./RequestRow/page";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 interface TraceData {
   Timestamp: string;
@@ -89,12 +66,32 @@ interface TraceData {
   "Links.Attributes": any[];
 }
 
+type SortField =
+  | "Timestamp"
+  | "SpanAttributes.gen_ai.request.model"
+  | "SpanAttributes.gen_ai.usage.total_tokens"
+  | "SpanAttributes.gen_ai.usage.cost";
+type SortDirection = "asc" | "desc";
+
 const Request = () => {
   const [traces, setTraces] = useState<TraceData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [pageSize, setPageSize] = useState("10");
   const [error, setError] = useState<string | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  //  advanced filtering and sorting
+  const [selectedModels, setSelectedModels] = useState<string[]>([]);
+  const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>(
+    []
+  );
+  const [sortField, setSortField] = useState<string>("Timestamp");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
+  //  searchable filters
+  const [modelSearchTerm, setModelSearchTerm] = useState("");
+  const [environmentSearchTerm, setEnvironmentSearchTerm] = useState("");
 
   const searchParams = useSearchParams();
   const days = searchParams.get("days") || "7"; //buat handle time frame show data
@@ -122,11 +119,117 @@ const Request = () => {
     fetchTraces();
   }, [days]);
 
-  const filteredTraces = traces.filter((trace) =>
-    trace.ServiceName.toLowerCase().includes(searchTerm.toLowerCase())
+  const uniqueModels = useMemo(
+    () => [
+      ...new Set(
+        traces
+          .map((trace) => trace.SpanAttributes["gen_ai.request.model"])
+          .filter((model): model is string => model !== undefined)
+      ),
+    ],
+    [traces]
   );
 
-  const displayedTraces = filteredTraces.slice(0, parseInt(pageSize));
+  const uniqueEnvironments = useMemo(
+    () => [
+      ...new Set(
+        traces
+          .map((trace) => trace.ResourceAttributes["deployment.environment"])
+          .filter((env): env is string => env !== undefined)
+      ),
+    ],
+    [traces]
+  );
+
+  const filteredUniqueModels = useMemo(
+    () =>
+      uniqueModels.filter((model) =>
+        model.toLowerCase().includes(modelSearchTerm.toLowerCase())
+      ),
+    [uniqueModels, modelSearchTerm]
+  );
+
+  const filteredUniqueEnvironments = useMemo(
+    () =>
+      uniqueEnvironments.filter((env) =>
+        env.toLowerCase().includes(environmentSearchTerm.toLowerCase())
+      ),
+    [uniqueEnvironments, environmentSearchTerm]
+  );
+
+  const filteredTraces = useMemo(() => {
+    return traces.filter((trace) => {
+      // Safely get model and environment
+      const model = trace.SpanAttributes["gen_ai.request.model"] || "";
+      const environment =
+        trace.ResourceAttributes["deployment.environment"] || "";
+
+      // Service Name search
+      const matchesSearchTerm = trace.ServiceName.toLowerCase().includes(
+        searchTerm.toLowerCase()
+      );
+
+      // Model filter
+      const matchesModel =
+        selectedModels.length === 0 || selectedModels.includes(model);
+
+      // Environment filter
+      const matchesEnvironment =
+        selectedEnvironments.length === 0 ||
+        selectedEnvironments.includes(environment);
+
+      return matchesSearchTerm && matchesModel && matchesEnvironment;
+    });
+  }, [traces, searchTerm, selectedModels, selectedEnvironments]);
+
+  const sortedTraces = useMemo(() => {
+    return [...filteredTraces].sort((a, b) => {
+      let valueA: string | number;
+      let valueB: string | number;
+
+      switch (sortField) {
+        case "Timestamp":
+          valueA = new Date(a.Timestamp).getTime();
+          valueB = new Date(b.Timestamp).getTime();
+          break;
+        case "SpanAttributes.gen_ai.request.model":
+          valueA = a.SpanAttributes["gen_ai.request.model"];
+          valueB = b.SpanAttributes["gen_ai.request.model"];
+          break;
+        case "SpanAttributes.gen_ai.usage.total_tokens":
+          valueA = parseInt(
+            a.SpanAttributes["gen_ai.usage.total_tokens"] || "0"
+          );
+          valueB = parseInt(
+            b.SpanAttributes["gen_ai.usage.total_tokens"] || "0"
+          );
+          break;
+        case "SpanAttributes.gen_ai.usage.cost":
+          valueA = parseFloat(a.SpanAttributes["gen_ai.usage.cost"] || "0");
+          valueB = parseFloat(b.SpanAttributes["gen_ai.usage.cost"] || "0");
+          break;
+        default:
+          valueA = a.Timestamp;
+          valueB = b.Timestamp;
+      }
+
+      // Comparison logic with sort direction
+      if (valueA < valueB) return sortDirection === "asc" ? -1 : 1;
+      if (valueA > valueB) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [filteredTraces, sortField, sortDirection]);
+
+  const displayedTraces = sortedTraces.slice(0, parseInt(pageSize));
+
+  // Reset filters function
+  const resetFilters = () => {
+    setSelectedModels([]);
+    setSelectedEnvironments([]);
+    setSearchTerm("");
+    setSortField("Timestamp");
+    setSortDirection("desc");
+  };
 
   if (loading) {
     return (
@@ -135,7 +238,7 @@ const Request = () => {
           <svg
             aria-hidden="true"
             className="inline w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
-            viewBox="0 0 100 101" 
+            viewBox="0 0 100 101"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
@@ -182,8 +285,9 @@ const Request = () => {
             </div>
           </div>
           <div className="flex gap-2 justify-end items-center">
+            {/* Page Size Button */}
             <Select value={pageSize} onValueChange={setPageSize}>
-              <SelectTrigger className="w-28 bg-blue-600 hover:bg-blue-700 text-white border-0">
+              <SelectTrigger className="w-32 bg-blue-600 hover:bg-blue-700 text-white border-0">
                 <span className="flex items-center gap-2">
                   Ukuran: <SelectValue />
                 </span>
@@ -194,18 +298,146 @@ const Request = () => {
                 <SelectItem value="50">50</SelectItem>
               </SelectContent>
             </Select>
-            <Button
-              variant="secondary"
-              className="border-gray-700 hover:bg-slate-400/10 transition-colors bg-white/5"
+            {/* Sorting Button */}
+            <Select
+              value={`${sortField}-${sortDirection}`}
+              onValueChange={(value) => {
+                const [field, direction] = value.split("-") as [
+                  SortField,
+                  SortDirection
+                ];
+                setSortField(field);
+                setSortDirection(direction);
+              }}
             >
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="secondary"
-              className="border-gray-700 hover:bg-slate-400/10 transition-colors bg-white/5"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-            </Button>
+              <SelectTrigger className="w-20 bg-blue-600 hover:bg-blue-700 text-white border-0">
+                <span className="flex items-center gap-2">
+                  <ArrowUpDown className="h-4 w-4" />
+                </span>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Timestamp-desc">Newest First</SelectItem>
+                <SelectItem value="Timestamp-asc">Oldest First</SelectItem>
+                <SelectItem value="SpanAttributes.gen_ai.request.model-asc">
+                  Model (A-Z)
+                </SelectItem>
+                <SelectItem value="SpanAttributes.gen_ai.usage.total_tokens-desc">
+                  Highest Tokens
+                </SelectItem>
+                <SelectItem value="SpanAttributes.gen_ai.usage.cost-desc">
+                  Highest Cost
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            {/* Filter Button */}
+            <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="secondary"
+                  className="border-gray-700 shadow-md bg-blue-600 hover:bg-blue-700 transition-colors"
+                >
+                  <SlidersHorizontal className="h-4 w-4 text-white" />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="absolute right-0 mt-2 w-80 bg-white border rounded-lg shadow-lg p-4 z-50">
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium mb-2">Filter by Model</h4>
+                    <div className="relative mb-2">
+                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+                      <Input
+                        type="text"
+                        placeholder="Search models"
+                        className="pl-8 w-full"
+                        value={modelSearchTerm}
+                        onChange={(e) => setModelSearchTerm(e.target.value)}
+                      />
+                    </div>
+                    <div className="max-h-40 overflow-y-auto">
+                      {filteredUniqueModels.length > 0 ? (
+                        filteredUniqueModels.map((model) => (
+                          <div
+                            key={model}
+                            className="flex items-center space-x-2 mb-2"
+                          >
+                            <Checkbox
+                              id={`model-${model}`}
+                              checked={selectedModels.includes(model)}
+                              onCheckedChange={(checked) => {
+                                setSelectedModels((prev) =>
+                                  checked
+                                    ? [...prev, model]
+                                    : prev.filter((m) => m !== model)
+                                );
+                              }}
+                            />
+                            <Label htmlFor={`model-${model}`}>{model}</Label>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500 text-center">
+                          No models found
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Environment Filter with Search */}
+                  <div>
+                    <h4 className="font-medium mb-2">Filter by Environment</h4>
+                    <div className="relative mb-2">
+                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+                      <Input
+                        type="text"
+                        placeholder="Search environments"
+                        className="pl-8 w-full"
+                        value={environmentSearchTerm}
+                        onChange={(e) =>
+                          setEnvironmentSearchTerm(e.target.value)
+                        }
+                      />
+                    </div>
+                    <div className="max-h-40 overflow-y-auto">
+                      {filteredUniqueEnvironments.length > 0 ? (
+                        filteredUniqueEnvironments.map((env) => (
+                          <div
+                            key={env}
+                            className="flex items-center space-x-2 mb-2"
+                          >
+                            <Checkbox
+                              id={`env-${env}`}
+                              checked={selectedEnvironments.includes(env)}
+                              onCheckedChange={(checked) => {
+                                setSelectedEnvironments((prev) =>
+                                  checked
+                                    ? [...prev, env]
+                                    : prev.filter((e) => e !== env)
+                                );
+                              }}
+                            />
+                            <Label htmlFor={`env-${env}`}>{env}</Label>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500 text-center">
+                          No environments found
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <Button
+                      variant="outline"
+                      onClick={resetFilters}
+                      className="flex items-center gap-2"
+                    >
+                      <X className="h-4 w-4" /> Reset Filters
+                    </Button>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
         </div>
       </div>

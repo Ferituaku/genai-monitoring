@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Search,
   ArrowUpDown,
@@ -38,6 +38,8 @@ interface ErrorTraceData {
   Duration: string;
   "Events.Attributes": Array<Record<string, string>>;
 }
+type SortField = "Timestamp";
+type SortDirection = "asc" | "desc";
 
 const Exceptions = () => {
   const [traces, setTraces] = useState<ErrorTraceData[]>([]);
@@ -47,6 +49,8 @@ const Exceptions = () => {
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const days = searchParams.get("days") || "7"; //buat handle time frame show data
+  const [sortField, setSortField] = useState<SortField>("Timestamp");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
   useEffect(() => {
     const fetchTraces = async () => {
@@ -71,11 +75,24 @@ const Exceptions = () => {
     fetchTraces();
   }, [days]);
 
-  const filteredTraces = traces.filter((trace) =>
-    trace.ServiceName?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredTraces = useMemo(() => {
+    return traces.filter((trace) =>
+      trace.ServiceName?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [traces, searchTerm]);
 
-  const displayedTraces = filteredTraces.slice(0, parseInt(pageSize));
+  const sortedTraces = useMemo(() => {
+    return [...filteredTraces].sort((a, b) => {
+      const timestampA = new Date(a.Timestamp).getTime();
+      const timestampB = new Date(b.Timestamp).getTime();
+
+      return sortDirection === "asc"
+        ? timestampA - timestampB
+        : timestampB - timestampA;
+    });
+  }, [filteredTraces, sortDirection]);
+
+  const displayedTraces = sortedTraces.slice(0, parseInt(pageSize));
 
   if (loading) {
     return (
@@ -131,10 +148,11 @@ const Exceptions = () => {
             </div>
           </div>
           <div className="flex gap-2 justify-end items-center">
+            {/* Page Size Button */}
             <Select value={pageSize} onValueChange={setPageSize}>
-              <SelectTrigger className="w-28 bg-blue-600 hover:bg-blue-700 text-white border-0">
+              <SelectTrigger className="w-32 bg-blue-600 hover:bg-blue-700 text-white border-0">
                 <span className="flex items-center gap-2">
-                  Size: <SelectValue />
+                  Ukuran: <SelectValue />
                 </span>
               </SelectTrigger>
               <SelectContent>
@@ -143,18 +161,28 @@ const Exceptions = () => {
                 <SelectItem value="50">50</SelectItem>
               </SelectContent>
             </Select>
-            <Button
-              variant="secondary"
-              className="border-gray-700 hover:bg-slate-400/10 transition-colors bg-white/5"
+            {/* Sorting Button */}
+            <Select
+              value={`${sortField}-${sortDirection}`}
+              onValueChange={(value) => {
+                const [field, direction] = value.split("-") as [
+                  SortField,
+                  SortDirection
+                ];
+                setSortField(field);
+                setSortDirection(direction);
+              }}
             >
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="secondary"
-              className="border-gray-700 hover:bg-slate-400/10 transition-colors bg-white/5"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-            </Button>
+              <SelectTrigger className="w-20 bg-blue-600 hover:bg-blue-700 text-white border-0">
+                <span className="flex items-center gap-2">
+                  <ArrowUpDown className="h-4 w-4" />
+                </span>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Timestamp-desc">Newest First</SelectItem>
+                <SelectItem value="Timestamp-asc">Oldest First</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>

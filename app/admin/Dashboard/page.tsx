@@ -3,7 +3,6 @@
 // import { div } from "framer-motion/client";
 import React, { useState } from "react";
 import MetricCard from "@/components/MetricCard";
-import DonutChart from "@/components/DonutChart";
 import ChartRequest from "@/components/ChartRequest";
 import TimeFrame from "@/components/TimeFrame";
 import Totalrequests from "./Dashboardcomponent/Angka/total_request";
@@ -20,16 +19,12 @@ import Tokenusage from "./Dashboardcomponent/Grafik/tokenusage";
 import TopModel from "./Dashboardcomponent/Piechart/top_model";
 
 const Dashboard: React.FC = () => {
-
-  //waktu/time frame masih dummy belum ada penyesuaian dengan data yg difetch dari api database openlitnye, sama custom belum dikasih date range picker
-
   return (
     <div className="min-h-screen">
-      <div className="p-2 pt-20">
-      
-      <div className="flex relative items-center gap-4">
-              <TimeFrame />
-      </div>
+      <div className="top-2 right-0 z-10 pt-4 gap-4">
+        <div className="flex mb-4 relative items-center gap-4">
+          <TimeFrame />
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           <MetricCard
             title="Total Request"
@@ -159,7 +154,7 @@ const Dashboard: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-1 gap-6 mb-4 min-h-[450px]">
             <MetricCard
               title="Avg prompt tokens / request"
-              value= {<Avgprompttokens/>}
+              value={<Avgprompttokens />}
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -181,7 +176,7 @@ const Dashboard: React.FC = () => {
             />
             <MetricCard
               title="Avg completion tokens / request"
-              value={<Avgcompletiontokens/>}
+              value={<Avgcompletiontokens />}
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
