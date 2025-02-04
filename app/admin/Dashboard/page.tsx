@@ -20,8 +20,7 @@ import Tokenusage from "./Dashboardcomponent/Grafik/tokenusage";
 import TopModel from "./Dashboardcomponent/Piechart/top_model";
 
 const Dashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("24H");
-  const timeRanges = ["24H", "7D", "1M", "3M", "CUSTOM"];
+
   //waktu/time frame masih dummy belum ada penyesuaian dengan data yg difetch dari api database openlitnye, sama custom belum dikasih date range picker
 
   return (
@@ -204,6 +203,7 @@ const Dashboard: React.FC = () => {
             />
           </div>
           <div className="col-span-2 mb-4 bg-white p-4 rounded-lg shadow-lg">
+            <h1>Token Usage</h1>
             <Tokenusage />
           </div>
         </div>

@@ -13,65 +13,55 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-interface RequestData {
-  ok: number;
-  unset: number;
-  error: number;
-}
-
-interface StatsData {
-  Prompt_Error: number;
-  Prompt_OK: number;
-  Prompt_Unset: number;
-}
 const CHART_COLORS = {
-  ok: "#82ca9d", // Green for success
-  unset: "#8884d8", // Purple for unset
-  error: "#ff4d4f", // Red for errors
+  total_ok: "#82ca9d", // Green
+  total_error: "#ff7300", // Orange
+  total_unset: "#8884d8", // Purple
 } as const;
 
-export default function Requestpertime() {
-  const [requestData, setRequestData] = useState<RequestData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-  const searchParams = useSearchParams();  // Mengambil query parameter dari URL
+type RequestPerTime = {
+  date: string;
+  total_ok: number;
+  total_error: number;
+  total_unset: number;
+};
 
-  // Mendapatkan nilai 'days' dari parameter query URL
+export default function RequestPerTimeChart() {
+  const [requestData, setRequestData] = useState<RequestPerTime[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
   const days = searchParams.get("days");
 
   useEffect(() => {
     async function fetchData() {
       try {
         const response = await fetch(`http://127.0.0.1:5000/dashboard?days=${days}`);
-        const data: StatsData = await response.json();
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
         console.log("Fetched Data:", data);
 
-        if (
-          data?.Prompt_Error !== undefined &&
-          data?.Prompt_OK !== undefined &&
-          data?.Prompt_Unset !== undefined
-        ) {
-          // Create multiple data points for better visualization
-          const dataPoints = [
-            {
-              name: "Masi data total harusnya dibuat perhari gt",
-              ok: data.Prompt_OK,
-              unset: data.Prompt_Unset,
-              error: data.Prompt_Error,
-            },
-          ];
+        if (Array.isArray(data["request_pertime"])) {
+          // Memproses data sesuai dengan format grafik
+          const formattedData: RequestPerTime[] = data["request_pertime"].map((item: any) => ({
+            date: item.date,
+            total_ok: item.total_count_ok,
+            total_error: item.total_count_error,
+            total_unset: item.total_count_unset,
+          }));
 
-          setRequestData(dataPoints);
+          setRequestData(formattedData);
         } else {
-          console.error("Data tidak sesuai format yang diharapkan");
+          throw new Error("Data format tidak sesuai");
         }
-
-        setIsLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setError("Gagal mengambil data.");
+      } finally {
         setIsLoading(false);
       }
     }
+
     fetchData();
   }, [days]);
 
@@ -81,6 +71,7 @@ export default function Requestpertime() {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
       </div>
     );
+
   if (error) {
     return (
       <div className="flex justify-center items-center h-[300px] text-red-500">
@@ -94,7 +85,7 @@ export default function Requestpertime() {
       <ResponsiveContainer width="100%" height={380}>
         <LineChart data={requestData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis dataKey="name" tick={{ fill: "#6b7280" }} />
+          <XAxis dataKey="date" tick={{ fill: "#6b7280" }} />
           <YAxis tick={{ fill: "#6b7280" }} />
           <Tooltip
             contentStyle={{
@@ -104,30 +95,9 @@ export default function Requestpertime() {
             }}
           />
           <Legend />
-          <Line
-            type="monotone"
-            dataKey="ok"
-            stroke={CHART_COLORS.ok}
-            name="OK"
-            strokeWidth={2}
-            dot={{ strokeWidth: 2 }}
-          />
-          <Line
-            type="monotone"
-            dataKey="unset"
-            stroke={CHART_COLORS.unset}
-            name="Unset"
-            strokeWidth={2}
-            dot={{ strokeWidth: 2 }}
-          />
-          <Line
-            type="monotone"
-            dataKey="error"
-            stroke={CHART_COLORS.error}
-            name="Error"
-            strokeWidth={2}
-            dot={{ strokeWidth: 2 }}
-          />
+          <Line type="monotone" dataKey="total_ok" stroke={CHART_COLORS.total_ok} name="Total OK" strokeWidth={2} dot={{ strokeWidth: 2 }} />
+          <Line type="monotone" dataKey="total_error" stroke={CHART_COLORS.total_error} name="Total Error" strokeWidth={2} dot={{ strokeWidth: 2 }} />
+          <Line type="monotone" dataKey="total_unset" stroke={CHART_COLORS.total_unset} name="Total Unset" strokeWidth={2} dot={{ strokeWidth: 2 }} />
         </LineChart>
       </ResponsiveContainer>
     </div>

@@ -1,15 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
-import Tokenusage from "./tokenusage";  // Pastikan path impor sesuai dengan lokasi file Tokenusage
+import React from "react";
+import Tokenusage from "./tokenusage"; // Pastikan path impor sesuai dengan lokasi file Tokenusage
+import Requestpertime from "./requestpertime";
 
-const test = () => {
+const Test = () => {
   return (
-    <div>
-      <h1>Token Usage</h1>
-      {<Tokenusage/>}
+    <div className="p-4">
+      <div className="mb-6">
+        <h1 className="text-xl font-bold">Token Usage</h1>
+        <Tokenusage />
+      </div>
+      <div className="mt-6">
+        <h1 className="text-xl font-bold">Request</h1>
+        <Requestpertime />
+      </div>
     </div>
   );
 };
 
-export default test;
+export default Test;

@@ -13,50 +13,47 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-interface StatsData {
-  Prompt: number;
-  Completion: number;
+const CHART_COLORS = {
+  prompt: "#8884d8", // Purple
+  completion: "#82ca9d", // Green
+};
+
+interface TokenUsageData {
+  date: string;
+  prompt: number;
+  completion: number;
 }
 
-const CHART_COLORS = {
-  promptrequest: "#82ca9d", // Green for prompt
-  completionrequest: "#8884d8", // Purple for completion
-} as const;
-
-export default function Tokenusage() {
-  const [requestData, setRequestData] = useState<any[]>([]); // Tipe data bisa lebih diperjelas
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-  const searchParams = useSearchParams();  // Mengambil query parameter dari URL
-
-  // Mendapatkan nilai 'days' dari parameter query URL
+export default function TokenUsage() {
+  const [requestData, setRequestData] = useState<TokenUsageData[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
   const days = searchParams.get("days");
 
   useEffect(() => {
     async function fetchData() {
       try {
         const response = await fetch(`http://127.0.0.1:5000/dashboard?days=${days}`);
-        const data: StatsData = await response.json();
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
         console.log("Fetched Data:", data);
 
-        if (data?.Prompt !== undefined && data?.Completion !== undefined) {
-          // Mengubah format data menjadi format yang diterima oleh LineChart
-          const dataPoints = [
-            {
-              name: "Data Perhari",
-              promptrequest: data.Prompt,
-              completionrequest: data.Completion,
-            },
-          ];
-
-          setRequestData(dataPoints);
+        if (Array.isArray(data?.token_usage)) {
+          // Sesuaikan format data untuk Recharts dengan tipe eksplisit
+          const formattedData: TokenUsageData[] = data.token_usage.map((item: any) => ({
+            date: item.date,
+            prompt: item.prompt,
+            completion: item.completion,
+          }));
+          setRequestData(formattedData);
         } else {
-          console.error("Data tidak sesuai format yang diharapkan");
+          throw new Error("Data format tidak sesuai");
         }
-
-        setIsLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setError("Gagal mengambil data.");
+      } finally {
         setIsLoading(false);
       }
     }
@@ -84,7 +81,7 @@ export default function Tokenusage() {
       <ResponsiveContainer width="100%" height={380}>
         <LineChart data={requestData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis dataKey="name" tick={{ fill: "#6b7280" }} />
+          <XAxis dataKey="date" tick={{ fill: "#6b7280" }} />
           <YAxis tick={{ fill: "#6b7280" }} />
           <Tooltip
             contentStyle={{
@@ -96,17 +93,17 @@ export default function Tokenusage() {
           <Legend />
           <Line
             type="monotone"
-            dataKey="promptrequest"
-            stroke={CHART_COLORS.promptrequest}
-            name="Prompt"
+            dataKey="prompt"
+            stroke={CHART_COLORS.prompt}
+            name="Prompt Tokens"
             strokeWidth={2}
             dot={{ strokeWidth: 2 }}
           />
           <Line
             type="monotone"
-            dataKey="completionrequest"
-            stroke={CHART_COLORS.completionrequest}
-            name="Completion"
+            dataKey="completion"
+            stroke={CHART_COLORS.completion}
+            name="Completion Tokens"
             strokeWidth={2}
             dot={{ strokeWidth: 2 }}
           />

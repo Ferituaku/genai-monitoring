@@ -9,7 +9,8 @@ api = Api(app)
 CORS(app)
 
 # Fungsi untuk membuat client baru (hindari masalah concurrency)
-client = clickhouse_connect.get_client(
+def get_client():
+    return clickhouse_connect.get_client(
         host='openlit.my.id',
         port=8123,
         database='openlit',
@@ -22,7 +23,7 @@ class Angka(Resource):
     def get(self):
         try:
             # Ambil nilai 'days' dari parameter request (default: 7 hari)
-            days = request.args.get('days', default=1, type=int)
+            days = request.args.get('days', default=7, type=int)
             start_date = datetime.utcnow() - timedelta(days=days)
             end_date = datetime.utcnow()
 
@@ -39,9 +40,9 @@ class Angka(Resource):
                 FROM otel_traces
                 WHERE Timestamp BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
             """
-            
+            client = get_client()
             total_requests = client.query(total_request_query, {'start_date': start_date_str, 'end_date': end_date_str}).result_rows[0][0]
-             
+            client.close() 
             
             
             # Query untuk rata2 token
@@ -69,9 +70,9 @@ class Angka(Resource):
                 SELECT total_requests_ok, total_tokens, Round((total_tokens/total_requests_ok),5)  AS avg_token
                 FROM request_counts_ok, token_counts
             """
-            
+            client = get_client()
             avg_token = client.query(avg_token_query, {'start_date': start_date_str, 'end_date': end_date_str}).result_rows[0][2]
-             
+            client.close() 
 
             # Query untuk rata2 cost
             avg_cost_query =  """
@@ -98,9 +99,9 @@ class Angka(Resource):
                 SELECT total_requests_ok, total_cost, Round((total_cost/total_requests_ok),8)  AS avg_cost
                 FROM request_counts_ok, cost_counts
             """
-            
+            client = get_client()
             avg_cost = client.query(avg_cost_query,  {'start_date': start_date_str, 'end_date': end_date_str}).result_rows[0][2]
-             
+            client.close() 
 
             avg_duration_query = """
                 SELECT 
@@ -110,9 +111,9 @@ class Angka(Resource):
                 FROM otel_traces
                 WHERE Timestamp BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
             """
-            
+            client = get_client()
             avg_duration = client.query(avg_duration_query, {'start_date': start_date_str, 'end_date': end_date_str}).result_rows[0][0]
-             
+            client.close() 
 
             Cost_by_app_query = """
                 WITH cost_data AS (
@@ -141,9 +142,9 @@ class Angka(Resource):
                 ORDER BY c.totalcostperservicename DESC
                 LIMIT 5
             """
-            
+            client = get_client()
             Cost_by_app_result = client.query(Cost_by_app_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows
-             
+            client.close() 
 
             if not Cost_by_app_result:
                 return jsonify({"error": "No data found"}), 500
@@ -173,9 +174,9 @@ class Angka(Resource):
             FROM cost_data c, total_cost t
             ORDER BY percentage DESC
             """
-            
+            client = get_client()
             Gen_by_category_result = client.query(Gen_by_category_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows
-             
+            client.close() 
 
             if not Gen_by_category_result:
                 return jsonify({"error": "No data found"})
@@ -211,9 +212,9 @@ class Angka(Resource):
             
             
             """
-            
+            client = get_client()
             Cost_by_env_result = client.query(Cost_by_env_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows
-             
+            client.close() 
 
             if not Cost_by_env_result:
                 return jsonify({"error": "No data found"})
@@ -249,9 +250,9 @@ class Angka(Resource):
             ORDER BY date
             """
 
-            
+            client = get_client()
             token_usege = client.query(token_usege_query, {'start_date': start_date_str, 'end_date': end_date_str}).result_rows
-              # Tutup koneksi setelah query selesai
+            client.close()  # Tutup koneksi setelah query selesai
 
             # Jika tidak ada data, kembalikan hasil kosong
             if not token_usege:
@@ -292,10 +293,10 @@ class Angka(Resource):
                 SELECT total_requests_ok, total_prompt, Round((total_prompt/total_requests_ok),6)  AS avg_prompt
                 FROM request_counts_ok, prompt_counts
             """
-            
+            client = get_client()
             Avg_prompt_tokens = client.query(Avg_prompt_tokens_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows[0][2]
-           
-             
+            # total_prompt_tokens = client.query(Avg_prompt_tokens_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows[0][1]
+            client.close() 
 
             Top_Model_query = """
             WITH model_count AS (
@@ -319,9 +320,9 @@ class Angka(Resource):
             ORDER BY percentage DESC
             LIMIT 5
             """
-            
+            client = get_client()
             Top_Model_result = client.query(Top_Model_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows
-             
+            client.close() 
 
             if not Top_Model_result:
                 return jsonify({"error": "No data found"})
@@ -359,11 +360,11 @@ class Angka(Resource):
                 SELECT total_requests_ok, total_prompt, Round((total_prompt/total_requests_ok),6)  AS avg_prompt
                 FROM request_counts_ok, prompt_counts
             """
-            
+            client = get_client()
             Avg_completion_tokens = client.query(Avg_completion_tokens_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows[0][2]
-             
+            client.close() 
 
-            request_pertime_query = """
+            total_request_query = """
             SELECT 
                 toDate(Timestamp) AS date,
                     COUNT(CASE WHEN StatusCode = 'STATUS_CODE_OK' THEN 1 END) AS total_count_ok,
@@ -376,19 +377,19 @@ class Angka(Resource):
             ORDER BY date
             """
 
-            
-            request_pertime = client.query(request_pertime_query, {'start_date': start_date_str, 'end_date': end_date_str}).result_rows
-              # Tutup koneksi setelah query selesai
+            client = get_client()
+            total_request = client.query(total_request_query, {'start_date': start_date_str, 'end_date': end_date_str}).result_rows
+            client.close()  # Tutup koneksi setelah query selesai
 
             # Jika tidak ada data, kembalikan hasil kosong
-            if not request_pertime:
+            if not total_request:
                 return jsonify({"total?": []})
 
 
             # Proses hasil query menjadi list of dict
-            request_pertime_result = []
-            for row in request_pertime:
-                request_pertime_result.append({
+            total_request_result = []
+            for row in total_request:
+                total_request_result.append({
                     "date": row[0].strftime("%Y-%m-%d"),
                     "total_count_ok": row[1],
                     "total_count_unset": row[2],
@@ -407,10 +408,10 @@ class Angka(Resource):
                 **Gen_by_category,
                 **Cost_by_env,
                 "token_usage": token_usege_result,
-                "avg_prompt_tokens" : Avg_prompt_tokens,
-                "avg_completion_tokens" : Avg_completion_tokens,
+                "Avg_prompt_tokens" : Avg_prompt_tokens,
+                "Avg_completion_tokens" : Avg_completion_tokens,
                 **Top_Model,
-                 "request_pertime": request_pertime_result,
+                 "Total request": total_request_result,
             })
 
         except Exception as e:
