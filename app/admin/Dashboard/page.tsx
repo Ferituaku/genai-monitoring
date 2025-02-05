@@ -9,7 +9,6 @@ import Totalrequests from "./Dashboardcomponent/Angka/total_request";
 import Avgtoken from "./Dashboardcomponent/Angka/avg_token";
 import Avgcost from "./Dashboardcomponent/Angka/avg_cost";
 import Avgduration from "./Dashboardcomponent/Angka/avg_duration";
-import Requestpertime from "./Dashboardcomponent/Grafik/requestpertime";
 import Costbyapp from "./Dashboardcomponent/Piechart/cost_by_app";
 import Genbycategory from "./Dashboardcomponent/Piechart/gen_by_category";
 import Costbyenv from "./Dashboardcomponent/Piechart/cost_by_env";
@@ -17,6 +16,8 @@ import Avgprompttokens from "./Dashboardcomponent/Angka/avg_prompt_tokens";
 import Avgcompletiontokens from "./Dashboardcomponent/Angka/avg_completion_tokens";
 import Tokenusage from "./Dashboardcomponent/Grafik/tokenusage";
 import TopModel from "./Dashboardcomponent/Piechart/top_model";
+import RequestPerTimeChart from "./Dashboardcomponent/Grafik/requestpertime";
+import TokenUsage from "./Dashboardcomponent/Grafik/tokenusage";
 
 const Dashboard: React.FC = () => {
   return (
@@ -121,7 +122,7 @@ const Dashboard: React.FC = () => {
             <h2 className="text-md font-light text-slate-700 mb-4">
               Request per Time
             </h2>
-            <Requestpertime />
+            <RequestPerTimeChart />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 mb-2 gap-4">
             <div className="bg-white p-4 rounded-lg shadow-lg">
@@ -199,7 +200,7 @@ const Dashboard: React.FC = () => {
           </div>
           <div className="col-span-2 mb-4 bg-white p-4 rounded-lg shadow-lg">
             <h1>Token Usage</h1>
-            <Tokenusage />
+            <TokenUsage />
           </div>
         </div>
       </div>

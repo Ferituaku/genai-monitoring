@@ -61,7 +61,7 @@ class Traces(Resource):
 
 
 # Menambahkan endpoint ke Flask
-api.add_resource(Traces, '/yuhu')
+api.add_resource(Traces, '/chatservice')
 
 if __name__ == '__main__':
     app.run(debug=True)
