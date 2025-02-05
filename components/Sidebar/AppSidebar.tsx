@@ -29,7 +29,7 @@ interface SidebarProps {
 }
 
 export const AppSidebar = ({
-  userRole = "user",
+  userRole = "admin",
   onSignOut,
   onSidebarToggle,
   defaultOpen = true,
@@ -77,29 +77,28 @@ export const AppSidebar = ({
           "fixed inset-y-0 ml-2 left-2 top-2 bottom-2 z-30 flex flex-col",
           "bg-blue-600 text-white shadow-lg rounded-lg",
           "transition-all duration-300 ease-in-out",
-          isOpen ? "w-56" : "w-[70px]",
-          "lg:relative lg:left-0"
+          isOpen ? "w-56" : "w-[68px]",
+          "lg:static lg:mb-2 mt-2"
         )}
       >
-        <div className="flex items-center border-b border-blue-500/20 p-4">
+        <div className="flex items-center gap-1 border-b border-blue-500/20 p-4">
           <DropdownMenu>
             <DropdownMenuTrigger
               className={cn(
-                "flex items-center w-full gap-2 p-2",
+                "flex justify-center items-center w-full gap-2 p-2",
                 "rounded-md text-sm font-medium",
-                "transition-colors hover:bg-blue-500/70",
+                "bg-slate-100 transition-colors hover:bg-slate-300/70",
                 "focus-visible:outline-none focus-visible:ring-2",
                 "focus-visible:ring-white/20 focus-visible:ring-offset-2",
-                "disabled:pointer-events-none disabled:opacity-50"
+                "disabled:pointer-events-none disabled:opacity-50 transition-all ease-in-out ",
+                isOpen ? "w-full" : "hidden"
               )}
             >
-              {/* <Building className="h-5 w-5 flex-shrink-0" />
-              {isOpen && <span className="truncate"></span>} */}
               <img
-                src={isOpen ? "./astra-big.png" : "./astra-small.png"}
-                alt="Astra International"
+                src={isOpen ? "/images/astra-big.png" : "/images/astra-big.png"}
+                alt="Logo"
                 className={cn(
-                  "h-5 transition-all duration-300 object-contain",
+                  "h-[20px] scale-150  transition-all duration-700 object-contain",
                   isOpen ? "w-auto" : "w-5"
                 )}
               />
@@ -125,13 +124,13 @@ export const AppSidebar = ({
             </DropdownMenuContent>
           </DropdownMenu>
           <Button
-            className="flex justify-end p-2 cursor-pointer opacity-80 hover:opacity-100 transition-all ease-in-out mt-auto"
+            className="flex justify-end p-2 cursor-pointer opacity-60 hover:opacity-100 transition-all ease-in-out mt-auto"
             onClick={toggleSidebar}
           >
             {isOpen ? (
-              <ChevronLeft className="w-6 h-6 text-white transition-transform duration-300" />
+              <ChevronLeft className="w-6 h-9 text-white transition-transform duration-300 object-contain" />
             ) : (
-              <ChevronRight className="w-6 h-6 text-white transition-transform duration-300" />
+              <ChevronRight className="w-6 h-9 text-white transition-transform duration-300 object-contain" />
             )}
           </Button>
         </div>
