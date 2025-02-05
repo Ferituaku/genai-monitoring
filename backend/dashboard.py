@@ -1,4 +1,5 @@
 import clickhouse_connect
+print(clickhouse_connect.__file__)
 from flask import Flask, jsonify, request, abort
 from flask_restful import Api, Resource
 from datetime import datetime, timedelta
@@ -9,12 +10,7 @@ api = Api(app)
 CORS(app)
 
 # Fungsi untuk membuat client baru (hindari masalah concurrency)
-client = clickhouse_connect.get_client(
-        host='openlit.my.id',
-        port=8123,
-        database='openlit',
-        username='default',
-        password='OPENLIT',
+client =  clickhouse_connect.get_client(host='openlit.my.id', port='8123', database="openlit", username='default',password='OPENLIT',
         secure=False  # Menghindari session locking
     )
 
@@ -349,7 +345,7 @@ class Angka(Resource):
                 prompt_counts AS (
                     SELECT SUM(
                         CASE 
-                            WHEN StatusCode IN ('STATUS_CODE_OK') THEN toFloat64OrNull(SpanAttributes['gen_ai.usage.output_tokens'])  
+                            WHEN StatusCode IN ('STATUS_CODE_OK') THEN toFloat64OrZero(SpanAttributes['gen_ai.usage.output_tokens'])  
                             ELSE 0
                         END
                     ) AS total_prompt
