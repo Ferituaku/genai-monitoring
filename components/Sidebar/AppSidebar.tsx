@@ -19,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { Button } from "../ui/button";
 
 interface SidebarProps {
   userRole?: "admin" | "user" | "user1";
@@ -73,10 +74,10 @@ export const AppSidebar = ({
       <aside
         aria-label="Sidebar"
         className={cn(
-          "fixed inset-y-0 left-2 top-2 bottom-2 z-30 flex flex-col",
+          "fixed inset-y-0 ml-2 left-2 top-2 bottom-2 z-30 flex flex-col",
           "bg-blue-600 text-white shadow-lg rounded-lg",
           "transition-all duration-300 ease-in-out",
-          isOpen ? "w-56" : "w-20",
+          isOpen ? "w-56" : "w-[70px]",
           "lg:relative lg:left-0"
         )}
       >
@@ -84,7 +85,7 @@ export const AppSidebar = ({
           <DropdownMenu>
             <DropdownMenuTrigger
               className={cn(
-                "flex items-center w-full gap-2 px-2 py-1",
+                "flex items-center w-full gap-2 p-2",
                 "rounded-md text-sm font-medium",
                 "transition-colors hover:bg-blue-500/70",
                 "focus-visible:outline-none focus-visible:ring-2",
@@ -92,11 +93,19 @@ export const AppSidebar = ({
                 "disabled:pointer-events-none disabled:opacity-50"
               )}
             >
-              <Building className="h-5 w-5 flex-shrink-0" />
-              {isOpen && <span className="truncate">AI Monitoring</span>}
+              {/* <Building className="h-5 w-5 flex-shrink-0" />
+              {isOpen && <span className="truncate"></span>} */}
+              <img
+                src={isOpen ? "./astra-big.png" : "./astra-small.png"}
+                alt="Astra International"
+                className={cn(
+                  "h-5 transition-all duration-300 object-contain",
+                  isOpen ? "w-auto" : "w-5"
+                )}
+              />
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-48" align="start">
-              <DropdownMenuLabel>Account</DropdownMenuLabel>
+              <DropdownMenuLabel>AI Monitoring</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <Link
@@ -115,6 +124,16 @@ export const AppSidebar = ({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <Button
+            className="flex justify-end p-2 cursor-pointer opacity-80 hover:opacity-100 transition-all ease-in-out mt-auto"
+            onClick={toggleSidebar}
+          >
+            {isOpen ? (
+              <ChevronLeft className="w-6 h-6 text-white transition-transform duration-300" />
+            ) : (
+              <ChevronRight className="w-6 h-6 text-white transition-transform duration-300" />
+            )}
+          </Button>
         </div>
 
         {/* Navigation */}
@@ -129,16 +148,6 @@ export const AppSidebar = ({
             />
           ))}
         </nav>
-        <div
-          className="flex justify-end p-2 cursor-pointer opacity-25 hover:opacity-100 transition-all ease-in-out mt-auto"
-          onClick={toggleSidebar}
-        >
-          {isOpen ? (
-            <ChevronLeft className="w-6 h-6 text-white transition-transform duration-300" />
-          ) : (
-            <ChevronRight className="w-6 h-6 text-white transition-transform duration-300" />
-          )}
-        </div>
       </aside>
     </>
   );

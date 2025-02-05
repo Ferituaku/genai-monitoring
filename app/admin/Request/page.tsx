@@ -63,7 +63,7 @@ interface TraceData {
   "Links.TraceId": string[];
   "Links.SpanId": string[];
   "Links.TraceState": string[];
-  "Links.Attributes": any[];
+  "Links.Attributes": any[];3
 }
 
 type SortField =
@@ -267,7 +267,7 @@ const Request = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="sticky top-2 right-0 z-10 pt-4">
+      <div className="sticky right-0 z-10 top-2">
         <div className="flex flex-col lg:flex-row gap-4 mb-4 justify-between">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex relative items-center gap-4">
