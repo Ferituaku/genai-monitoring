@@ -63,7 +63,7 @@ interface TraceData {
   "Links.TraceId": string[];
   "Links.SpanId": string[];
   "Links.TraceState": string[];
-  "Links.Attributes": any[];3
+  "Links.Attributes": any[];
 }
 
 type SortField =

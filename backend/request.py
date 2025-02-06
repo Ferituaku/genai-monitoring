@@ -23,7 +23,6 @@ class Traces(Resource):
             days = request.args.get('days', default=7, type=int)
             
             # Parameter filter yang diperbaiki
-            appName = request.args.get('appName', default=None, type=str)
             deployment_environment = request.args.get('deployment_environment', default=None, type=str)
             system = request.args.get('system', default=None, type=str)
             model = request.args.get('model', default=None, type=str)
@@ -121,7 +120,7 @@ class Traces(Resource):
             SELECT *
             FROM filtered_data
             ORDER BY Timestamp DESC
-            
+            LIMIT 50
             """
 
             # Format tanggal untuk query
