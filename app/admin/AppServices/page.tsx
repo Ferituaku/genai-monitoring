@@ -7,16 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import TimeFrame from "@/components/TimeFrame";
+import { useToast } from "@/hooks/use-toast";
+import { ApiService } from "@/lib/api";
+import DynamicBreadcrumb from "@/components/Breadcrum";
 
 interface ChatSession {
   UniqueIDChat: string;
   Timestamp: string;
-  ServiceName: string;
-  Environment: string;
   TotalMessages: number;
 }
 
-interface AppProject {
+interface ProjectChat {
   serviceName: string;
   environment: string;
   totalRequests: number;
@@ -24,7 +25,7 @@ interface AppProject {
 }
 
 const Request = () => {
-  const [projects, setProjects] = useState<AppProject[]>([]);
+  const [projects, setProjects] = useState<ProjectChat[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(
@@ -32,29 +33,27 @@ const Request = () => {
   );
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const [chatHistory, setChatHistory] = useState([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         setLoading(true);
-        // Fetch projects with their chat sessions
-        const response = await fetch(`http://localhost:5000/api/projectchat`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch projects");
-        }
-        const data = await response.json();
+        const data = await ApiService.getProjectChats();
         setProjects(data);
-        setError(null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch projects. Please try again later.",
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchProjects();
-  }, []);
+  }, [toast]);
 
   const filteredProjects = useMemo(() => {
     return projects.filter((project) =>
@@ -114,6 +113,9 @@ const Request = () => {
 
   return (
     <div className="max-h-full">
+      <div className="top-0 p-2">
+        <DynamicBreadcrumb />
+      </div>
       <div className="sticky right-0 z-10 top-2">
         <div className="flex flex-col lg:flex-row gap-4 mb-4">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -169,7 +171,7 @@ const Request = () => {
                           {project.environment}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                          {project.chatSessions?.length ?? 0}
+                          {project.totalRequests}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
                           <Button
@@ -207,37 +209,37 @@ const Request = () => {
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {(project.chatSessions ?? []).map(
-                                    (session) => (
-                                      <tr
-                                        key={session.UniqueIDChat}
-                                        className="hover:bg-slate-100 transition-colors"
-                                      >
-                                        <td className="px-6 py-3 text-sm">
-                                          {session.UniqueIDChat}
-                                        </td>
-                                        <td className="px-6 py-3 text-sm">
-                                          {session.Timestamp}
-                                        </td>
-                                        <td className="px-6 py-3 text-sm text-right">
-                                          {session.TotalMessages}
-                                        </td>
-                                        <td className="px-6 py-3 text-center">
-                                          <Button
-                                            variant="ghost"
-                                            onClick={() =>
-                                              navigateToChatSession(
-                                                session.UniqueIDChat
-                                              )
-                                            }
-                                            className="hover:bg-slate-200"
-                                          >
-                                            <MessageCircle className="h-4 w-4" />
-                                          </Button>
-                                        </td>
-                                      </tr>
-                                    )
-                                  )}
+                                  {project.chatSessions.map((session) => (
+                                    <tr
+                                      key={session.UniqueIDChat}
+                                      className="hover:bg-slate-100 transition-colors"
+                                    >
+                                      <td className="px-6 py-3 text-sm">
+                                        {session.UniqueIDChat}
+                                      </td>
+                                      <td className="px-6 py-3 text-sm">
+                                        {new Date(
+                                          session.Timestamp
+                                        ).toLocaleString()}
+                                      </td>
+                                      <td className="px-6 py-3 text-sm text-right">
+                                        {session.TotalMessages}
+                                      </td>
+                                      <td className="px-6 py-3 text-center">
+                                        <Button
+                                          variant="ghost"
+                                          onClick={() =>
+                                            navigateToChatSession(
+                                              session.UniqueIDChat
+                                            )
+                                          }
+                                          className="hover:bg-slate-200"
+                                        >
+                                          <MessageCircle className="h-4 w-4" />
+                                        </Button>
+                                      </td>
+                                    </tr>
+                                  ))}
                                 </tbody>
                               </table>
                             </div>
