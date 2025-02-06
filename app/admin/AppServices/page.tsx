@@ -32,6 +32,7 @@ const Request = () => {
   );
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [chatHistory, setChatHistory] = useState([]);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -74,7 +75,7 @@ const Request = () => {
   };
 
   const navigateToChatSession = (uniqueIdChat: string) => {
-    router.push(`/chathistory/${uniqueIdChat}`);
+    router.push(`/admin/AppServices/ChatHistory/${uniqueIdChat}`);
   };
 
   if (loading) {
@@ -153,64 +154,61 @@ const Request = () => {
                   </th>
                 </tr>
               </thead>
-            </table>
+              <tbody>
+                {filteredProjects.map((project) => {
+                  const projectKey = `${project.serviceName}-${project.environment}`;
+                  const isExpanded = expandedProjects.has(projectKey);
 
-            <div className="flex-1 overflow-y-auto">
-              <table className="w-full">
-                <tbody>
-                  {filteredProjects.map((project) => {
-                    const projectKey = `${project.serviceName}-${project.environment}`;
-                    const isExpanded = expandedProjects.has(projectKey);
-
-                    return (
-                      <React.Fragment key={projectKey}>
-                        <tr className="border-t border-gray-700 hover:bg-slate-400/10 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            {project.serviceName}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            {project.environment}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                            {project.chatSessions.length}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                            <Button
-                              variant="ghost"
-                              onClick={() => toggleProjectExpansion(projectKey)}
-                              className="hover:bg-slate-200"
-                            >
-                              {isExpanded ? (
-                                <ChevronUp className="h-4 w-4" />
-                              ) : (
-                                <ChevronDown className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </td>
-                        </tr>
-                        {isExpanded && (
-                          <tr>
-                            <td colSpan={4} className="p-0">
-                              <div className="bg-gray-50 px-8 py-4">
-                                <table className="w-full">
-                                  <thead className="bg-slate-200">
-                                    <tr className="border-b border-gray-300">
-                                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-700">
-                                        Chat Session ID
-                                      </th>
-                                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-700">
-                                        Timestamp
-                                      </th>
-                                      <th className="px-6 py-3 text-right text-xs font-medium text-slate-700">
-                                        Total Messages
-                                      </th>
-                                      <th className="px-6 py-3 text-center text-xs font-medium text-slate-700">
-                                        Actions
-                                      </th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {project.chatSessions.map((session) => (
+                  return (
+                    <React.Fragment key={projectKey}>
+                      <tr className="border-t border-gray-700 hover:bg-slate-400/10 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          {project.serviceName}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          {project.environment}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+                          {project.chatSessions?.length ?? 0}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                          <Button
+                            variant="ghost"
+                            onClick={() => toggleProjectExpansion(projectKey)}
+                            className="hover:bg-slate-200"
+                          >
+                            {isExpanded ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </td>
+                      </tr>
+                      {isExpanded && (
+                        <tr>
+                          <td colSpan={4} className="p-0">
+                            <div className="bg-gray-50 px-8 py-4">
+                              <table className="w-full">
+                                <thead className="bg-slate-200">
+                                  <tr className="border-b border-gray-300">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700">
+                                      Chat Session ID
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-700">
+                                      Timestamp
+                                    </th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-slate-700">
+                                      Total Messages
+                                    </th>
+                                    <th className="px-6 py-3 text-center text-xs font-medium text-slate-700">
+                                      Actions
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {(project.chatSessions ?? []).map(
+                                    (session) => (
                                       <tr
                                         key={session.UniqueIDChat}
                                         className="hover:bg-slate-100 transition-colors"
@@ -238,19 +236,19 @@ const Request = () => {
                                           </Button>
                                         </td>
                                       </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                                    )
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </Card>
       </div>

@@ -151,7 +151,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
           <div className="grid lg:grid-rows-2 gap-6 mb-4">
             <MetricCard
               title="Avg prompt tokens / request"
@@ -186,9 +186,9 @@ const Dashboard: React.FC = () => {
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   className="lucide lucide-list-check"
                 >
                   <path d="M11 18H3" />
