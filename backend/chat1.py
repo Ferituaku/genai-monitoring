@@ -19,33 +19,44 @@ client = clickhouse_connect.get_client(
 class ProjectChatService(Resource):
     def get(self):
         try:
-            # First, get all unique chat sessions with their details
             query = """
-            WITH chat_sessions AS (
-                SELECT 
-                    ServiceName,
-                    ResourceAttributes['deployment.environment'] AS Environment,
-                    SpanAttributes['UniqueIDChat'] AS UniqueIDChat,
-                    MIN(Timestamp) AS Timestamp,
-                    COUNT(*) AS TotalMessages
-                FROM openlit.otel_traces
-                WHERE 
-                    ServiceName IS NOT NULL 
-                    AND ResourceAttributes['deployment.environment'] IS NOT NULL
-                    AND SpanAttributes['UniqueIDChat'] IS NOT NULL
-                GROUP BY 
-                    ServiceName,
-                    Environment,
-                    UniqueIDChat
-            )
-            SELECT 
-                ServiceName,
-                Environment,
-                UniqueIDChat,
-                toString(Timestamp) AS Timestamp,
-                TotalMessages
-            FROM chat_sessions
-            ORDER BY Timestamp DESC
+WITH chat_counts AS (
+    SELECT 
+        SpanAttributes['UniqueIDChat'] AS UniqueIDChat,
+        COUNT(DISTINCT SpanAttributes['ChatID']) AS MessageCount
+    FROM openlit.otel_traces
+    WHERE SpanAttributes['UniqueIDChat'] IS NOT NULL
+        AND SpanAttributes['UniqueIDChat'] != ''  -- Exclude empty strings
+    GROUP BY UniqueIDChat
+),
+chat_sessions AS (
+    SELECT 
+        ServiceName,
+        ResourceAttributes['deployment.environment'] AS Environment,
+        SpanAttributes['UniqueIDChat'] AS UniqueIDChat,
+        MIN(Timestamp) AS Timestamp,
+        chat_counts.MessageCount AS TotalMessages
+    FROM openlit.otel_traces
+    JOIN chat_counts ON chat_counts.UniqueIDChat = SpanAttributes['UniqueIDChat']
+    WHERE 
+        ServiceName IS NOT NULL 
+        AND ResourceAttributes['deployment.environment'] IS NOT NULL
+        AND SpanAttributes['UniqueIDChat'] IS NOT NULL
+        AND SpanAttributes['UniqueIDChat'] != ''  -- Exclude empty strings
+    GROUP BY 
+        ServiceName,
+        Environment,
+        UniqueIDChat,
+        chat_counts.MessageCount
+)
+SELECT 
+    ServiceName,
+    Environment,
+    UniqueIDChat,
+    toString(Timestamp) AS Timestamp,
+    TotalMessages
+FROM chat_sessions
+ORDER BY Timestamp DESC
             """
             
             result = client.query(query).result_rows
@@ -63,22 +74,23 @@ class ProjectChatService(Resource):
                         "chatSessions": []
                     }
                 
-                # Add chat session details
-                chat_session = {
-                    "UniqueIDChat": unique_id_chat,
-                    "Timestamp": timestamp,
-                    "TotalMessages": total_messages,
-                    "ServiceName": service_name,
-                    "Environment": environment
-                }
-                
-                projects[project_key]["chatSessions"].append(chat_session)
-                projects[project_key]["totalRequests"] += 1
+                # Only add sessions with non-empty UniqueIDChat
+                if unique_id_chat and unique_id_chat.strip():
+                    chat_session = {
+                        "UniqueIDChat": unique_id_chat,
+                        "Timestamp": timestamp,
+                        "TotalMessages": total_messages,
+                        "ServiceName": service_name,
+                        "Environment": environment
+                    }
+                    
+                    projects[project_key]["chatSessions"].append(chat_session)
+                    projects[project_key]["totalRequests"] += 1
 
             return jsonify(list(projects.values()))
         
         except Exception as e:
-            print(f"Error occurred: {str(e)}")  # Add logging for debugging
+            print(f"Error occurred: {str(e)}")
             return jsonify({"error": str(e)}), 500
 
 api.add_resource(ProjectChatService, '/api/projectchat')
