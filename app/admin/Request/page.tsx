@@ -94,12 +94,12 @@ const Request = () => {
   const [environmentSearchTerm, setEnvironmentSearchTerm] = useState("");
 
   const searchParams = useSearchParams();
-  const days = searchParams.get("days") || "7"; //buat handle time frame show data
+  const days = searchParams?.get("days") || "7"; //buat handle time frame show data
 
   useEffect(() => {
     const fetchTraces = async () => {
       try {
-        setLoading(true);
+          
         const response = await fetch(
           `http://localhost:5000/api/tracesRequest/?days=${days}`
         );

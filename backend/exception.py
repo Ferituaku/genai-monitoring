@@ -61,12 +61,7 @@ class Traces(Resource):
             print(f"Raw Traces dari Query: {traces}")  # Debugging
 
             if not traces:
-                print("Query tidak mengembalikan data, mengembalikan dummy data...")
-                return jsonify([{
-                    "Events.Timestamp": ["2025-01-18T00:08:34.063315"],
-                    "Events.Name": ["Dummy Event"],
-                    "Events.Attributes": ["Dummy Attribute"]
-                }])
+                print("Query tidak mengembalikan data, mengembalikan data kosong...")
 
             formatted_traces = []
             for row in traces:

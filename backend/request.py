@@ -22,7 +22,7 @@ class Traces(Resource):
             # Parameter dasar
             days = request.args.get('days', default=7, type=int)
             
-            # Parameter filter yang diperbaiki
+            # Parameter filter
             deployment_environment = request.args.get('deployment_environment', default=None, type=str)
             system = request.args.get('system', default=None, type=str)
             model = request.args.get('model', default=None, type=str)
@@ -114,7 +114,6 @@ class Traces(Resource):
             if max_duration is not None:
                 query += f" AND Duration <= {max_duration}"
             
-            # Tutup subquery dan tambahkan ORDER BY dan LIMIT
             query += """
             )
             SELECT *
