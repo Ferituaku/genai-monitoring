@@ -118,7 +118,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          <div className=" col-span-2 mb-2 bg-white p-6 rounded-lg shadow-lg min-h-[400px]">
+          <div className=" col-span-2 mb-2 bg-white p-6 rounded-lg shadow-lg min-h-[500px]">
             <h2 className="text-md font-light text-slate-700 mb-4">
               Request per Time
             </h2>
@@ -151,26 +151,26 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4  ">
-          <div className="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-1 gap-6 mb-4 min-h-[450px]">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <div className="grid lg:grid-rows-2 gap-6 mb-4">
             <MetricCard
               title="Avg prompt tokens / request"
               value={<Avgprompttokens />}
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-slate-600
-                  "
-                  fill="none"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
+                  fill="none"
                   stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-terminal"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16m-7 6h7"
-                  />
+                  <polyline points="4 17 10 11 4 5" />
+                  <line x1="12" x2="20" y1="19" y2="19" />
                 </svg>
               }
               subValue=""
@@ -181,25 +181,29 @@ const Dashboard: React.FC = () => {
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-slate-600
-                  "
-                  fill="none"
+                  width="24"
+                  height="24"
                   viewBox="0 0 24 24"
+                  fill="none"
                   stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  className="lucide lucide-list-check"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16m-7 6h7"
-                  />
+                  <path d="M11 18H3" />
+                  <path d="m15 18 2 2 4-4" />
+                  <path d="M16 12H3" />
+                  <path d="M16 6H3" />
                 </svg>
               }
               subValue=""
             />
           </div>
-          <div className="col-span-2 mb-4 bg-white p-4 rounded-lg shadow-lg">
-            <h1>Token Usage</h1>
+          <div className="col-span-3 mb-2 bg-white p-6 rounded-lg shadow-lg min-h-[320px]">
+            <h2 className="text-lg font-semibold text-gray-700 mb-4">
+              Token Usage
+            </h2>
             <TokenUsage />
           </div>
         </div>
