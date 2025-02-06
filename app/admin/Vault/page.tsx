@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { VaultData, VaultFormData } from "./VaultData";
 import { VaultTable } from "@/components/VaultTable/VaultTable";
 import { AddKeyModal } from "@/components/VaultTable/AddKeyVault";
+import DynamicBreadcrumb from "@/components/Breadcrum";
 
 const page = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -59,31 +60,36 @@ const page = () => {
     // Add your delete logic here
   };
   return (
-    <div className="p-6 pt-5">
-      <div className="flex justify-end p-4">
-        <Button
-          onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center gap-2 text-white"
-          variant="default"
-        >
-          <Plus className="h-4 w-4" />
-          Add New Key
-        </Button>
+    <div className="min-h-screen">
+      <div className="top-0 p-2">
+        <DynamicBreadcrumb />
       </div>
-      <Card>
-        <CardContent>
-          <VaultTable
-            data={vaultData}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        </CardContent>
-      </Card>
-      <AddKeyModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSubmit={handleAddKey}
-      />
+      <div className="p-6 pt-5">
+        <div className="flex justify-end p-4">
+          <Button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-2 text-white"
+            variant="default"
+          >
+            <Plus className="h-4 w-4" />
+            Add New Key
+          </Button>
+        </div>
+        <Card>
+          <CardContent>
+            <VaultTable
+              data={vaultData}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          </CardContent>
+        </Card>
+        <AddKeyModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSubmit={handleAddKey}
+        />
+      </div>
     </div>
   );
 };

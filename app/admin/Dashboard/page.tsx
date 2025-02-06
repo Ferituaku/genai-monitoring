@@ -18,10 +18,22 @@ import Tokenusage from "./Dashboardcomponent/Grafik/tokenusage";
 import TopModel from "./Dashboardcomponent/Piechart/top_model";
 import RequestPerTimeChart from "./Dashboardcomponent/Grafik/requestpertime";
 import TokenUsage from "./Dashboardcomponent/Grafik/tokenusage";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import DynamicBreadcrumb from "@/components/Breadcrum";
 
 const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen">
+      <div className="top-0 p-2">
+        <DynamicBreadcrumb />
+      </div>
       <div className="top-2 right-0 z-10 pt-4 gap-4">
         <div className="flex mb-4 relative items-center gap-4">
           <TimeFrame />
