@@ -4,36 +4,38 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 
 export default function Avgcost() {
-  const [avg_cost, setavg_cost] = useState(0);
-  const searchParams = useSearchParams();  // Mengambil query parameter dari URL
+  const [avgcost, setavgcost] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const searchParams = useSearchParams();
 
-  // Mendapatkan nilai 'days' dari parameter query URL
-  const days = searchParams.get("days");  
+  const days = searchParams.get("days"); // Mengambil nilai 'days' dari URL
 
   useEffect(() => {
     async function fetchData() {
-      if (days) {
-        try {
-          // Melakukan request dengan menyertakan 'days' sebagai query parameter
-          const response = await fetch(`http://127.0.0.1:5000/dashboard?days=${days}`);
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          const data = await response.json();
-          console.log("Fetched Data:", data);
-          setavg_cost(data.avg_cost);
-        } catch (error) {
-          console.error("Error fetching data:", error);
+      if (!days) return; // Jangan fetch kalau 'days' tidak ada
+
+      setIsLoading(true);
+      try {
+        const response = await fetch(`http://127.0.0.1:5000/dashboard===?days=${days}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+        const data = await response.json();
+        console.log("Fetched Data:", data);
+        setavgcost(data?.avg_prompt_tokens ?? 0);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
       }
     }
 
     fetchData();
-  }, [days]);  // Fetch data lagi jika parameter 'days' berubah
+  }, [days]);
 
-  if (avg_cost === null) {
+  if (isLoading) {
     return <span>Loading...</span>;
   }
 
-  return <>{avg_cost.toString()}</>; // Menampilkan nilai total requests
+  return <>{avgcost.toString()}</>; // Menampilkan nilai avgcost
 }

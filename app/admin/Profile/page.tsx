@@ -1,4 +1,5 @@
 // app/admin/profile/page.tsx
+import DynamicBreadcrumb from "@/components/Breadcrum";
 import { ProfileEdit } from "@/components/profile/ProfileEdit";
 
 export default function AdminProfilePage() {
@@ -14,6 +15,17 @@ export default function AdminProfilePage() {
   };
 
   return (
-    <ProfileEdit role="admin" initialData={initialData} onSave={handleSave} />
+    <>
+      <div className="min-h-screen">
+        <div className="top-0 p-2">
+          <DynamicBreadcrumb />
+        </div>
+        <ProfileEdit
+          role="admin"
+          initialData={initialData}
+          onSave={handleSave}
+        />
+      </div>
+    </>
   );
 }

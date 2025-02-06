@@ -18,6 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Copy, Trash2 } from "lucide-react";
+import DynamicBreadcrumb from "@/components/Breadcrum";
 
 interface ApiKey {
   name: string;
@@ -87,6 +88,7 @@ const ApiKeys = () => {
   }
 
   return (
+<<<<<<< HEAD
     <div className="flex flex-col space-y-6 p-4">
       <Card>
         <CardHeader>
@@ -141,6 +143,59 @@ const ApiKeys = () => {
       <Button onClick={handleGenerateApiKey} className="w-fit text-lg text-slate-200">
         Generate New Key
       </Button>
+=======
+    <div className="min-h-screen">
+      <div className="top-0 p-2">
+        <DynamicBreadcrumb />
+      </div>
+      <div className="flex flex-col space-y-6 p-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold">API Keys</CardTitle>
+            <CardDescription>
+              These keys can be used to read and write data to Helicone. Please
+              do not share these keys and make sure you store them somewhere
+              secure.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Permissions</TableHead>
+                  <TableHead className="w-24"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {apiKeys.map((key, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium">{key.name}</TableCell>
+                    <TableCell>{key.created}</TableCell>
+                    <TableCell>{key.permissions}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        <Button variant="ghost" size="icon">
+                          <Copy className="h-4 w-4 text-gray-500" />
+                        </Button>
+                        <Button variant="ghost" size="icon">
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        <Button className="w-fit text-lg text-slate-200">
+          Generate New Key
+        </Button>
+      </div>
+>>>>>>> 79f6a7bd055034b4fff279a4d6e1e94108bddaa5
     </div>
   );
 };

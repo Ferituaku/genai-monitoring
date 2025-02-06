@@ -93,7 +93,7 @@ ORDER BY Timestamp DESC
             print(f"Error occurred: {str(e)}")
             return jsonify({"error": str(e)}), 500
 
-api.add_resource(ProjectChatService, '/yuhu')
+api.add_resource(ProjectChatService, '/api/projectchat')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

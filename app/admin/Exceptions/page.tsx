@@ -24,6 +24,7 @@ import { Card } from "@/components/ui/card";
 import TimeFrame from "@/components/TimeFrame";
 import ExceptionRow from "./ExeptionRow/page";
 import { useSearchParams } from "next/navigation";
+import DynamicBreadcrumb from "@/components/Breadcrum";
 
 interface ErrorTraceData {
   Timestamp: string;
@@ -130,6 +131,9 @@ const Exceptions = () => {
 
   return (
     <div className="min-h-screen">
+      <div className="top-0 p-2">
+        <DynamicBreadcrumb />
+      </div>
       <div className="sticky top-2 right-0 z-10 pt-4">
         <div className="flex flex-col lg:flex-row gap-4 mb-4 justify-between">
           <div className="flex flex-col sm:flex-row gap-4">

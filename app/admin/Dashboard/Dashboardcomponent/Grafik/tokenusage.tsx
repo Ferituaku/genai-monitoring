@@ -78,7 +78,7 @@ export default function TokenUsage() {
 
   return (
     <div className="h-[300px] p-4">
-      <ResponsiveContainer width="100%" height={380}>
+      <ResponsiveContainer width="100%" height={300}>
         <LineChart data={requestData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
           <XAxis dataKey="date" tick={{ fill: "#6b7280" }} />
