@@ -1,85 +1,99 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_restful import Api, Resource
 import clickhouse_connect
 from flask_cors import CORS
 
 app = Flask(__name__)
-# CORS(app)
-CORS(app, resources={r"/*": {"origins": "*"}})
-
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
 api = Api(app)
 
-client =  clickhouse_connect.get_client(host='openlit.my.id', port='8123', database="openlit", username='default',password='OPENLIT',
-        secure=False  # Menghindari session locking
-    )
-
+client = clickhouse_connect.get_client(
+    host='openlit.my.id', 
+    port='8123', 
+    database="openlit", 
+    username='default',
+    password='OPENLIT',
+    secure=False
+)
 
 class ProjectChatService(Resource):
- def get(self):
+    def get(self):
         try:
-            # Query untuk mengambil informasi project dan chat sessions
             query = """
-WITH  
-    chat_counts AS (
-        SELECT 
-            SpanAttributes['UniqueIDChat'] AS UniqueIDChat,
-            COUNT(SpanAttributes['ChatID']) AS MessageCount
-        FROM openlit.otel_traces
-        WHERE SpanAttributes['UniqueIDChat'] IS NOT NULL
-        GROUP BY UniqueIDChat
-    )
+WITH chat_counts AS (
+    SELECT 
+        SpanAttributes['UniqueIDChat'] AS UniqueIDChat,
+        COUNT(DISTINCT SpanAttributes['ChatID']) AS MessageCount
+    FROM openlit.otel_traces
+    WHERE SpanAttributes['UniqueIDChat'] IS NOT NULL
+        AND SpanAttributes['UniqueIDChat'] != ''  -- Exclude empty strings
+    GROUP BY UniqueIDChat
+),
+chat_sessions AS (
+    SELECT 
+        ServiceName,
+        ResourceAttributes['deployment.environment'] AS Environment,
+        SpanAttributes['UniqueIDChat'] AS UniqueIDChat,
+        MIN(Timestamp) AS Timestamp,
+        chat_counts.MessageCount AS TotalMessages
+    FROM openlit.otel_traces
+    JOIN chat_counts ON chat_counts.UniqueIDChat = SpanAttributes['UniqueIDChat']
+    WHERE 
+        ServiceName IS NOT NULL 
+        AND ResourceAttributes['deployment.environment'] IS NOT NULL
+        AND SpanAttributes['UniqueIDChat'] IS NOT NULL
+        AND SpanAttributes['UniqueIDChat'] != ''  -- Exclude empty strings
+    GROUP BY 
+        ServiceName,
+        Environment,
+        UniqueIDChat,
+        chat_counts.MessageCount
+)
 SELECT 
-    t.ServiceName,
-    t.ResourceAttributes['deployment.environment'] AS Environment,
-    COUNT(DISTINCT t.SpanAttributes['UniqueIDChat']) AS TotalChatSessions,
-    groupArray(
-        tuple(
-            CASE(UniqueIDChatCount > 1 THEN 
-            t.SpanAttributes['UniqueIDChat'],
-            t.Timestamp,
-            cc.MessageCount,)
-            COUNT(SpanAttributes['UniqueIDChat'] = SpanAttributes['UniqueIDChat'] ) AS UniqueIDChatCount
-        )
-    ) AS ChatSessionDetails
-FROM openlit.otel_traces t
-JOIN chat_counts cc ON t.SpanAttributes['UniqueIDChat'] = cc.UniqueIDChat
-WHERE 
-    t.ServiceName IS NOT NULL 
-    AND t.ResourceAttributes['deployment.environment'] IS NOT NULL
-    AND t.SpanAttributes['UniqueIDChat'] IS NOT NULL
-    AND t.SpanAttributes['UniqueIDChat'] != ''
-GROUP BY t.ServiceName, Environment
-HAVING COUNT(DISTINCT t.SpanAttributes['UniqueIDChat']) > 0
-
-
+    ServiceName,
+    Environment,
+    UniqueIDChat,
+    toString(Timestamp) AS Timestamp,
+    TotalMessages
+FROM chat_sessions
+ORDER BY Timestamp DESC
             """
+            
             result = client.query(query).result_rows
             
-            formatted_traces = [
-                {
-                    "ServiceName": row[0],
-                    "Environment": row[1],
-                    "TotalChatSessions": row[2],
-                    "ChatSessionDetails": [
-                        {
-                            "UniqueIDChat": chat[0],
-                            "StartTime": chat[1],
-                            "MessageCount": chat[2]
-                        }
-                        for chat in row[3]
-                    ]
-                }
-                for row in result
-            ]
+            projects = {}
+            for row in result:
+                service_name, environment, unique_id_chat, timestamp, total_messages = row
+                project_key = f"{service_name}-{environment}"
+                
+                if project_key not in projects:
+                    projects[project_key] = {
+                        "serviceName": service_name,
+                        "environment": environment,
+                        "totalRequests": 0,
+                        "chatSessions": []
+                    }
+                
+                # Only add sessions with non-empty UniqueIDChat
+                if unique_id_chat and unique_id_chat.strip():
+                    chat_session = {
+                        "UniqueIDChat": unique_id_chat,
+                        "Timestamp": timestamp,
+                        "TotalMessages": total_messages,
+                        "ServiceName": service_name,
+                        "Environment": environment
+                    }
+                    
+                    projects[project_key]["chatSessions"].append(chat_session)
+                    projects[project_key]["totalRequests"] += 1
 
-            return jsonify(formatted_traces)
+            return jsonify(list(projects.values()))
         
         except Exception as e:
-            return jsonify({"error": str(e)})
+            print(f"Error occurred: {str(e)}")
+            return jsonify({"error": str(e)}), 500
 
-
-# Menambahkan endpoint ke Flask
 api.add_resource(ProjectChatService, '/yuhu')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
