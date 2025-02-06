@@ -49,7 +49,7 @@ const Exceptions = () => {
   const [pageSize, setPageSize] = useState("10");
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
-  const days = searchParams.get("days") || "7"; //buat handle time frame show data
+  const days = searchParams?.get("days") || "7"; //buat handle time frame show data
   const [sortField, setSortField] = useState<SortField>("Timestamp");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
