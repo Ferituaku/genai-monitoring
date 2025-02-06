@@ -32,7 +32,7 @@ const ChatHistoryPage = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          `http://localhost:5000/api/chathistory?UniqueIDChat=${uniqueIdChat}`
+          `http://localhost:5001/api/chathistory/${uniqueIdChat}`
         );
 
         if (!response.ok) {
