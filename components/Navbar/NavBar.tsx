@@ -22,9 +22,8 @@ const NavBar = () => {
   return (
     <header className="sticky left-0 right-0 top-0 flex h-[80px] items-center justify-between px-4 sm:px-10 transition-all duration-300 pb-2 bg-white bg-opacity-0">
       <div className="flex items-start sm:ml-[200px] lg:ml-10">
-        <h1 className="text-xl">Dashboard</h1>
       </div>
-      <div className="flex items-center gap-4 pl-2 rounded-lg shadow-md py-2 px-4 bg-blue-600">
+      <div className="flex items-center justify-end gap-4 pl-2 rounded-lg shadow-md py-2 px-4 bg-blue-600">
         <Switch id="airplane-mode" className="bg-gray-300 border-transparent" />
         <Label
           htmlFor="real-time-mode"

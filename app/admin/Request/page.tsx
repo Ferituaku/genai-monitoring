@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import DynamicBreadcrumb from "@/components/Breadcrum";
 
 interface TraceData {
   Timestamp: string;
@@ -267,6 +268,9 @@ const Request = () => {
 
   return (
     <div className="min-h-screen">
+      <div className="fixed top-[70px] p-2 items-center gap-4">
+        <DynamicBreadcrumb />
+      </div>
       <div className="sticky right-0 z-10 top-2">
         <div className="flex flex-col lg:flex-row gap-4 mb-4 justify-between">
           <div className="flex flex-col sm:flex-row gap-4">
