@@ -22,7 +22,7 @@ export default function Avgtoken() {
         }
         const data = await response.json();
         console.log("Fetched Data:", data);
-        setavgtoken(data?.avg_prompt_tokens ?? 0);
+        setavgtoken(data?.avg_token ?? 0);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {

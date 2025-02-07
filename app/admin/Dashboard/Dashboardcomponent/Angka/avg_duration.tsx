@@ -22,7 +22,7 @@ export default function Avgduration() {
         }
         const data = await response.json();
         console.log("Fetched Data:", data);
-        setavgduration(data?.avg_prompt_tokens ?? 0);
+        setavgduration(data?.avg_duration ?? 0);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {

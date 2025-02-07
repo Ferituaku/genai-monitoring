@@ -8,21 +8,23 @@ export default function Avgcost() {
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
 
-  const days = searchParams.get("days"); // Mengambil nilai 'days' dari URL
+  const days = searchParams.get("days");
 
   useEffect(() => {
     async function fetchData() {
-      if (!days) return; // Jangan fetch kalau 'days' tidak ada
+      if (!days) return;
 
       setIsLoading(true);
       try {
-        const response = await fetch(`http://127.0.0.1:5000/dashboard===?days=${days}`);
+        const response = await fetch(
+          `http://127.0.0.1:5000/dashboard?days=${days}`
+        );
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
         console.log("Fetched Data:", data);
-        setavgcost(data?.avg_prompt_tokens ?? 0);
+        setavgcost(data?.avg_cost ?? 0);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {

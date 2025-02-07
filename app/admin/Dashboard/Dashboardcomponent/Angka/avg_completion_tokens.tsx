@@ -22,7 +22,7 @@ export default function Avgcompletiontokens() {
         }
         const data = await response.json();
         console.log("Fetched Data:", data);
-        setavg_completion_tokens(data?.avg_prompt_tokens ?? 0);
+        setavg_completion_tokens(data?.avg_completion_tokens ?? 0);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
