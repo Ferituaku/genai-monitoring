@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import TimeFrame from "@/components/TimeFrame";
 import { useToast } from "@/hooks/use-toast";
-import { ApiService } from "@/lib/api";
+import { ApiService } from "@/lib/ChatService/api";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 
 interface ChatSession {
@@ -175,9 +175,9 @@ const Request = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             onClick={() => toggleProjectExpansion(projectKey)}
-                            className="hover:bg-slate-200"
+                            className="hover:bg-primary"
                           >
                             {isExpanded ? (
                               <ChevronUp className="h-4 w-4" />
@@ -227,13 +227,13 @@ const Request = () => {
                                       </td>
                                       <td className="px-6 py-3 text-center">
                                         <Button
-                                          variant="ghost"
+                                          variant="outline"
                                           onClick={() =>
                                             navigateToChatSession(
                                               session.UniqueIDChat
                                             )
                                           }
-                                          className="hover:bg-slate-200"
+                                          className="hover:bg-primary"
                                         >
                                           <MessageCircle className="h-4 w-4" />
                                         </Button>

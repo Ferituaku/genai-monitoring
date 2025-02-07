@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { MessageCircle, Clock, Server, Globe } from "lucide-react";
-import { ApiService } from "@/lib/api";
+import { ApiService } from "@/lib/ChatService/api";
 import { useToast } from "@/hooks/use-toast";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 

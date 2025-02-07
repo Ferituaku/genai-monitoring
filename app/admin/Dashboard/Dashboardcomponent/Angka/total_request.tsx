@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function Avgprompttoken() {
-  const [avgprompttoken, setavgprompttoken] = useState(0);
+export default function Totalrequests() {
+  const [avgprompttoken, TotalRequests] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
 
@@ -16,13 +16,15 @@ export default function Avgprompttoken() {
 
       setIsLoading(true);
       try {
-        const response = await fetch(`http://127.0.0.1:5000/dashboard?days=${days}`);
+        const response = await fetch(
+          `http://127.0.0.1:5000/dashboard?days=${days}`
+        );
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
         console.log("Fetched Data:", data);
-        setavgprompttoken(data?.avg_prompt_tokens ?? 0);
+        TotalRequests(data?.total_requests ?? 0);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
