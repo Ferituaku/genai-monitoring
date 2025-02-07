@@ -45,7 +45,7 @@ class APIKeyGenerator:
     def create_api_key():
         key = os.urandom(32)
         api_key = base64.b64encode(key).decode('utf-8')
-        return f"openlit-{api_key}"
+        return f"astra-{api_key}"
 
 class APIKeyService:
     def __init__(self, db):
@@ -55,6 +55,12 @@ class APIKeyService:
         if not project or len(project) < 3 or len(project) > 50:
             return False
         return bool(re.match(r'^[A-Za-z0-9-_]+$', project))
+    
+    def project_exists(self, project):
+        """Cek apakah project sudah ada api key"""
+        query = 'SELECT COUNT(*) as count FROM api_keys WHERE project = ? AND is_deleted = 0'
+        result = self.db.fetch_all(query, (project,))
+        return result[0]['count'] > 0
 
     def validate_name(self, name):
         if not name or len(name) < 3 or len(name) > 50:
@@ -77,6 +83,9 @@ class APIKeyService:
         # Cek apakah nama sudah digunakan
         if self.name_exists(name):
             raise ValueError("Nama sudah digunakan, silakan pilih nama lain")
+
+        if self.project_exists(project):
+            raise ValueError("Project api key sudah tersedia, silakan pilih project lain")
 
         api_key = APIKeyGenerator.create_api_key()
 
@@ -101,30 +110,29 @@ class APIKeyService:
         query = 'SELECT * FROM api_keys WHERE is_deleted = 0 ORDER BY created_at DESC'
         return self.db.fetch_all(query)
 
-    def delete_api_key(self, name):
+    def delete_api_key(self, api_key):
         # Periksa apakah nama ada
-        check_query = 'SELECT COUNT(*) as count FROM api_keys WHERE name = ? AND is_deleted = 0'
-        result = self.db.fetch_all(check_query, (name,))
+        check_query = 'SELECT COUNT(*) as count FROM api_keys WHERE api_key = ? AND is_deleted = 0'
+        result = self.db.fetch_all(check_query, (api_key,))
         
         if result[0]['count'] == 0:
-            raise ValueError("API key dengan nama tersebut tidak ditemukan atau sudah dihapus")
+            raise ValueError("API key tersebut tidak ditemukan atau sudah dihapus")
 
         query = '''
         UPDATE api_keys 
         SET is_deleted = 1,
             deleted_at = datetime('now')
-        WHERE name = ? AND is_deleted = 0
+        WHERE api_key = ? AND is_deleted = 0
         '''
-        self.db.execute_query(query, (name,))
+        self.db.execute_query(query, (api_key,))
 
 def init_db():
     db = Database()
     query = '''
     CREATE TABLE IF NOT EXISTS api_keys (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
-        api_key TEXT NOT NULL UNIQUE,
-        project TEXT NOT NULL,
+        api_key TEXT NOT NULL UNIQUE PRIMARY KEY,
+        project TEXT NOT NULL UNIQUE,
         created_at TIMESTAMP NOT NULL,
         deleted_at TIMESTAMP,
         is_deleted INTEGER DEFAULT 0,
@@ -167,9 +175,13 @@ def generate_api_key():
 @app.route('/get_api_key_info', methods=['GET'])
 def get_api_key_info():
     try:
-        api_key = request.args.get('api_key')
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Data tidak ditemukan'}), 400
+            
+        api_key = data.get('api_key')
         if not api_key:
-            return jsonify({'error': 'API key harus diisi'}), 400
+            return jsonify({'error': 'Api key harus diisi'}), 400
 
         db = Database()
         api_key_service = APIKeyService(db)
@@ -180,7 +192,6 @@ def get_api_key_info():
             return jsonify({'error': 'API key tidak ditemukan'}), 404
 
         return jsonify({
-            'id': result['id'],
             'name': result['name'],
             'api_key': result['api_key'],
             'project': result['project'],
@@ -199,7 +210,6 @@ def get_all_api_keys():
         keys = api_key_service.get_all_api_keys()
 
         return jsonify([{
-            'id': row['id'],
             'name': row['name'],
             'api_key': row['api_key'],
             'project': row['project'],
@@ -216,15 +226,15 @@ def delete_api_key():
         if not data:
             return jsonify({'error': 'Data tidak ditemukan'}), 400
             
-        name = data.get('name')
-        if not name:
-            return jsonify({'error': 'Nama harus diisi'}), 400
+        api_key = data.get('api_key')
+        if not api_key:
+            return jsonify({'error': 'Api key harus diisi'}), 400
 
         db = Database()
         api_key_service = APIKeyService(db)
 
-        api_key_service.delete_api_key(name)
-        return jsonify({'message': f'API key untuk nama {name} berhasil dihapus'})
+        api_key_service.delete_api_key(api_key)
+        return jsonify({'message': f'API key berhasil dihapus'})
 
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
