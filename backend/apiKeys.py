@@ -8,7 +8,7 @@ from datetime import datetime
 import re
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 class Database:
     def __init__(self, db_name='api_keys.db'):
@@ -244,4 +244,4 @@ def delete_api_key():
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
