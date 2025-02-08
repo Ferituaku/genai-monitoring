@@ -1,146 +1,79 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import os
-import sqlite3
 import base64
-import json
-from datetime import datetime
 import re
+from datetime import datetime
+from db import Database
+from init_db import create_tables
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
-
-class Database:
-    def __init__(self, db_name='api_keys.db'):
-        self.db_name = db_name
-
-    def get_connection(self):
-        conn = sqlite3.connect(self.db_name)
-        conn.row_factory = sqlite3.Row
-        return conn
-
-    def execute_query(self, query, params=()):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(query, params)
-            conn.commit()
-            return cursor.lastrowid
-        except sqlite3.IntegrityError as e:
-            conn.rollback()
-            raise e
-        finally:
-            conn.close()
-
-    def fetch_all(self, query, params=()):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute(query, params)
-        rows = cursor.fetchall()
-        conn.close()
-        return rows
 
 class APIKeyGenerator:
     @staticmethod
     def create_api_key():
         key = os.urandom(32)
-        api_key = base64.b64encode(key).decode('utf-8')
-        return f"astra-{api_key}"
+        return f"astra-{base64.b64encode(key).decode('utf-8')}"
+
 
 class APIKeyService:
     def __init__(self, db):
         self.db = db
 
     def validate_project_name(self, project):
-        if not project or len(project) < 3 or len(project) > 50:
-            return False
-        return bool(re.match(r'^[A-Za-z0-9-_]+$', project))
+        return bool(project and 3 <= len(project) <= 50 and re.match(r'^[A-Za-z0-9-_]+$', project))
     
-    def project_exists(self, project):
-        """Cek apakah project sudah ada api key"""
-        query = 'SELECT COUNT(*) as count FROM api_keys WHERE project = ? AND is_deleted = 0'
-        result = self.db.fetch_all(query, (project,))
-        return result[0]['count'] > 0
-
     def validate_name(self, name):
-        if not name or len(name) < 3 or len(name) > 50:
-            return False
-        return bool(re.match(r'^[A-Za-z0-9\s]+$', name))
+        return bool(name and 3 <= len(name) <= 50 and re.match(r'^[A-Za-z0-9\s]+$', name))
+
+    def project_exists(self, project):
+        query = 'SELECT COUNT(*) FROM api_keys WHERE project = ? AND is_deleted = 0'
+        result = self.db.fetch_one(query, (project,))
+        return result[0] > 0 if result else False
 
     def name_exists(self, name):
-        """Cek apakah nama sudah digunakan"""
-        query = 'SELECT COUNT(*) as count FROM api_keys WHERE name = ? AND is_deleted = 0'
-        result = self.db.fetch_all(query, (name,))
-        return result[0]['count'] > 0
+        query = 'SELECT COUNT(*) FROM api_keys WHERE name = ? AND is_deleted = 0'
+        result = self.db.fetch_one(query, (name,))
+        return result[0] > 0 if result else False
 
     def generate_api_key(self, name, project):
         if not self.validate_name(name):
             raise ValueError("Nama harus 3-50 karakter dan hanya boleh mengandung huruf, angka, dan spasi")
-        
         if not self.validate_project_name(project):
             raise ValueError("Nama project harus 3-50 karakter dan hanya boleh mengandung huruf, angka, - dan _")
-
-        # Cek apakah nama sudah digunakan
         if self.name_exists(name):
-            raise ValueError("Nama sudah digunakan, silakan pilih nama lain")
-
+            raise ValueError("Nama sudah digunakan")
         if self.project_exists(project):
-            raise ValueError("Project api key sudah tersedia, silakan pilih project lain")
+            raise ValueError("Project api key sudah tersedia")
 
         api_key = APIKeyGenerator.create_api_key()
 
-        try:
-            query = '''
-            INSERT INTO api_keys (name, api_key, project, created_at)
-            VALUES (?, ?, ?, datetime('now'))
-            '''
-            self.db.execute_query(query, (name, api_key, project))
-            return api_key
-        except sqlite3.IntegrityError:
-            raise ValueError("Terjadi kesalahan saat menyimpan data")
+        query = '''
+        INSERT INTO api_keys (name, api_key, project, created_at)
+        VALUES (?, ?, ?, datetime('now'))
+        '''
+        self.db.execute_query(query, (name, api_key, project))
+        return api_key
 
     def get_api_key_info(self, api_key):
         query = 'SELECT * FROM api_keys WHERE api_key = ? AND is_deleted = 0'
         result = self.db.fetch_all(query, (api_key,))
-        if result:
-            return result[0]
-        return None
+        return result[0] if result else None
 
     def get_all_api_keys(self):
-        query = 'SELECT * FROM api_keys WHERE is_deleted = 0 ORDER BY created_at DESC'
-        return self.db.fetch_all(query)
+        return self.db.fetch_all('SELECT * FROM api_keys WHERE is_deleted = 0 ORDER BY created_at DESC')
 
     def delete_api_key(self, api_key):
-        # Periksa apakah nama ada
-        check_query = 'SELECT COUNT(*) as count FROM api_keys WHERE api_key = ? AND is_deleted = 0'
-        result = self.db.fetch_all(check_query, (api_key,))
-        
-        if result[0]['count'] == 0:
-            raise ValueError("API key tersebut tidak ditemukan atau sudah dihapus")
+        check_query = 'SELECT COUNT(*) FROM api_keys WHERE api_key = ? AND is_deleted = 0'
+        result = self.db.fetch_one(check_query, (api_key,))
+        if not result or result[0] == 0:
+            raise ValueError("API key tidak ditemukan atau sudah dihapus")
 
         query = '''
-        UPDATE api_keys 
-        SET is_deleted = 1,
-            deleted_at = datetime('now')
-        WHERE api_key = ? AND is_deleted = 0
+        UPDATE api_keys SET is_deleted = 1, deleted_at = datetime('now') WHERE api_key = ?
         '''
         self.db.execute_query(query, (api_key,))
-
-def init_db():
-    db = Database()
-    query = '''
-    CREATE TABLE IF NOT EXISTS api_keys (
-        name TEXT NOT NULL UNIQUE,
-        api_key TEXT NOT NULL UNIQUE PRIMARY KEY,
-        project TEXT NOT NULL UNIQUE,
-        created_at TIMESTAMP NOT NULL,
-        deleted_at TIMESTAMP,
-        is_deleted INTEGER DEFAULT 0,
-        CONSTRAINT valid_name CHECK (length(name) >= 3 AND length(name) <= 50),
-        CONSTRAINT valid_project CHECK (length(project) >= 3 AND length(project) <= 50)
-    )
-    '''
-    db.execute_query(query)
 
 @app.route('/generate_api_key', methods=['POST'])
 def generate_api_key():
@@ -170,7 +103,8 @@ def generate_api_key():
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        return jsonify({'error': 'Terjadi kesalahan sistem'}), 500
+        return jsonify({'error': 'Terjadi kesalahan sistem: ' + str(e)}), 500
+
 
 @app.route('/get_api_key_info', methods=['GET'])
 def get_api_key_info():
@@ -243,5 +177,5 @@ def delete_api_key():
         return jsonify({'error': 'Terjadi kesalahan sistem'}), 500
 
 if __name__ == '__main__':
-    init_db()
-    app.run(debug=True, port=5001)
+    create_tables()
+    app.run(debug=True)
