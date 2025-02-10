@@ -47,7 +47,7 @@ const Dashboard: React.FC = () => {
   };
   const searchParams = useSearchParams();
   // const days = searchParams.get("days");
-  const days = searchParams.get("days") || "7";
+  const days = searchParams?.get("days") || "7";
   const [requestData, setRequestData] = useState<RequestPerTime[]>([]);
   const [tokenUsage, setTokenUsage] = useState<TokenUsage[]>([]);
 

@@ -7,35 +7,37 @@ interface TokenData {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-export const checkAuth = (): boolean => {
-  if (typeof window === 'undefined') return false;
-  
-  const authData = localStorage.getItem('authData');
-  if (!authData) return false;
+const getCookie = (name: string): string | null => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  return null;
+};
 
+export const checkAuth = (): boolean => {
   try {
+    const authData = getCookie('authData');
+    if (!authData) return false;
+    
     const tokenData: TokenData = JSON.parse(authData);
     if (new Date().getTime() > tokenData.expiry) {
-      localStorage.removeItem('authData');
+      document.cookie = 'authData=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
       return false;
     }
     return true;
   } catch {
-    localStorage.removeItem('authData');
     return false;
   }
 };
 
 export const getToken = (): string | null => {
-  if (typeof window === 'undefined') return null;
-  
-  const authData = localStorage.getItem('authData');
-  if (!authData) return null;
-
   try {
+    const authData = getCookie('authData');
+    if (!authData) return null;
+
     const tokenData: TokenData = JSON.parse(authData);
     if (new Date().getTime() > tokenData.expiry) {
-      localStorage.removeItem('authData');
+      document.cookie = 'authData=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
       return null;
     }
     return tokenData.value;
@@ -57,20 +59,16 @@ export const refreshToken = async (): Promise<boolean> => {
     });
 
     if (!response.ok) {
-      localStorage.removeItem('authData');
+      document.cookie = 'authData=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
       return false;
     }
 
     const data = await response.json();
-    const tokenData = {
-      value: data.token,
-      expiry: new Date().getTime() + (24 * 60 * 60 * 1000)
-    };
-    localStorage.setItem('authData', JSON.stringify(tokenData));
+    setAuthToken(data.token);
     return true;
   } catch (error) {
     console.error('Token refresh failed:', error);
-    localStorage.removeItem('authData');
+    document.cookie = 'authData=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
     return false;
   }
 };
@@ -89,7 +87,7 @@ export const logout = async (): Promise<void> => {
   } catch (error) {
     console.error('Logout failed:', error);
   } finally {
-    localStorage.removeItem('authData');
+    document.cookie = 'authData=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
     window.location.href = '/login';
   }
 };
@@ -99,5 +97,5 @@ export const setAuthToken = (token: string): void => {
     value: token,
     expiry: new Date().getTime() + (24 * 60 * 60 * 1000)
   };
-  localStorage.setItem('authData', JSON.stringify(tokenData));
+  document.cookie = `authData=${JSON.stringify(tokenData)}; path=/`;
 };

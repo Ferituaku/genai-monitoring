@@ -10,12 +10,10 @@ export default function AuthCallback() {
   useEffect(() => {
     const token = searchParams?.get('token');
     if (token) {
-      // Set expiry time
-      const tokenData = {
+      document.cookie = `authData=${JSON.stringify({
         value: token,
-        expiry: new Date().getTime() + (24 * 60 * 60 * 1000) // 24 hours
-      };
-      localStorage.setItem('authData', JSON.stringify(tokenData));
+        expiry: new Date().getTime() + (24 * 60 * 60 * 1000)
+      })}; path=/`;
       router.push('/admin/Dashboard');
     } else {
       router.push('/login');
