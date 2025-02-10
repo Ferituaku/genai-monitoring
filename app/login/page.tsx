@@ -4,59 +4,47 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
-import { Github, LogIn, Mail } from "lucide-react"; 
+import { LogIn } from "lucide-react"; 
 import Image from "next/image";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  // Handle Google OAuth callback
+  useEffect(() => {
+    // Get token from URL if it exists
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token) {
+      // Save token and redirect
+      localStorage.setItem('token', token);
+      router.push('/dashboard');
+    }
+  }, [router]);
 
+  const handleGoogleLogin = async () => {
     try {
-      const res = await fetch('http://localhost:5000/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        localStorage.setItem('token', data.token);
-        router.push('/dashboard');
-      } else {
-        setError(data.message || 'Login gagal');
-      }
+      setLoading(true);
+      // Redirect ke endpoint Google login
+      window.location.href = 'http://localhost:5000/login/google';
     } catch (err) {
-      setError('Terjadi kesalahan pada server');
+      setError('Terjadi kesalahan saat login dengan Google');
+      console.error('Google login error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:5000/login/google';
-  };
-
   return (
     <main className="min-h-screen w-full bg-gradient-to-br from-blue-900 to-slate-200 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-white/50 ">
+      <Card className="w-full max-w-md bg-white/50">
         <div className="flex justify-center">
           <div className="relative w-[240px] h-[80px]">
             <Image
@@ -69,23 +57,33 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Title */}
-        <div className="space-y-2 text-center ">
+        <div className="space-y-2 text-center">
           <h1 className="text-3xl font-semibold text-slate-700">GEN-AI Mo</h1>
-          <p className="text-slate-700 text-sm ">
+          <p className="text-slate-700 text-sm">
             Platform monitoring untuk proyek AI generatif Anda
           </p>
         </div>
+
         <CardContent className="space-y-4 mt-5">
+          {error && (
+            <div className="p-3 text-sm text-red-500 bg-red-100 rounded-md">
+              {error}
+            </div>
+          )}
+          
           <Button
             variant="outline"
             className="w-full p-6 bg-blue-200/40 hover:bg-primary/80 duration-700 border-white/10 text-white"
             onClick={handleGoogleLogin}
+            disabled={loading}
           >
-            <LogIn className="w-5 h-5 " />
-            <span className="text-xl">Masuk</span>
+            <LogIn className="w-5 h-5 mr-2" />
+            <span className="text-xl">
+              {loading ? 'Loading...' : 'Masuk'}
+            </span>
           </Button>
         </CardContent>
+
         <CardFooter className="text-center text-xs text-slate-700 flex flex-col space-y-2">
           <p>
             Dengan masuk, Anda menyetujui{" "}

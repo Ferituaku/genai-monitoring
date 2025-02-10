@@ -10,7 +10,12 @@ export default function AuthCallback() {
   useEffect(() => {
     const token = searchParams?.get('token');
     if (token) {
-      localStorage.setItem('token', token);
+      // Set expiry time
+      const tokenData = {
+        value: token,
+        expiry: new Date().getTime() + (24 * 60 * 60 * 1000) // 24 hours
+      };
+      localStorage.setItem('authData', JSON.stringify(tokenData));
       router.push('/admin/Dashboard');
     } else {
       router.push('/login');
@@ -19,7 +24,7 @@ export default function AuthCallback() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <p>Loading...</p>
+      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
     </div>
   );
 }

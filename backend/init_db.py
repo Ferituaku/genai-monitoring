@@ -5,7 +5,7 @@ def create_tables():
     conn = db.get_connection()
     cursor = conn.cursor()
 
-    cursor.execute ('''
+    cursor.execute('''
     CREATE TABLE IF NOT EXISTS api_keys (
         name TEXT NOT NULL UNIQUE,
         api_key TEXT NOT NULL UNIQUE PRIMARY KEY,
@@ -30,6 +30,18 @@ def create_tables():
         is_deleted INTEGER DEFAULT 0,
         FOREIGN KEY (api_key) REFERENCES api_keys(api_key),
         FOREIGN KEY (project) REFERENCES api_keys(project)
+    )
+    ''')
+
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL UNIQUE,
+        google_id TEXT UNIQUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_login TIMESTAMP,
+        name TEXT,
+        avatar_url TEXT
     )
     ''')
 
