@@ -1,7 +1,7 @@
 // app/admin/layout.tsx (Admin Layout)
 "use client";
-import NavBar from "@/components/Navbar/NavBar";
-import Sidebar from "@/components/Sidebar/AppSidebar";
+import NavBar from "@/components/navbar/NavBar";
+import Sidebar from "@/components/sidebar/AppSidebar";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
