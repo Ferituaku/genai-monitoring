@@ -1,15 +1,14 @@
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
-import { Button } from "../ui/button";
-import { VaultFormData } from "@/app/admin/Vault/VaultData";
+import { VaultFormData } from "@/types/vault";
 
 interface AddKeyModalProps {
   isOpen: boolean;
@@ -25,31 +24,31 @@ export const AddKeyModal = ({
   const [formData, setFormData] = useState<VaultFormData>({
     key: "",
     value: "",
+    createdBy: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
-    setFormData({ key: "", value: "" });
-    onClose();
+    setFormData({ key: "", value: "", createdBy: "" });
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Key</DialogTitle>
+          <DialogTitle>Add New Vault Key</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="key">Key Name</Label>
+            <Label htmlFor="key">Key</Label>
             <Input
               id="key"
               value={formData.key}
               onChange={(e) =>
-                setFormData((prev) => ({ ...prev, key: e.target.value }))
+                setFormData({ ...formData, key: e.target.value })
               }
-              placeholder="Enter key name"
+              placeholder="Enter key"
               required
             />
           </div>
@@ -59,14 +58,26 @@ export const AddKeyModal = ({
               id="value"
               value={formData.value}
               onChange={(e) =>
-                setFormData((prev) => ({ ...prev, value: e.target.value }))
+                setFormData({ ...formData, value: e.target.value })
               }
               placeholder="Enter value"
               required
             />
           </div>
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={onClose}>
+          <div className="space-y-2">
+            <Label htmlFor="createdBy">Created By</Label>
+            <Input
+              id="createdBy"
+              value={formData.createdBy}
+              onChange={(e) =>
+                setFormData({ ...formData, createdBy: e.target.value })
+              }
+              placeholder="Enter creator name"
+              required
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
             <Button type="submit">Add Key</Button>

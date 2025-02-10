@@ -1,64 +1,92 @@
 "use client";
-import React, { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Plus, SquarePen, Trash2 } from "lucide-react";
+
+import { useEffect, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { VaultData, VaultFormData } from "./VaultData";
-import { VaultTable } from "@/components/VaultTable/VaultTable";
-import { AddKeyModal } from "@/components/VaultTable/AddKeyVault";
+import { Plus } from "lucide-react";
+import { VaultFormData } from "@/types/vault";
+import { useToast } from "@/hooks/use-toast";
+import { useVault } from "@/hooks/Vault/useVault";
 import DynamicBreadcrumb from "@/components/Breadcrum";
+import { VaultTable } from "@/components/vault/VaultTable";
+import { AddKeyModal } from "@/components/vault/AddKeyVault";
 
-const page = () => {
+export default function VaultPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const { toast } = useToast();
 
-  const [vaultData] = useState<VaultData[]>([
-    {
-      key: "STAGING_TAX_API-KEY",
-      createdBy: "John Doe",
-      lastUpdatedOn: "2023-01-01",
-    },
-    {
-      key: "IZIN_COBA",
-      createdBy: "Ferro",
-      lastUpdatedOn: "2025-01-01",
-    },
-  ]);
-  const handleAddKey = (formData: VaultFormData) => {
-    const newKey: VaultData = {
-      key: formData.key,
-      createdBy: "Current User", // Replace with actual user data
-      lastUpdatedOn: new Date().toISOString().split("T")[0],
-    };
+  const {
+    vaultData,
+    isLoading,
+    error,
+    fetchVaultData,
+    addVaultEntry,
+    updateVaultEntry,
+    deleteVaultEntry,
+  } = useVault();
 
-    // setVaultData((prev) => [...prev, newKey]);
-    // toast({
-    //   title: "Success",
-    //   description: "New key has been added successfully",
-    // });
-  };
-  const handleEdit = (key: string) => {
-    console.log("Editing:", key);
-    // Add your edit logic here
+  useEffect(() => {
+    fetchVaultData();
+  }, [fetchVaultData]);
+
+  const handleAddKey = async (formData: VaultFormData) => {
+    const result = await addVaultEntry(formData);
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: result.error,
+      });
+    } else {
+      setIsAddModalOpen(false);
+      toast({
+        title: "Success",
+        description: result.message,
+      });
+    }
   };
 
-  const handleDelete = (key: string) => {
-    console.log("Deleting:", key);
-    // Add your delete logic here
+  const handleEdit = async (key: string) => {
+    const newValue = prompt("Enter new value:");
+    if (newValue) {
+      const result = await updateVaultEntry(key, newValue);
+      if (result.error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.error,
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: result.message,
+        });
+      }
+    }
   };
+
+  const handleDelete = async (key: string) => {
+    if (confirm("Are you sure you want to delete this entry?")) {
+      const result = await deleteVaultEntry(key);
+      if (result.error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.error,
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: result.message,
+        });
+      }
+    }
+  };
+
+  if (error) {
+    return <div className="text-center text-red-500 p-4">{error}</div>;
+  }
+
   return (
     <div className="min-h-screen">
       <div className="top-0 p-2">
@@ -68,7 +96,7 @@ const page = () => {
         <div className="flex justify-end p-4">
           <Button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 text-white"
+            className="flex items-center gap-2"
             variant="default"
           >
             <Plus className="h-4 w-4" />
@@ -81,6 +109,7 @@ const page = () => {
               data={vaultData}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              isLoading={isLoading}
             />
           </CardContent>
         </Card>
@@ -92,6 +121,4 @@ const page = () => {
       </div>
     </div>
   );
-};
-
-export default page;
+}
