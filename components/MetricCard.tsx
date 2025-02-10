@@ -1,16 +1,4 @@
 import React, { useState } from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-} from "recharts";
-import { Card, CardContent, CardHeader } from "./ui/card";
 
 const MetricCard: React.FC<{
   title: string;
