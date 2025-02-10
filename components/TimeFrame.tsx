@@ -47,7 +47,7 @@ const TimeFrame = () => {
           className={`px-4 py-2 rounded-3xl text-sm font-medium transition-colors ${
             activeTab === range
               ? "bg-primary text-white"
-              : "bg-light text-secondary hover:text-slate-200"
+              : "bg-light text-secondary hover:text-slate-100"
           }`}
         >
           {range}

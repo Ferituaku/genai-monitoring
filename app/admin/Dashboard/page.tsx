@@ -10,8 +10,16 @@ import TopModel from "./Dashboardcomponent/Piechart/TopModel";
 import Genbycategory from "./Dashboardcomponent/Piechart/Genbycategory";
 import Costbyapp from "./Dashboardcomponent/Piechart/Costbyapp";
 import Costbyenv from "./Dashboardcomponent/Piechart/Costbyenv";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 const Dashboard: React.FC = () => {
   const [avg_completion_tokens, setAvgCompletionTokens] = useState(0);
@@ -24,11 +32,22 @@ const Dashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<any>(null);
   const CHART_COLOR = "#4f46e5"; // Warna garis total
-  type RequestPerTime = { date: string; total: number; total_ok: number; total_error: number; total_unset: number; };
-  type TokenUsage = { date: string; total: number; prompt: number; completion: number; };
+  type RequestPerTime = {
+    date: string;
+    total: number;
+    total_ok: number;
+    total_error: number;
+    total_unset: number;
+  };
+  type TokenUsage = {
+    date: string;
+    total: number;
+    prompt: number;
+    completion: number;
+  };
   const searchParams = useSearchParams();
   // const days = searchParams.get("days");
-  const days = searchParams.get("days") || "7"; 
+  const days = searchParams.get("days") || "7";
   const [requestData, setRequestData] = useState<RequestPerTime[]>([]);
   const [tokenUsage, setTokenUsage] = useState<TokenUsage[]>([]);
 
@@ -37,13 +56,15 @@ const Dashboard: React.FC = () => {
       if (!days) return;
 
       try {
-        const response = await fetch(`http://127.0.0.1:5000/dashboard?days=${days}`);
-  
+        const response = await fetch(
+          `http://127.0.0.1:5000/dashboard?days=${days}`
+        );
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        
+
         setAvgCompletionTokens(data?.avg_completion_tokens ?? 0);
         setAvgCost(data?.avg_cost ?? 0);
         setAvgDuration(data?.avg_duration ?? 0);
@@ -52,31 +73,37 @@ const Dashboard: React.FC = () => {
         setTotalRequest(data?.total_requests ?? 0);
         setData(data);
         if (Array.isArray(data["request_pertime"])) {
-            setRequestData(data["request_pertime"].map((item: any) => ({
+          setRequestData(
+            data["request_pertime"].map((item: any) => ({
               date: item.date,
-              total: item.total_count_ok + item.total_count_error + item.total_count_unset,
+              total:
+                item.total_count_ok +
+                item.total_count_error +
+                item.total_count_unset,
               total_ok: item.total_count_ok,
               total_error: item.total_count_error,
-              total_unset: item.total_count_unset
-            })));
-          }
-  
-          if (Array.isArray(data["token_usage"])) {
-            setTokenUsage(data["token_usage"].map((item: any) => ({
+              total_unset: item.total_count_unset,
+            }))
+          );
+        }
+
+        if (Array.isArray(data["token_usage"])) {
+          setTokenUsage(
+            data["token_usage"].map((item: any) => ({
               date: item.date,
               total: item.prompt + item.completion,
               prompt: item.prompt,
               completion: item.completion,
-            })));
-          }
-
-    } catch (error) {
+            }))
+          );
+        }
+      } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchData();
   }, [days]);
 
@@ -96,133 +123,147 @@ const Dashboard: React.FC = () => {
     );
   }
 
-return (
-<div className="min-h-screen">
-    <div className="top-0 p-2">
-    <DynamicBreadcrumb />
-    </div>
-    <div className="top-2 right-0 z-10 pt-4 gap-4">
-    <div className="flex mb-4 relative items-center gap-4">
-        <TimeFrame />
-    </div>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <MetricCard
-        title="Total Request"
-        value= {total_requests.toString()}
-        icon={
-            <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-slate-600
+  return (
+    <div className="min-h-screen">
+      <div className="top-0 p-2">
+        <DynamicBreadcrumb />
+      </div>
+      <div className="top-2 right-0 z-10 pt-4 gap-4">
+        <div className="flex mb-4 relative items-center gap-4">
+          <TimeFrame />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <MetricCard
+            title="Total Request"
+            value={total_requests.toString()}
+            icon={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-slate-600
             "
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            >
-            <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16m-7 6h7"
-            />
-            </svg>
-        }
-        subValue=""
-        />
-        <MetricCard
-        title="Avg tokens per request"
-        value={avg_token.toString()}
-        icon={
-            <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-slate-600
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16m-7 6h7"
+                />
+              </svg>
+            }
+            subValue=""
+          />
+          <MetricCard
+            title="Avg tokens per request"
+            value={avg_token.toString()}
+            icon={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-slate-600
             "
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            >
-            <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-            />
-            </svg>
-        }
-        subValue=""
-        />
-        <MetricCard
-        title="Avg Cost per request"
-        value={avg_cost.toString()}
-        icon={
-            <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-slate-600
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+            }
+            subValue=""
+          />
+          <MetricCard
+            title="Avg Cost per request"
+            value={avg_cost.toString()}
+            icon={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-slate-600
             "
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            >
-            <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-            </svg>
-        }
-        subValue=""
-        />
-        <MetricCard
-        title="Avg Request Duration"
-        value={avg_duration.toString()}
-        icon={
-            <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-slate-600
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            }
+            subValue=""
+          />
+          <MetricCard
+            title="Avg Request Duration"
+            value={avg_duration.toString()}
+            icon={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-slate-600
             "
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            >
-            <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-            </svg>
-        }
-        subValue=""
-        />
-    </div>
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            }
+            subValue=""
+          />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <div className="p-4">
-              <h2 className="text-lg font-bold mb-2">Request Per Time</h2>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height={380}>
-                  <LineChart data={requestData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="date" tick={{ fill: "#6b7280" }} />
-                    <YAxis tick={{ fill: "#6b7280" }} />
-                    <Tooltip content={({ payload }) => {
-                      if (!payload || payload.length === 0) return null;
-                      const data = payload[0].payload;
-                      return (
-                        <div className="bg-white p-2 shadow-md rounded border border-gray-300">
-                          <p className="text-sm font-bold">{data.date}</p>
-                          <p className="text-xs">Total Requests: {data.total}</p>
-                          <p className="text-xs text-green-600">OK: {data.total_ok}</p>
-                          <p className="text-xs text-red-600">Error: {data.total_error}</p>
-                          <p className="text-xs text-yellow-600">Unset: {data.total_unset}</p>
-                        </div>
-                      );
-                    }} />
-                    <Legend />
-                    <Line type="monotone" dataKey="total" stroke={CHART_COLOR} name="Total Requests" strokeWidth={2} dot={{ strokeWidth: 2 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+          <div className="col-span-2 mb-4 bg-white p-4 rounded-lg shadow-lg h-auto">
+            <h2 className="text-lg font-bold mb-2">Request Per Time</h2>
+            <ResponsiveContainer width="100%" height={340}>
+              <LineChart data={requestData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="date" tick={{ fill: "#6b7280" }} />
+                <YAxis tick={{ fill: "#6b7280" }} />
+                <Tooltip
+                  content={({ payload }) => {
+                    if (!payload || payload.length === 0) return null;
+                    const data = payload[0].payload;
+                    return (
+                      <div className="bg-white p-2 shadow-md rounded border border-gray-300">
+                        <p className="text-sm font-bold">{data.date}</p>
+                        <p className="text-xs">Total Requests: {data.total}</p>
+                        <p className="text-xs text-green-600">
+                          OK: {data.total_ok}
+                        </p>
+                        <p className="text-xs text-red-600">
+                          Error: {data.total_error}
+                        </p>
+                        <p className="text-xs text-yellow-600">
+                          Unset: {data.total_unset}
+                        </p>
+                      </div>
+                    );
+                  }}
+                />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="total"
+                  stroke={CHART_COLOR}
+                  name="Total Requests"
+                  strokeWidth={2}
+                  dot={{ strokeWidth: 2 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 mb-2 gap-4">
             <div className="bg-white p-4 rounded-lg shadow-lg">
               <h2 className="text-md font-light text-slate-700 mb-4">
@@ -249,9 +290,8 @@ return (
               <TopModel data={data?.["Top Model"] || {}} />
             </div>
           </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-          <div className="grid lg:grid-rows-2 gap-6 mb-4">
+
+          <div className="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-1 gap-6 mb-6">
             <MetricCard
               title="Avg prompt tokens / request"
               value={avg_prompt_tokens.toString()}
@@ -299,35 +339,48 @@ return (
               subValue=""
             />
           </div>
+          <div className="col-span-2 mb-4 bg-white p-4 rounded-2xl shadow-lg h-auto">
+            <h2 className="text-lg font-bold mb-2">Request Per Time</h2>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height={280}>
+                <LineChart data={tokenUsage}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="date" tick={{ fill: "#6b7280" }} />
+                  <YAxis tick={{ fill: "#6b7280" }} />
+                  <Tooltip
+                    content={({ payload }) => {
+                      if (!payload || payload.length === 0) return null;
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-white p-2 shadow-md rounded border border-gray-300">
+                          <p className="text-sm font-bold">{data.date}</p>
+                          <p className="text-xs">Total Tokens: {data.total}</p>
+                          <p className="text-xs text-green-600">
+                            Prompt: {data.prompt}
+                          </p>
+                          <p className="text-xs text-red-600">
+                            Completion: {data.completion}
+                          </p>
+                        </div>
+                      );
+                    }}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="total"
+                    stroke="#e63946"
+                    name="Token Usage"
+                    strokeWidth={2}
+                    dot={{ strokeWidth: 2 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
-    <h2 className="text-lg font-bold mt-6 mb-2">Token Usage</h2>
-      <div className="h-[300px]">
-        <ResponsiveContainer width="100%" height={380}>
-          <LineChart data={tokenUsage}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis dataKey="date" tick={{ fill: "#6b7280" }} />
-            <YAxis tick={{ fill: "#6b7280" }} />
-            <Tooltip content={({ payload }) => {
-              if (!payload || payload.length === 0) return null;
-              const data = payload[0].payload;
-              return (
-                <div className="bg-white p-2 shadow-md rounded border border-gray-300">
-                  <p className="text-sm font-bold">{data.date}</p>
-                  <p className="text-xs">Total Tokens: {data.total}</p>
-                  <p className="text-xs text-green-600">Prompt: {data.prompt}</p>
-                  <p className="text-xs text-red-600">Completion: {data.completion}</p>
-                </div>
-              );
-            }} />
-            <Legend />
-            <Line type="monotone" dataKey="total" stroke="#e63946" name="Token Usage" strokeWidth={2} dot={{ strokeWidth: 2 }} />
-          </LineChart>
-        </ResponsiveContainer>
       </div>
-        </div>
     </div>
-    </div>
-    
   );
 };
 
