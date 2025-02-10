@@ -2,7 +2,7 @@ import clickhouse_connect
 print(clickhouse_connect.__file__)
 from flask import Flask, jsonify, request, abort
 from flask_restful import Api, Resource
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta,timezone
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -17,13 +17,9 @@ client =  clickhouse_connect.get_client(host='openlit.my.id', port='8123', datab
 class Angka(Resource):
     def get(self):
         try:
-            # Ambil nilai 'days' dari parameter request (default: 7 hari)
-            days = request.args.get('days', default=1, type=int)
-            start_date = datetime.utcnow() - timedelta(days=days)
-            end_date = datetime.utcnow()
-
-            start_date_str = start_date.strftime('%Y-%m-%d %H:%M:%S')
-            end_date_str = end_date.strftime('%Y-%m-%d %H:%M:%S')
+            days = request.args.get('days', default=60, type=int)
+            start_date_str = datetime.now(timezone.utc) - timedelta(days=days)
+            end_date_str = datetime.now(timezone.utc)
 
             total_request_query = """
                 SELECT COUNT(
@@ -38,9 +34,7 @@ class Angka(Resource):
             
             total_requests = client.query(total_request_query, {'start_date': start_date_str, 'end_date': end_date_str}).result_rows[0][0]
              
-            
-            
-            # Query untuk rata2 token
+                        # Query untuk rata2 token
             avg_token_query =  """
                 WITH request_counts_ok AS (
                     SELECT COUNT(
@@ -139,15 +133,18 @@ class Angka(Resource):
             """
             
             Cost_by_app_result = client.query(Cost_by_app_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows
-             
 
             if not Cost_by_app_result:
-                return jsonify({"error": "No data found"}), 500
-
-            # Membuat dictionary dengan format yang diminta
-            Cost_by_app = {
-                f"app{i+1}": [row[0], f"{row[2]:.2f}%"] for i, row in enumerate(Cost_by_app_result[:5])
-            }
+                    return jsonify({"error": "No data found"})
+            else:
+                # Membuat dictionary JSON
+                Cost_by_app = {
+                    "Cost by app" : {
+                    row[0]: [row[0].capitalize(), f"{float(row[2]):.2f}%"]
+                    for row in Cost_by_app_result
+                    }
+                }
+            
 
             Gen_by_category_query =  """
             WITH cost_data AS (
@@ -183,8 +180,7 @@ class Angka(Resource):
                     for row in Gen_by_category_result
                     }
                 }
-            
-            Cost_by_env_query =  """
+            Cost_by_env_query ="""
             WITH cost_data AS (
                 SELECT 
                    ResourceAttributes['deployment.environment'] AS operation_name,
@@ -216,7 +212,7 @@ class Angka(Resource):
             else:
                 # Membuat dictionary JSON
                 Cost_by_env = {
-                    "cost by env" : {
+                    "Cost by env" : {
                     row[0]: [row[0].capitalize(), f"{float(row[1]):.2f}%"]
                     for row in Cost_by_env_result
                 }
@@ -293,6 +289,35 @@ class Angka(Resource):
            
              
 
+            Avg_completion_tokens_query ="""
+            WITH request_counts_ok AS (
+                SELECT COUNT(
+                    CASE 
+                        WHEN StatusCode = 'STATUS_CODE_OK' 
+                            AND SpanAttributes['gen_ai.operation.name'] = 'chat' 
+                        THEN 1 
+                        ELSE NULL
+                    END
+                ) AS total_requests_ok
+                FROM otel_traces
+                WHERE Timestamp BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
+                ),
+                prompt_counts AS (
+                    SELECT SUM(
+                        CASE 
+                            WHEN StatusCode IN ('STATUS_CODE_OK') THEN toFloat64OrZero(SpanAttributes['gen_ai.usage.output_tokens'])  
+                            ELSE 0
+                        END
+                    ) AS total_prompt
+                    FROM otel_traces
+                    WHERE Timestamp BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
+                )
+                SELECT total_requests_ok, total_prompt, Round((total_prompt/total_requests_ok),6)  AS avg_prompt
+                FROM request_counts_ok, prompt_counts
+            """
+            
+            Avg_completion_tokens = client.query(Avg_completion_tokens_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows[0][2]
+             
             Top_Model_query = """
             WITH model_count AS (
                 SELECT 
@@ -318,7 +343,6 @@ class Angka(Resource):
             
             Top_Model_result = client.query(Top_Model_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows
              
-
             if not Top_Model_result:
                 return jsonify({"error": "No data found"})
             else:
@@ -329,31 +353,31 @@ class Angka(Resource):
                         for row in Top_Model_result
                     }
                 }
-                Avg_completion_tokens_query ="""
+            Avg_completion_tokens_query ="""
             WITH request_counts_ok AS (
-                SELECT COUNT(
+            SELECT COUNT(
+                CASE 
+                    WHEN StatusCode = 'STATUS_CODE_OK' 
+                        AND SpanAttributes['gen_ai.operation.name'] = 'chat' 
+                    THEN 1 
+                    ELSE NULL
+                END
+            ) AS total_requests_ok
+            FROM otel_traces
+            WHERE Timestamp BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
+            ),
+            prompt_counts AS (
+                SELECT SUM(
                     CASE 
-                        WHEN StatusCode = 'STATUS_CODE_OK' 
-                            AND SpanAttributes['gen_ai.operation.name'] = 'chat' 
-                        THEN 1 
-                        ELSE NULL
+                        WHEN StatusCode IN ('STATUS_CODE_OK') THEN toFloat64OrZero(SpanAttributes['gen_ai.usage.output_tokens'])  
+                        ELSE 0
                     END
-                ) AS total_requests_ok
+                ) AS total_prompt
                 FROM otel_traces
                 WHERE Timestamp BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
-                ),
-                prompt_counts AS (
-                    SELECT SUM(
-                        CASE 
-                            WHEN StatusCode IN ('STATUS_CODE_OK') THEN toFloat64OrZero(SpanAttributes['gen_ai.usage.output_tokens'])  
-                            ELSE 0
-                        END
-                    ) AS total_prompt
-                    FROM otel_traces
-                    WHERE Timestamp BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
-                )
-                SELECT total_requests_ok, total_prompt, Round((total_prompt/total_requests_ok),6)  AS avg_prompt
-                FROM request_counts_ok, prompt_counts
+            )
+            SELECT total_requests_ok, total_prompt, Round((total_prompt/total_requests_ok),6)  AS avg_prompt
+            FROM request_counts_ok, prompt_counts
             """
             
             Avg_completion_tokens = client.query(Avg_completion_tokens_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows[0][2]
@@ -391,6 +415,7 @@ class Angka(Resource):
                     "total_count_error": row[3],
                 })
 
+            
 
             return jsonify({                
                 "total_requests": total_requests,
@@ -405,8 +430,10 @@ class Angka(Resource):
                 "token_usage": token_usege_result,
                 "avg_prompt_tokens" : Avg_prompt_tokens,
                 "avg_completion_tokens" : Avg_completion_tokens,
-                **Top_Model,
+                 **Top_Model,
                  "request_pertime": request_pertime_result,
+
+               
             })
 
         except Exception as e:

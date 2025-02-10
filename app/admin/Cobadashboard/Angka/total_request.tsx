@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 
 export default function Totalrequests() {
-  const [avgprompttoken, TotalRequests] = useState(0);
+  const [totalrequest, TotalRequests] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
 
@@ -39,5 +39,5 @@ export default function Totalrequests() {
     return <span>Loading...</span>;
   }
 
-  return <>{avgprompttoken.toString()}</>; // Menampilkan nilai avgprompttoken
+  return <>{totalrequest.toString()}</>; // Menampilkan nilai totalrequest
 }
