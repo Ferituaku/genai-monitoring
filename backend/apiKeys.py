@@ -8,7 +8,7 @@ from db import Database
 from init_db import create_tables
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 class APIKeyGenerator:
     @staticmethod

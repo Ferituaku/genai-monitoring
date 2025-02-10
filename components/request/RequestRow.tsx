@@ -66,7 +66,7 @@ interface TraceData {
   "Links.Attributes": any[];
 }
 
-const RequestRow = ({ data }: { data: TraceData }) => {
+export const RequestRow = ({ data }: { data: TraceData }) => {
   const formatDate = (timestamp: string) => {
     return new Date(timestamp).toLocaleString();
   };
