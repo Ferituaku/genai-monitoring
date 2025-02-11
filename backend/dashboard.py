@@ -14,7 +14,7 @@ client =  clickhouse_connect.get_client(host='openlit.my.id', port='8123', datab
         secure=False  # Menghindari session locking
     )
 
-class Angka(Resource):
+class Dashboard(Resource):
     def get(self):
         try:
             days = request.args.get('days', default=60, type=int)
@@ -439,7 +439,3 @@ class Angka(Resource):
         except Exception as e:
             abort(500, f"Internal Server Error: {str(e)}")
 
-api.add_resource(Angka, '/dashboard')
-
-if __name__ == '__main__':
-    app.run(debug=True)

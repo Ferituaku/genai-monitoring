@@ -16,7 +16,7 @@ client = clickhouse_connect.get_client(
     password='OPENLIT'
 )
 
-class Traces(Resource):
+class Request(Resource):
     def get(self, appName=None):  
         try:
             # Parameter dasar
@@ -164,8 +164,3 @@ class Traces(Resource):
         except Exception as e:
             print(f"Error dalam get: {str(e)}")  
             abort(500, f"Terjadi kesalahan server: {str(e)}")
-
-api.add_resource(Traces, '/api/tracesRequest/', '/api/tracesRequest/<string:appName>')
-
-if __name__ == '__main__':
-    app.run(debug=True)
