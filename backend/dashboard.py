@@ -5,14 +5,6 @@ from flask_restful import Api, Resource
 from datetime import datetime, timedelta,timezone
 from flask_cors import CORS
 
-app = Flask(__name__)
-api = Api(app)
-CORS(app)
-
-# Fungsi untuk membuat client baru (hindari masalah concurrency)
-client =  clickhouse_connect.get_client(host='openlit.my.id', port='8123', database="openlit", username='default',password='OPENLIT',
-        secure=False  # Menghindari session locking
-    )
 
 class Dashboard(Resource):
     def get(self):
