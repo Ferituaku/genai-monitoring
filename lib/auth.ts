@@ -93,9 +93,10 @@ export const logout = async (): Promise<void> => {
 };
 
 export const setAuthToken = (token: string): void => {
+  const expiryDate = new Date(new Date().getTime() + (24 * 60 * 60 * 1000));
   const tokenData = {
     value: token,
-    expiry: new Date().getTime() + (24 * 60 * 60 * 1000)
+    expiry: expiryDate.getTime()
   };
-  document.cookie = `authData=${JSON.stringify(tokenData)}; path=/`;
+  document.cookie = `authData=${JSON.stringify(tokenData)}; path=/; expires=${expiryDate.toUTCString()}`;
 };
