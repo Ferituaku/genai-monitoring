@@ -1,4 +1,4 @@
-#!C:\PERKULIAHAN\PKL\12\genai-monitor\.venv\Scripts\python.exe
+#!D:\genai-monitoring\.venv\Scripts\python.exe
 
 import sys
 import json

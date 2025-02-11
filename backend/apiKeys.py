@@ -178,4 +178,4 @@ def delete_api_key():
 
 if __name__ == '__main__':
     create_tables()
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
