@@ -4,17 +4,6 @@ import clickhouse_connect
 from datetime import datetime, timedelta
 from flask_cors import CORS
 
-app = Flask(__name__)
-CORS(app)
-api = Api(app)
-
-client = clickhouse_connect.get_client(
-    host='openlit.my.id',
-    port=8123,
-    database='openlit',
-    username='default',
-    password='OPENLIT'
-)
 
 class Request(Resource):
     def get(self, appName=None):  

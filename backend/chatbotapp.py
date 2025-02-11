@@ -18,43 +18,43 @@ class ProjectChatService(Resource):
     def get(self):
         try:
             query = """
-WITH chat_counts AS (
-    SELECT 
-        SpanAttributes['UniqueIDChat'] AS UniqueIDChat,
-        COUNT(DISTINCT SpanAttributes['ChatID']) AS MessageCount
-    FROM openlit.otel_traces
-    WHERE SpanAttributes['UniqueIDChat'] IS NOT NULL
-        AND SpanAttributes['UniqueIDChat'] != ''  -- Exclude empty strings
-    GROUP BY UniqueIDChat
-),
-chat_sessions AS (
-    SELECT 
-        ServiceName,
-        ResourceAttributes['deployment.environment'] AS Environment,
-        SpanAttributes['UniqueIDChat'] AS UniqueIDChat,
-        MIN(Timestamp) AS Timestamp,
-        chat_counts.MessageCount AS TotalMessages
-    FROM openlit.otel_traces
-    JOIN chat_counts ON chat_counts.UniqueIDChat = SpanAttributes['UniqueIDChat']
-    WHERE 
-        ServiceName IS NOT NULL 
-        AND ResourceAttributes['deployment.environment'] IS NOT NULL
-        AND SpanAttributes['UniqueIDChat'] IS NOT NULL
-        AND SpanAttributes['UniqueIDChat'] != ''  -- Exclude empty strings
-    GROUP BY 
-        ServiceName,
-        Environment,
-        UniqueIDChat,
-        chat_counts.MessageCount
-)
-SELECT 
-    ServiceName,
-    Environment,
-    UniqueIDChat,
-    toString(Timestamp) AS Timestamp,
-    TotalMessages
-FROM chat_sessions
-ORDER BY Timestamp DESC
+            WITH chat_counts AS (
+                SELECT 
+                    SpanAttributes['UniqueIDChat'] AS UniqueIDChat,
+                    COUNT(DISTINCT SpanAttributes['ChatID']) AS MessageCount
+                FROM openlit.otel_traces
+                WHERE SpanAttributes['UniqueIDChat'] IS NOT NULL
+                    AND SpanAttributes['UniqueIDChat'] != ''  -- Exclude empty strings
+                GROUP BY UniqueIDChat
+            ),
+            chat_sessions AS (
+                SELECT 
+                    ServiceName,
+                    ResourceAttributes['deployment.environment'] AS Environment,
+                    SpanAttributes['UniqueIDChat'] AS UniqueIDChat,
+                    MIN(Timestamp) AS Timestamp,
+                    chat_counts.MessageCount AS TotalMessages
+                FROM openlit.otel_traces
+                JOIN chat_counts ON chat_counts.UniqueIDChat = SpanAttributes['UniqueIDChat']
+                WHERE 
+                    ServiceName IS NOT NULL 
+                    AND ResourceAttributes['deployment.environment'] IS NOT NULL
+                    AND SpanAttributes['UniqueIDChat'] IS NOT NULL
+                    AND SpanAttributes['UniqueIDChat'] != ''  -- Exclude empty strings
+                GROUP BY 
+                    ServiceName,
+                    Environment,
+                    UniqueIDChat,
+                    chat_counts.MessageCount
+            )
+            SELECT 
+                ServiceName,
+                Environment,
+                UniqueIDChat,
+                toString(Timestamp) AS Timestamp,
+                TotalMessages
+            FROM chat_sessions
+            ORDER BY Timestamp DESC
             """
             
             result = client.query(query).result_rows
@@ -88,49 +88,6 @@ ORDER BY Timestamp DESC
         except Exception as e:
             print(f"Error occurred: {str(e)}")
             return jsonify({"error": str(e)}), 500
-
-# class ChatHistoryService(Resource):
-#     def get(self):
-#         try:
-#             # Mengambil UniqueIDChat dari parameter URL
-#             unique_id_chat = request.args.get("UniqueIDChat")
-
-#             if not unique_id_chat:
-#                 return jsonify({"error": "UniqueIDChat parameter is required"}), 400
-
-#             # Query ClickHouse
-#             query = f"""
-#                 SELECT 
-#                     (Timestamp) AS Tanggal,
-#                     SpanAttributes['ChatID'] AS ChatID,
-#                     SpanAttributes['Prompt'] AS Pertanyaan,
-#                     SpanAttributes['Answer'] AS Jawaban
-#                 FROM openlit.otel_traces
-#                 WHERE SpanAttributes['UniqueIDChat'] = '{unique_id_chat}'
-#                 ORDER BY Timestamp DESC
-#             """
-
-#             # Jalankan query
-#             result = client.query(query).result_rows
-
-#             if not result:
-#                 return jsonify({"message": "No data found for the given UniqueIDChat"}), 404
-
-#             # Format hasil menjadi JSON
-#             formatted_traces = [
-#                 {
-#                     "Tanggal": row[0],
-#                     "ChatID": row[1],
-#                     "Pertanyaan": row[2],
-#                     "Jawaban": row[3]
-#                 }
-#                 for row in result
-#             ]
-
-#             return jsonify(formatted_traces)
-
-#         except Exception as e:
-#             return jsonify({"error": str(e)}), 500
 
 class ChatHistoryService(Resource):
     def get(self, unique_id_chat):
@@ -196,8 +153,6 @@ class ChatHistoryService(Resource):
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
-api.add_resource(ProjectChatService, '/api/projectchat')
-api.add_resource(ChatHistoryService, '/api/chathistory/<string:unique_id_chat>')
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)
