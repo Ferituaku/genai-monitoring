@@ -2,19 +2,10 @@ from flask import Flask, jsonify, request
 from flask_restful import Api, Resource
 import clickhouse_connect
 from flask_cors import CORS
-
-app = Flask(__name__)
-# CORS(app)
-CORS(app, resources={r"/*": {"origins": "*"}})
-
-api = Api(app)
-
-client =  clickhouse_connect.get_client(host='openlit.my.id', port='8123', database="openlit", username='default',password='OPENLIT',
-        secure=False  # Menghindari session locking
-    )
-
+from backend.databaseopenlit import client
 
 class ProjectChatService(Resource):
+
     def get(self):
         try:
             query = """
@@ -154,5 +145,3 @@ class ChatHistoryService(Resource):
             return jsonify({"error": str(e)}), 500
 
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5001)

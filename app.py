@@ -11,6 +11,8 @@ from backend.dashboard import Dashboard
 from backend.request import Request
 from backend.chatbotapp import ProjectChatService
 from backend.chatbotapp import ChatHistoryService
+from backend.databaseopenlit import client
+from backend.exception import Exception
 
 # from modul.Login import before_request_func
 
@@ -28,6 +30,9 @@ api.add_resource(Dashboard, '/dashboard')
 api.add_resource(Request,'/api/tracesRequest/','/api/tracesRequest/<string:appName>')
 api.add_resource(ProjectChatService, '/api/projectchat')
 api.add_resource(ChatHistoryService, '/api/chathistory/<string:unique_id_chat>')
+api.add_resource(Exception, '/api/tracesExceptions/', '/api/tracesRequest/<string:appName>')
+
+
 
 
 # app.before_request(before_request_func)

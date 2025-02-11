@@ -4,13 +4,18 @@ from flask import Flask, jsonify, request, abort
 from flask_restful import Api, Resource
 from datetime import datetime, timedelta,timezone
 from flask_cors import CORS
+from backend.databaseopenlit import client
 
 
 class Dashboard(Resource):
+
+    def __init__(self):
+        self.client = client  
+        self.days = request.args.get('days', default=7, type=int)
+
     def get(self):
         try:
-            days = request.args.get('days', default=60, type=int)
-            start_date_str = datetime.now(timezone.utc) - timedelta(days=days)
+            start_date_str = datetime.now(timezone.utc) - timedelta(days=self.days)
             end_date_str = datetime.now(timezone.utc)
 
             total_request_query = """

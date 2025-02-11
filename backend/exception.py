@@ -3,6 +3,7 @@ from flask_restful import Api, Resource
 import clickhouse_connect
 from datetime import datetime, timedelta
 from flask_cors import CORS
+from backend.databaseopenlit import client
 
 app = Flask(__name__)
 CORS(app)
@@ -17,13 +18,16 @@ client = clickhouse_connect.get_client(
     password='OPENLIT'
 )
 
-class Traces(Resource):
+class Exception(Resource):
+
+    def __init__(self):
+        self.client = client  
+        self.days = request.args.get('days', default=7, type=int)
+
     def get(self, appName=None):  
         try:
-            days = request.args.get('days', default=7, type=int)
-            
             # Hitung tanggal mulai (hari ini - days)
-            start_date = datetime.now() - timedelta(days=days)
+            start_date = datetime.now() - timedelta(days=self.days)
             
             # Query utama untuk mendapatkan traces
             query = """
@@ -102,8 +106,3 @@ class Traces(Resource):
         except Exception as e:
             print(f"Error dalam get: {str(e)}")  
             abort(500, f"Terjadi kesalahan server: {str(e)}")
-
-api.add_resource(Traces, '/api/tracesExceptions/', '/api/tracesRequest/<string:appName>')
-
-if __name__ == '__main__':
-    app.run(debug=True)

@@ -3,13 +3,17 @@ from flask_restful import Api, Resource
 import clickhouse_connect
 from datetime import datetime, timedelta
 from flask_cors import CORS
+from backend.databaseopenlit import client
 
 
 class Request(Resource):
+
+    def __init__(self):
+        self.client = client  # Ambil dari database.py
+        self.days = request.args.get('days', default=7, type=int)
+
     def get(self, appName=None):  
         try:
-            # Parameter dasar
-            days = request.args.get('days', default=7, type=int)
             
             # Parameter filter
             deployment_environment = request.args.get('deployment_environment', default=None, type=str)
@@ -28,7 +32,7 @@ class Request(Resource):
             is_stream = request.args.get('is_stream', default=None, type=str)
             
             # Hitung tanggal mulai
-            start_date = datetime.now() - timedelta(days=days)
+            start_date = datetime.now() - timedelta(days=self.days)
             
             # Query dasar dengan subquery
             query = """
