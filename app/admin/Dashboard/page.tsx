@@ -6,10 +6,10 @@ import MetricCard from "@/components/MetricCard";
 import TimeFrame from "@/components/TimeFrame";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 import { useSearchParams } from "next/navigation";
-import TopModel from "./Dashboardcomponent/Piechart/TopModel";
-import Genbycategory from "./Dashboardcomponent/Piechart/Genbycategory";
-import Costbyapp from "./Dashboardcomponent/Piechart/Costbyapp";
-import Costbyenv from "./Dashboardcomponent/Piechart/Costbyenv";
+import TopModel from "../../../components/Dashboardcomponent/Piechart/TopModel";
+import Genbycategory from "../../../components/Dashboardcomponent/Piechart/Genbycategory";
+import Costbyapp from "../../../components/Dashboardcomponent/Piechart/Costbyapp";
+import Costbyenv from "../../../components/Dashboardcomponent/Piechart/Costbyenv";
 import {
   LineChart,
   Line,
@@ -47,24 +47,35 @@ const Dashboard: React.FC = () => {
   };
   const searchParams = useSearchParams();
   // const days = searchParams.get("days");
-  const days = searchParams?.get("days") || "7";
+  const days = searchParams.get("days") || "1";
+  const fromDate = searchParams.get("from");
+  const toDate = searchParams.get("to");
   const [requestData, setRequestData] = useState<RequestPerTime[]>([]);
   const [tokenUsage, setTokenUsage] = useState<TokenUsage[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!days) return;
-
       try {
-        const response = await fetch(
-          `http://127.0.0.1:5000/dashboard?days=${days}`
-        );
+        let url = "http://127.0.0.1:5000/dashboard";
+
+        // Build query parameters
+        const params = new URLSearchParams();
+        if (fromDate && toDate) {
+          params.set("from", fromDate);
+          params.set("to", toDate);
+        } else if (days) {
+          params.set("days", days);
+        } else {
+          params.set("days", "7"); // default fallback
+        }
+
+        const response = await fetch(`${url}?${params.toString()}`);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.json();
 
+        const data = await response.json();
         setAvgCompletionTokens(data?.avg_completion_tokens ?? 0);
         setAvgCost(data?.avg_cost ?? 0);
         setAvgDuration(data?.avg_duration ?? 0);
@@ -99,6 +110,7 @@ const Dashboard: React.FC = () => {
         }
       } catch (error) {
         console.error("Error fetching data:", error);
+        setError(error instanceof Error ? error.message : "An error occurred");
       } finally {
         setIsLoading(false);
       }
@@ -226,7 +238,7 @@ const Dashboard: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
           <div className="col-span-2 mb-4 bg-white p-4 rounded-lg shadow-lg h-auto">
             <h2 className="text-lg font-bold mb-2">Request Per Time</h2>
-            <ResponsiveContainer width="100%" height={340}>
+            <ResponsiveContainer width="100%" height={420}>
               <LineChart data={requestData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="date" tick={{ fill: "#6b7280" }} />

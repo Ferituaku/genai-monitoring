@@ -200,4 +200,4 @@ api.add_resource(ProjectChatService, '/api/projectchat')
 api.add_resource(ChatHistoryService, '/api/chathistory/<string:unique_id_chat>')
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=5000)

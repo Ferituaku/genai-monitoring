@@ -27,12 +27,11 @@ export interface ChatHistoryData {
   TotalMessages: number;
   ChatHistory: ChatMessage[];
 }
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 
 export class ApiService {
   static async getProjectChats(): Promise<ProjectChat[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/projectchat`);
+      const response = await fetch(`http://localhost:5000/api/projectchat`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

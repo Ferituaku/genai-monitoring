@@ -12,7 +12,7 @@ interface ApiResponse {
   created_at?: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5001";
+const API_BASE_URL = "http://127.0.0.1:5000";
 
 export const apiClient = {
   async getAllApiKeys(): Promise<ApiKey[]> {
@@ -66,7 +66,7 @@ export const apiClient = {
       created_at: data.created_at || new Date().toISOString(),
     };
   },
-  
+
   async deleteApiKey(apiKey: string): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/delete_api_key`, {
       method: "DELETE",
