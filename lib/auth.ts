@@ -1,27 +1,44 @@
-'use client';
+"use client";
 
 interface TokenData {
   value: string;
   expiry: number;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const TIMEZONE_OFFSET = 7; // WIB UTC+7
+
+// Fungsi helper untuk mendapatkan waktu dalam WIB
+const getWIBTime = (date: Date = new Date()): Date => {
+  // Konversi ke WIB (UTC+7)
+  const utc = date.getTime() + date.getTimezoneOffset() * 60000;
+  return new Date(utc + 3600000 * TIMEZONE_OFFSET);
+};
 
 const getCookie = (name: string): string | null => {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  if (parts.length === 2) return parts.pop()?.split(";").shift() || null;
   return null;
+};
+
+const clearAllCookies = () => {
+  const wibExpiry = getWIBTime();
+  document.cookie.split(";").forEach(function (c) {
+    document.cookie = c
+      .replace(/^ +/, "")
+      .replace(/=.*/, "=;expires=" + wibExpiry.toUTCString() + ";path=/");
+  });
 };
 
 export const checkAuth = (): boolean => {
   try {
-    const authData = getCookie('authData');
+    const authData = getCookie("authData");
     if (!authData) return false;
-    
+
     const tokenData: TokenData = JSON.parse(authData);
-    if (new Date().getTime() > tokenData.expiry) {
-      document.cookie = 'authData=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+    if (getWIBTime().getTime() > tokenData.expiry) {
+      clearAllCookies();
       return false;
     }
     return true;
@@ -32,12 +49,12 @@ export const checkAuth = (): boolean => {
 
 export const getToken = (): string | null => {
   try {
-    const authData = getCookie('authData');
+    const authData = getCookie("authData");
     if (!authData) return null;
 
     const tokenData: TokenData = JSON.parse(authData);
-    if (new Date().getTime() > tokenData.expiry) {
-      document.cookie = 'authData=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+    if (getWIBTime().getTime() > tokenData.expiry) {
+      clearAllCookies();
       return null;
     }
     return tokenData.value;
@@ -52,14 +69,14 @@ export const refreshToken = async (): Promise<boolean> => {
 
   try {
     const response = await fetch(`${API_URL}/refresh-token`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
-      document.cookie = 'authData=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+      clearAllCookies();
       return false;
     }
 
@@ -67,8 +84,8 @@ export const refreshToken = async (): Promise<boolean> => {
     setAuthToken(data.token);
     return true;
   } catch (error) {
-    console.error('Token refresh failed:', error);
-    document.cookie = 'authData=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+    console.error("Token refresh failed:", error);
+    clearAllCookies();
     return false;
   }
 };
@@ -78,25 +95,43 @@ export const logout = async (): Promise<void> => {
     const token = getToken();
     if (token) {
       await fetch(`${API_URL}/logout`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
     }
   } catch (error) {
-    console.error('Logout failed:', error);
+    console.error("Logout failed:", error);
   } finally {
-    document.cookie = 'authData=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
-    window.location.href = '/login';
+    clearAllCookies();
+    localStorage.clear();
+    sessionStorage.clear();
+
+    if (window.history && window.history.pushState) {
+      window.history.pushState(null, "", "/login");
+      window.addEventListener("popstate", function () {
+        window.history.pushState(null, "", "/login");
+      });
+    }
+
+    window.location.replace("/login");
   }
 };
 
 export const setAuthToken = (token: string): void => {
-  const expiryDate = new Date(new Date().getTime() + (24 * 60 * 60 * 1000));
+  const wibNow = getWIBTime();
+  const expiryDate = getWIBTime(
+    new Date(wibNow.getTime() + 24 * 60 * 60 * 1000)
+  ); // 24 jam dari sekarang dalam WIB
+
   const tokenData = {
     value: token,
-    expiry: expiryDate.getTime()
+    expiry: expiryDate.getTime(),
   };
-  document.cookie = `authData=${JSON.stringify(tokenData)}; path=/; expires=${expiryDate.toUTCString()}`;
+
+  // Format tanggal expires dalam WIB
+  document.cookie = `authData=${JSON.stringify(
+    tokenData
+  )}; path=/; expires=${expiryDate.toUTCString()}; SameSite=Strict`;
 };

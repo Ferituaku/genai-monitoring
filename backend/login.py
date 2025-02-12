@@ -8,6 +8,11 @@ from functools import wraps
 import os
 from dotenv import load_dotenv
 from db import Database
+from datetime import datetime, timedelta
+import pytz
+
+# Gunakan timezone WIB
+wib = pytz.timezone('Asia/Jakarta')
 
 class GoogleOAuth:
     def __init__(self, app, oauth):
@@ -95,7 +100,7 @@ class JWTManager:
         return jwt.encode({
             'user_id': user_data['id'],
             'email': user_data['email'],
-            'exp': datetime.utcnow() + timedelta(hours=24)
+            'exp': datetime.now(wib) + timedelta(hours=24)
         }, self.secret_key)
 
     def decode_token(self, token):
