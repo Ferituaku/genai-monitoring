@@ -1,13 +1,6 @@
+import { UseFilteredTracesProps } from "@/types/requests";
 import { TraceData } from "@/types/trace";
 import { useMemo } from "react";
-
-
-interface UseFilteredTracesProps {
-  traces: TraceData[];
-  searchTerm: string;
-  selectedModels: string[];
-  selectedEnvironments: string[];
-}
 
 export const useFilteredTraces = ({
   traces,
