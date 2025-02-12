@@ -8,19 +8,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-interface ErrorTraceData {
-  Timestamp: string;
-  TraceId: string;
-  SpanId: string;
-  ParentSpanId: string;
-  ServiceName: string;
-  SpanName: string;
-  StatusCode: string;
-  StatusMessage: string;
-  SpanAttributes: Record<string, string>;
-  Duration: string;
-  "Events.Attributes": Array<Record<string, string>>;
-}
+import { ErrorTraceData } from "@/types/exceptions";
 
 const ExceptionRow = ({ data }: { data: ErrorTraceData }) => {
   const formatDate = (timestamp: string) => {

@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Application } from "@/types/catalogue";
-import { CalendarDays, Clock } from "lucide-react";
+import { Activity, CalendarDays, Clock } from "lucide-react";
 import React from "react";
 
 interface ApplicationCardProps {
@@ -13,29 +13,36 @@ export class ApplicationCard extends React.Component<ApplicationCardProps> {
       year: "numeric",
       month: "short",
       day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   }
 
   render() {
     const { application } = this.props;
     return (
-      <Card className="hover:shadow-lg hover:scale-105 transition-all">
+      <Card className="hover:shadow-lg hover:scale-105 transition-all border-l-blue-600 border-l-[6px]">
         <CardHeader>
-          <h3 className="text-lg font-semibold">{application.name}</h3>
-          <span className="justify-end flex-1 text-xs font-light">
-            Total Tokens:
-          </span>
+          <h3 className="text-lg font-semibold">
+            {application["Project name"]}
+          </h3>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2 text-sm text-gray-600">
+          <div className="space-y-3 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              <span>
+                Total Requests: {application["Jumlah Request"].toLocaleString()}
+              </span>
+            </div>
             <div className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4" />
-              <span>Created: {this.formatDate(application.createdAt)}</span>
+              <span>Created: {this.formatDate(application["Created at"])}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
               <span>
-                Last Update: {this.formatDate(application.lastUpdate)}
+                Last Update: {this.formatDate(application["Last update"])}
               </span>
             </div>
           </div>

@@ -1,17 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import {
-  Search,
-  ArrowUpDown,
-  SlidersHorizontal,
-  Clock,
-  AlertCircle,
-  Server,
-  FileCode,
-  Loader2,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Search, ArrowUpDown, Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -23,25 +13,11 @@ import { Input } from "@/components/ui/input";
 
 import { Card } from "@/components/ui/card";
 import TimeFrame from "@/components/TimeFrame";
-import ExceptionRow from "./ExeptionRow/page";
+import ExceptionRow from "../../../components/exceptions/ExceptionRow";
 import { useSearchParams } from "next/navigation";
 import DynamicBreadcrumb from "@/components/Breadcrum";
-
-interface ErrorTraceData {
-  Timestamp: string;
-  TraceId: string;
-  SpanId: string;
-  ParentSpanId: string;
-  ServiceName: string;
-  SpanName: string;
-  StatusCode: string;
-  StatusMessage: string;
-  SpanAttributes: Record<string, string>;
-  Duration: string;
-  "Events.Attributes": Array<Record<string, string>>;
-}
-type SortField = "Timestamp";
-type SortDirection = "asc" | "desc";
+import { ErrorTraceData } from "@/types/exceptions";
+import { SortDirection, SortField } from "@/types/trace";
 
 const Exceptions = () => {
   const [traces, setTraces] = useState<ErrorTraceData[]>([]);

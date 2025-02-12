@@ -1,5 +1,6 @@
 export interface Application {
-  name: string;
-  createdAt: string;
-  lastUpdate: string;
+  "Project name": string;
+  "Jumlah Request": number;
+  "Created at": string;
+  "Last update": string;
 }
