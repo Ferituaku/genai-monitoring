@@ -1,14 +1,13 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request,Blueprint
 from flask_cors import CORS
 import os
 import base64
 import re
 from datetime import datetime
-from db import Database
-from init_db import create_tables
+from backend.db import Database
 
-app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+
+apiKeys = Blueprint('apiKeys', __name__)  
 
 class APIKeyGenerator:
     @staticmethod
@@ -17,7 +16,7 @@ class APIKeyGenerator:
         return f"astra-{base64.b64encode(key).decode('utf-8')}"
 
 
-class APIKeyService:
+class service:
     def __init__(self, db):
         self.db = db
 
@@ -75,7 +74,7 @@ class APIKeyService:
         '''
         self.db.execute_query(query, (api_key,))
 
-@app.route('/generate_api_key', methods=['POST'])
+@apiKeys.route('/generate_api_key', methods=['POST'])
 def generate_api_key():
     try:
         data = request.get_json()
@@ -89,7 +88,7 @@ def generate_api_key():
             return jsonify({'error': 'Name dan project harus diisi'}), 400
 
         db = Database()
-        api_key_service = APIKeyService(db)
+        api_key_service = service(db)
 
         api_key = api_key_service.generate_api_key(name, project)
 
@@ -106,7 +105,7 @@ def generate_api_key():
         return jsonify({'error': 'Terjadi kesalahan sistem: ' + str(e)}), 500
 
 
-@app.route('/get_api_key_info', methods=['GET'])
+@apiKeys.route('/get_api_key_info', methods=['GET'])
 def get_api_key_info():
     try:
         data = request.get_json()
@@ -118,7 +117,7 @@ def get_api_key_info():
             return jsonify({'error': 'Api key harus diisi'}), 400
 
         db = Database()
-        api_key_service = APIKeyService(db)
+        api_key_service = service(db)
 
         result = api_key_service.get_api_key_info(api_key)
         
@@ -135,11 +134,11 @@ def get_api_key_info():
     except Exception as e:
         return jsonify({'error': 'Terjadi kesalahan sistem'}), 500
 
-@app.route('/get_all_api_keys', methods=['GET'])
+@apiKeys.route('/get_all_api_keys', methods=['GET'])
 def get_all_api_keys():
     try:
         db = Database()
-        api_key_service = APIKeyService(db)
+        api_key_service = service(db)
 
         keys = api_key_service.get_all_api_keys()
 
@@ -153,7 +152,7 @@ def get_all_api_keys():
     except Exception as e:
         return jsonify({'error': 'Terjadi kesalahan sistem'}), 500
 
-@app.route('/delete_api_key', methods=['DELETE'])
+@apiKeys.route('/delete_api_key', methods=['DELETE'])
 def delete_api_key():
     try:
         data = request.get_json()
@@ -165,7 +164,7 @@ def delete_api_key():
             return jsonify({'error': 'Api key harus diisi'}), 400
 
         db = Database()
-        api_key_service = APIKeyService(db)
+        api_key_service = service(db)
 
         api_key_service.delete_api_key(api_key)
         return jsonify({'message': f'API key berhasil dihapus'})
@@ -175,7 +174,3 @@ def delete_api_key():
     except Exception as e:
         print(f"Error: {str(e)}")  # Untuk debugging
         return jsonify({'error': 'Terjadi kesalahan sistem'}), 500
-
-if __name__ == '__main__':
-    create_tables()
-    app.run(debug=True, port=5000)

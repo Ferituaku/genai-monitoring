@@ -13,6 +13,9 @@ from backend.chatbotapp import ProjectChatService
 from backend.chatbotapp import ChatHistoryService
 from backend.databaseopenlit import client
 from backend.exception import Exception
+from backend.apiKeys import apiKeys
+# from backend.vault import vault
+
 
 # from modul.Login import before_request_func
 
@@ -31,7 +34,8 @@ api.add_resource(Request,'/api/tracesRequest/','/api/tracesRequest/<string:appNa
 api.add_resource(ProjectChatService, '/api/projectchat')
 api.add_resource(ChatHistoryService, '/api/chathistory/<string:unique_id_chat>')
 api.add_resource(Exception, '/api/tracesExceptions/', '/api/tracesRequest/<string:appName>')
-
+app.register_blueprint(apiKeys, url_prefix='/apiKeys')
+# app.register_blueprint(vault, url_prefix='/vault')
 
 
 
