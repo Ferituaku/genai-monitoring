@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Button } from "../ui/button";
+import { logout } from "@/lib/auth";
 
 interface SidebarProps {
   userRole?: "admin" | "user" | "user1";
@@ -64,9 +65,7 @@ export const AppSidebar = ({
     }
   };
   const handleSignOut = () => {
-    if (onSignOut) {
-      onSignOut();
-    }
+    logout();
   };
 
   return (

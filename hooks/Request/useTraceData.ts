@@ -2,13 +2,7 @@
 import { useState, useEffect } from "react";
 import { TraceData } from "@/types/trace";
 import { useSearchParams } from "next/navigation";
-
-interface UseTraceDataProps {
-  selectedModels: string[];
-  selectedEnvironments: string[];
-  sortField: string;
-  sortDirection: string;
-}
+import { UseTraceDataProps } from "@/types/requests";
 
 export const useTraceData = ({
   selectedModels,

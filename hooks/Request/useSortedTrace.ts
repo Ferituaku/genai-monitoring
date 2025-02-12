@@ -1,11 +1,5 @@
-import { SortDirection, SortField, TraceData } from "@/types/trace";
+import { UseSortedTracesProps } from "@/types/requests";
 import { useMemo } from "react";
-
-interface UseSortedTracesProps {
-  filteredTraces: TraceData[];
-  sortField: SortField;
-  sortDirection: SortDirection;
-}
 
 export const useSortedTraces = ({
   filteredTraces,

@@ -194,42 +194,6 @@ const Request = () => {
       </div>
 
       <div className="sticky top-20 bg-white rounded-lg shadow-sm">
-        {/* <Card className="rounded-md">
-          <div className="max-h-[calc(100vh-180px)] overflow-y-auto">
-            <table className="w-full">
-              <thead className="sticky top-0 bg-gray-200 z-10">
-                <tr className="border-b border-gray-700">
-                  <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">
-                    Waktu Dibuat
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">
-                    Nama Proyek
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">
-                    Nama Model
-                  </th>
-                  <th className="px-6 py-3 text-right text-sm font-medium text-slate-700">
-                    Token Completion
-                  </th>
-                  <th className="px-6 py-3 text-right text-sm font-medium text-slate-700">
-                    Token Prompt
-                  </th>
-                  <th className="px-6 py-3 text-right text-sm font-medium text-slate-700">
-                    Total Token
-                  </th>
-                  <th className="px-6 py-3 text-right text-sm font-medium text-slate-700">
-                    Biaya
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {displayedTraces.map((trace, index) => (
-                  <RequestRow key={`${trace.TraceId}-${index}`} data={trace} />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card> */}
         {loading ? (
           <div className="flex h-screen items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-blue-500" />

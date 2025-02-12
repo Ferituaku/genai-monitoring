@@ -31,29 +31,25 @@ class service:
         result = self.db.fetch_one(query, (project,))
         return result[0] > 0 if result else False
 
-    def name_exists(self, name):
-        query = 'SELECT COUNT(*) FROM api_keys WHERE name = ? AND is_deleted = 0'
-        result = self.db.fetch_one(query, (name,))
-        return result[0] > 0 if result else False
-
     def generate_api_key(self, name, project):
         if not self.validate_name(name):
             raise ValueError("Nama harus 3-50 karakter dan hanya boleh mengandung huruf, angka, dan spasi")
         if not self.validate_project_name(project):
             raise ValueError("Nama project harus 3-50 karakter dan hanya boleh mengandung huruf, angka, - dan _")
-        if self.name_exists(name):
-            raise ValueError("Nama sudah digunakan")
         if self.project_exists(project):
             raise ValueError("Project api key sudah tersedia")
 
         api_key = APIKeyGenerator.create_api_key()
 
-        query = '''
-        INSERT INTO api_keys (name, api_key, project, created_at)
-        VALUES (?, ?, ?, datetime('now'))
-        '''
-        self.db.execute_query(query, (name, api_key, project))
-        return api_key
+        try:
+            query = '''
+            INSERT INTO api_keys (name, api_key, project, created_at)
+            VALUES (?, ?, ?, datetime('now'))
+            '''
+            self.db.execute_query(query, (name, api_key, project))
+            return api_key
+        except Exception as e:
+            raise ValueError(f"Gagal membuat API key: {str(e)}")
 
     def get_api_key_info(self, api_key):
         query = 'SELECT * FROM api_keys WHERE api_key = ? AND is_deleted = 0'

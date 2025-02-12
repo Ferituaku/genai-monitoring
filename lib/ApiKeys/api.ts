@@ -16,7 +16,7 @@ const API_BASE_URL = "http://127.0.0.1:5000";
 
 export const apiClient = {
   async getAllApiKeys(): Promise<ApiKey[]> {
-    const response = await fetch(`${API_BASE_URL}/get_all_api_keys`);
+    const response = await fetch(`${API_BASE_URL}/apiKeys/get_all_api_keys`);
     if (!response.ok) {
       throw new Error("Failed to fetch API keys");
     }
@@ -41,7 +41,7 @@ export const apiClient = {
   //   return response.json();
   // },
   async generateApiKey(name: string, project: string): Promise<ApiKey> {
-    const response = await fetch(`${API_BASE_URL}/generate_api_key`, {
+    const response = await fetch(`${API_BASE_URL}/apiKeys/generate_api_key`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -68,7 +68,7 @@ export const apiClient = {
   },
 
   async deleteApiKey(apiKey: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/delete_api_key`, {
+    const response = await fetch(`${API_BASE_URL}/apiKeys/delete_api_key`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

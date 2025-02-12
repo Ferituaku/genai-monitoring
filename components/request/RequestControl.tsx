@@ -1,18 +1,9 @@
 import { Search, ArrowUpDown, SlidersHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import TimeFrame from "@/components/TimeFrame";
 import { SortField, SortDirection, TraceData } from "@/types/trace";
 import { FilterButton } from "./RequestFilter";
 import { SortSelector } from "./SortSelector";
-import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { PageSizeSelector } from "@/hooks/Request/PageSizeSelector";
 
