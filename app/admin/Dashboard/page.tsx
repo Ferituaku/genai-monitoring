@@ -20,104 +20,139 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { DashboardApiService } from "@/lib/DashboardService/api";
+import { TimeFrameParams } from "@/types/timeframe";
+import {
+  createTimeFrameQueryString,
+  getTimeFrameParams,
+} from "@/lib/TimeFrame/api";
 
 const Dashboard: React.FC = () => {
-  const [avg_completion_tokens, setAvgCompletionTokens] = useState(0);
-  const [avg_cost, setAvgCost] = useState(0);
-  const [avg_duration, setAvgDuration] = useState(0);
-  const [avg_prompt_tokens, setAvgPromptTokens] = useState(0);
-  const [avg_token, setAvgToken] = useState(0);
-  const [total_requests, setTotalRequest] = useState(0);
+  const [dashboardData, setDashboardData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [data, setData] = useState<any>(null);
-  const CHART_COLOR = "#4f46e5"; // Warna garis total
-  type RequestPerTime = {
-    date: string;
-    total: number;
-    total_ok: number;
-    total_error: number;
-    total_unset: number;
-  };
-  type TokenUsage = {
-    date: string;
-    total: number;
-    prompt: number;
-    completion: number;
-  };
   const searchParams = useSearchParams();
-  // const days = searchParams.get("days");
-  const days = searchParams.get("days") || "1";
-  const fromDate = searchParams.get("from");
-  const toDate = searchParams.get("to");
-  const [requestData, setRequestData] = useState<RequestPerTime[]>([]);
-  const [tokenUsage, setTokenUsage] = useState<TokenUsage[]>([]);
+  // const [avg_completion_tokens, setAvgCompletionTokens] = useState(0);
+  // const [avg_cost, setAvgCost] = useState(0);
+  // const [avg_duration, setAvgDuration] = useState(0);
+  // const [avg_prompt_tokens, setAvgPromptTokens] = useState(0);
+  // const [avg_token, setAvgToken] = useState(0);
+  // const [total_requests, setTotalRequest] = useState(0);
+  // const [error, setError] = useState<string | null>(null);
+  // const [isLoading, setIsLoading] = useState(true);
+  // const [data, setData] = useState<any>(null);
+  // const CHART_COLOR = "#4f46e5"; // Warna garis total
+  // type RequestPerTime = {
+  //   date: string;
+  //   total: number;
+  //   total_ok: number;
+  //   total_error: number;
+  //   total_unset: number;
+  // };
+  // type TokenUsage = {
+  //   date: string;
+  //   total: number;
+  //   prompt: number;
+  //   completion: number;
+  // };
+  // const searchParams = useSearchParams();
+  // // const days = searchParams.get("days");
+  // const days = searchParams.get("days") || "1";
+  // const fromDate = searchParams.get("from");
+  // const toDate = searchParams.get("to");
+  // const timeFrameParams = getTimeFrameParams(searchParams);
+  // const [requestData, setRequestData] = useState<RequestPerTime[]>([]);
+  // const [tokenUsage, setTokenUsage] = useState<TokenUsage[]>([]);
 
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const data = await DashboardApiService.getDashboardData(
+  //         timeFrameParams
+  //       );
+  //       setAvgCompletionTokens(data?.avg_completion_tokens ?? 0);
+  //       setAvgCost(data?.avg_cost ?? 0);
+  //       setAvgDuration(data?.avg_duration ?? 0);
+  //       setAvgPromptTokens(data?.avg_prompt_tokens ?? 0);
+  //       setAvgToken(data?.avg_token ?? 0);
+  //       setTotalRequest(data?.total_requests ?? 0);
+  //       setData(data);
+
+  //       if (Array.isArray(data["request_pertime"])) {
+  //         setRequestData(
+  //           data["request_pertime"].map((item: any) => ({
+  //             date: item.date,
+  //             total:
+  //               item.total_count_ok +
+  //               item.total_count_error +
+  //               item.total_count_unset,
+  //             total_ok: item.total_count_ok,
+  //             total_error: item.total_count_error,
+  //             total_unset: item.total_count_unset,
+  //           }))
+  //         );
+  //       }
+
+  //       if (Array.isArray(data["token_usage"])) {
+  //         setTokenUsage(
+  //           data["token_usage"].map((item: any) => ({
+  //             date: item.date,
+  //             total: item.prompt + item.completion,
+  //             prompt: item.prompt,
+  //             completion: item.completion,
+  //           }))
+  //         );
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching data:", error);
+  //       setError(error instanceof Error ? error.message : "An error occurred");
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, [days]);
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchDashboardData = async () => {
       try {
-        let url = "http://127.0.0.1:5000/dashboard";
-
-        // Build query parameters
-        const params = new URLSearchParams();
-        if (fromDate && toDate) {
-          params.set("from", fromDate);
-          params.set("to", toDate);
-        } else if (days) {
-          params.set("days", days);
-        } else {
-          params.set("days", "7"); // default fallback
-        }
-
-        const response = await fetch(`${url}?${params.toString()}`);
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setAvgCompletionTokens(data?.avg_completion_tokens ?? 0);
-        setAvgCost(data?.avg_cost ?? 0);
-        setAvgDuration(data?.avg_duration ?? 0);
-        setAvgPromptTokens(data?.avg_prompt_tokens ?? 0);
-        setAvgToken(data?.avg_token ?? 0);
-        setTotalRequest(data?.total_requests ?? 0);
-        setData(data);
-        if (Array.isArray(data["request_pertime"])) {
-          setRequestData(
-            data["request_pertime"].map((item: any) => ({
-              date: item.date,
-              total:
-                item.total_count_ok +
-                item.total_count_error +
-                item.total_count_unset,
-              total_ok: item.total_count_ok,
-              total_error: item.total_count_error,
-              total_unset: item.total_count_unset,
-            }))
-          );
-        }
-
-        if (Array.isArray(data["token_usage"])) {
-          setTokenUsage(
-            data["token_usage"].map((item: any) => ({
-              date: item.date,
-              total: item.prompt + item.completion,
-              prompt: item.prompt,
-              completion: item.completion,
-            }))
-          );
-        }
+        setIsLoading(true);
+        const timeFrameParams = getTimeFrameParams(searchParams);
+        const data = await DashboardApiService.getDashboardData(
+          timeFrameParams
+        );
+        setDashboardData(data);
+        setError(null);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching dashboard data:", error);
         setError(error instanceof Error ? error.message : "An error occurred");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchData();
-  }, [days]);
+    fetchDashboardData();
+  }, [searchParams]);
+
+  const processRequestData = (data: any[]) => {
+    return data.map((item) => ({
+      date: item.date,
+      total:
+        item.total_count_ok + item.total_count_error + item.total_count_unset,
+      total_ok: item.total_count_ok,
+      total_error: item.total_count_error,
+      total_unset: item.total_count_unset,
+    }));
+  };
+
+  const processTokenData = (data: any[]) => {
+    return data.map((item) => ({
+      date: item.date,
+      total: item.prompt + item.completion,
+      prompt: item.prompt,
+      completion: item.completion,
+    }));
+  };
 
   if (isLoading) {
     return (
@@ -135,6 +170,13 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  const requestData = dashboardData?.request_pertime
+    ? processRequestData(dashboardData.request_pertime)
+    : [];
+  const tokenUsage = dashboardData?.token_usage
+    ? processTokenData(dashboardData.token_usage)
+    : [];
+
   return (
     <div className="min-h-screen">
       <div className="top-0 p-2">
@@ -147,7 +189,7 @@ const Dashboard: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           <MetricCard
             title="Total Request"
-            value={total_requests.toString()}
+            value={dashboardData?.total_requests?.toString()}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -169,7 +211,7 @@ const Dashboard: React.FC = () => {
           />
           <MetricCard
             title="Avg tokens per request"
-            value={avg_token.toString()}
+            value={dashboardData?.avg_token?.toString()}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -191,7 +233,7 @@ const Dashboard: React.FC = () => {
           />
           <MetricCard
             title="Avg Cost per request"
-            value={avg_cost.toString()}
+            value={dashboardData?.avg_cost?.toString()}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -213,7 +255,7 @@ const Dashboard: React.FC = () => {
           />
           <MetricCard
             title="Avg Request Duration"
-            value={avg_duration.toString()}
+            value={dashboardData?.avg_duration?.toString()}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -268,7 +310,7 @@ const Dashboard: React.FC = () => {
                 <Line
                   type="monotone"
                   dataKey="total"
-                  stroke={CHART_COLOR}
+                  stroke="#4f46e5"
                   name="Total Requests"
                   strokeWidth={2}
                   dot={{ strokeWidth: 2 }}
@@ -281,32 +323,32 @@ const Dashboard: React.FC = () => {
               <h2 className="text-md font-light text-slate-700 mb-4">
                 Cost by application
               </h2>
-              <Costbyapp data={data?.["Cost by app"] || {}} />
+              <Costbyapp data={dashboardData?.["Cost by app"] || {}} />
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg">
               <h2 className="text-md font-light text-slate-700 mb-4">
                 Generate by category
               </h2>
-              <Genbycategory data={data?.["Gen by category"] || {}} />
+              <Genbycategory data={dashboardData?.["Gen by category"] || {}} />
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg">
               <h2 className="text-md font-light text-slate-700 mb-4">
                 Cost by environment
               </h2>
-              <Costbyenv data={data?.["Cost by env"] || {}} />
+              <Costbyenv data={dashboardData?.["Cost by env"] || {}} />
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg">
               <h2 className="text-md font-light text-slate-700 mb-4">
                 Top Models
               </h2>
-              <TopModel data={data?.["Top Model"] || {}} />
+              <TopModel data={dashboardData?.["Top Model"] || {}} />
             </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-1 gap-6 mb-6">
             <MetricCard
               title="Avg prompt tokens / request"
-              value={avg_prompt_tokens.toString()}
+              value={dashboardData?.avg_prompt_tokens?.toString()}
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -328,7 +370,7 @@ const Dashboard: React.FC = () => {
             />
             <MetricCard
               title="Avg completion tokens / request"
-              value={avg_completion_tokens.toString()}
+              value={dashboardData?.avg_completion_tokens?.toString()}
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -357,8 +399,12 @@ const Dashboard: React.FC = () => {
               <ResponsiveContainer width="100%" height={280}>
                 <LineChart data={tokenUsage}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="date" tick={{ fill: "#6b7280" }} />
-                  <YAxis tick={{ fill: "#6b7280" }} />
+                  <XAxis
+                    className="text-xs"
+                    dataKey="date"
+                    tick={{ fill: "#6b7280" }}
+                  />
+                  <YAxis className="text-xs" tick={{ fill: "#6b7280" }} />
                   <Tooltip
                     content={({ payload }) => {
                       if (!payload || payload.length === 0) return null;
@@ -370,7 +416,7 @@ const Dashboard: React.FC = () => {
                           <p className="text-xs text-green-600">
                             Prompt: {data.prompt}
                           </p>
-                          <p className="text-xs text-red-600">
+                          <p className="text-xs text-blue-600">
                             Completion: {data.completion}
                           </p>
                         </div>

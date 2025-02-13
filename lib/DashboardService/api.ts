@@ -1,5 +1,8 @@
 // services/dashboardApi.ts
 
+import { TimeFrameParams } from "@/types/timeframe";
+import { createTimeFrameQueryString } from "../TimeFrame/api";
+
 export interface RequestPerTime {
   date: string;
   total_ok: number;
@@ -24,14 +27,32 @@ export interface DashboardData {
   total_requests: number;
   avg_duration: number;
   avg_token: number;
+  avg_completion_tokens: number;
+  avg_prompt_tokens: number;
+  token_usage: number;
+  "Cost by app": Record<string, any>;
+  "Gen by category": Record<string, any>;
+  "Cost by env": Record<string, any>;
+  "Top Model": Record<string, any>;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
 
 export class DashboardApiService {
-  static async getDashboardData(days: string | null): Promise<DashboardData> {
+  static async getDashboardData(
+    params: TimeFrameParams
+  ): Promise<DashboardData> {
     try {
-      const response = await fetch(`${API_BASE_URL}/dashboard?days=${days}`);
+      let url = `${API_BASE_URL}/dashboard`;
+
+      // Handle both days and custom date range
+      if (params.from && params.to) {
+        url += `?from=${params.from}&to=${params.to}`;
+      } else if (params.days) {
+        url += `?days=${params.days}`;
+      }
+
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -44,10 +65,10 @@ export class DashboardApiService {
   }
 
   static async getRequestPerTimeData(
-    days: string | null
+    params: TimeFrameParams
   ): Promise<RequestPerTime[]> {
     try {
-      const data = await this.getDashboardData(days);
+      const data = await this.getDashboardData(params);
       if (!Array.isArray(data.request_pertime)) {
         throw new Error("Invalid request_pertime data format");
       }
@@ -63,51 +84,26 @@ export class DashboardApiService {
     }
   }
 
-  static async getAverageCost(days: string | null): Promise<number> {
+  static async getMetrics(params: TimeFrameParams): Promise<{
+    avg_cost: number;
+    total_requests: number;
+    avg_duration: number;
+    avg_token: number;
+    avg_completion_tokens: number;
+    avg_prompt_tokens: number;
+  }> {
     try {
-      if (!days) {
-        return 0;
-      }
-      const data = await this.getDashboardData(days);
-      return data?.avg_cost ?? 0;
+      const data = await this.getDashboardData(params);
+      return {
+        avg_cost: data.avg_cost ?? 0,
+        total_requests: data.total_requests ?? 0,
+        avg_duration: data.avg_duration ?? 0,
+        avg_token: data.avg_token ?? 0,
+        avg_completion_tokens: data.avg_completion_tokens ?? 0,
+        avg_prompt_tokens: data.avg_prompt_tokens ?? 0,
+      };
     } catch (error) {
-      console.error("Error fetching average cost data:", error);
-      throw error;
-    }
-  }
-  static async getTotalRequest(days: string | null): Promise<number> {
-    try {
-      if (!days) {
-        return 0;
-      }
-      const data = await this.getDashboardData(days);
-      return data.total_requests ?? 0;
-    } catch (error) {
-      console.error("Error fetching average cost data:", error);
-      throw error;
-    }
-  }
-  static async getAverageDuration(days: string | null): Promise<number> {
-    try {
-      if (!days) {
-        return 0;
-      }
-      const data = await this.getDashboardData(days);
-      return data.avg_duration ?? 0;
-    } catch (error) {
-      console.error("Error fetching average cost data:", error);
-      throw error;
-    }
-  }
-  static async getAverageToken(days: string | null): Promise<number> {
-    try {
-      if (!days) {
-        return 0;
-      }
-      const data = await this.getDashboardData(days);
-      return data.avg_token ?? 0;
-    } catch (error) {
-      console.error("Error fetching average cost data:", error);
+      console.error("Error fetching metrics:", error);
       throw error;
     }
   }

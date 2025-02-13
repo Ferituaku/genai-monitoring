@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Search,
   ChevronUp,
@@ -41,11 +41,17 @@ const Request = () => {
   const router = useRouter();
   const { toast } = useToast();
 
+  const searchParams = useSearchParams();
+
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         setLoading(true);
-        const data = await ApiService.getProjectChats();
+        const from = searchParams.get("from");
+        const to = searchParams.get("to");
+        const days = searchParams.get("days");
+
+        const data = await ApiService.getProjectChats({ days, from, to });
         setProjects(data);
       } catch (err) {
         toast({
@@ -59,8 +65,8 @@ const Request = () => {
     };
 
     fetchProjects();
-  }, [toast]);
-
+  }, [toast, searchParams]);
+  
   const filteredProjects = useMemo(() => {
     return projects.filter((project) =>
       project.serviceName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -100,17 +106,17 @@ const Request = () => {
   }
 
   return (
-    <div className="max-h-full">
+    <div className="max-h-screen ">
       <div className="top-0 p-2">
         <DynamicBreadcrumb />
       </div>
       <div className="sticky right-0 z-10 top-2">
         <div className="flex flex-col lg:flex-row gap-4 mb-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col gap-[540px] sm:flex-row">
             <div className="flex relative items-center gap-4">
               <TimeFrame />
             </div>
-            <div className="relative flex min-w-[200px] items-center">
+            <div className="relative flex w-[380px] min-w-[200px] items-center">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
               <Input
                 type="text"

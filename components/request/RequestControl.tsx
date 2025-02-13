@@ -5,7 +5,7 @@ import { SortField, SortDirection, TraceData } from "@/types/trace";
 import { FilterButton } from "./RequestFilter";
 import { SortSelector } from "./SortSelector";
 import { useMemo, useState } from "react";
-import { PageSizeSelector } from "@/hooks/Request/PageSizeSelector";
+import { PageSizeSelector } from "@/components/request/PageSizeSelector";
 
 interface RequestControlsProps {
   searchTerm: string;

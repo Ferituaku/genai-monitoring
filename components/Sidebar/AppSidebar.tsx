@@ -113,7 +113,7 @@ export const AppSidebar = ({
                   Profile
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>Database</DropdownMenuItem>
+              <DropdownMenuItem>User Management</DropdownMenuItem>
               <DropdownMenuItem
                 className="text-red-600"
                 onClick={handleSignOut}

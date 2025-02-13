@@ -1,5 +1,8 @@
 // services/api.ts
 
+import { TimeFrameParams } from "@/types/timeframe";
+import { createTimeFrameQueryString } from "../TimeFrame/api";
+
 interface ChatSession {
   UniqueIDChat: string;
   Timestamp: string;
@@ -29,9 +32,14 @@ export interface ChatHistoryData {
 }
 
 export class ApiService {
-  static async getProjectChats(): Promise<ProjectChat[]> {
+  static async getProjectChats(
+    timeParams: TimeFrameParams
+  ): Promise<ProjectChat[]> {
     try {
-      const response = await fetch(`http://localhost:5000/api/projectchat`);
+      const queryString = createTimeFrameQueryString(timeParams);
+      const response = await fetch(
+        `http://localhost:5000/api/projectchat?${queryString}`
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -46,7 +54,7 @@ export class ApiService {
   static async getChatHistory(uniqueIdChat: string): Promise<ChatHistoryData> {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/chathistory/${uniqueIdChat}`
+        `http://localhost:5000/api/chathistory/${uniqueIdChat}`
       );
 
       if (!response.ok) {

@@ -16,20 +16,41 @@ export const useTraceData = ({
 
   const searchParams = useSearchParams();
   const days = searchParams?.get("days") || "7";
+  const fromDate = searchParams?.get("from");
+  const toDate = searchParams?.get("to");
 
   useEffect(() => {
     const fetchTraces = async () => {
       try {
         // Construct query parameters
-        const queryParams = new URLSearchParams({
-          days: days,
-          ...(selectedModels.length && { model: selectedModels.join(",") }),
-          ...(selectedEnvironments.length && {
-            deployment_environment: selectedEnvironments.join(","),
-          }),
-          ...(sortField && { sort_field: sortField }),
-          ...(sortDirection && { sort_direction: sortDirection }),
-        });
+        const queryParams = new URLSearchParams();
+
+        // Add time parameters
+        if (fromDate && toDate) {
+          queryParams.set("from", fromDate);
+          queryParams.set("to", toDate);
+        } else if (days) {
+          queryParams.set("days", days);
+        } else {
+          queryParams.set("days", "7"); // Default
+        }
+
+        // Add other parameters
+        if (selectedModels.length) {
+          queryParams.set("model", selectedModels.join(","));
+        }
+        if (selectedEnvironments.length) {
+          queryParams.set(
+            "deployment_environment",
+            selectedEnvironments.join(",")
+          );
+        }
+        if (sortField) {
+          queryParams.set("sort_field", sortField);
+        }
+        if (sortDirection) {
+          queryParams.set("sort_direction", sortDirection);
+        }
 
         const response = await fetch(
           `http://localhost:5000/api/tracesRequest/?${queryParams}`
@@ -50,7 +71,15 @@ export const useTraceData = ({
     };
 
     fetchTraces();
-  }, [days, selectedModels, selectedEnvironments, sortField, sortDirection]);
+  }, [
+    days,
+    fromDate,
+    toDate,
+    selectedModels,
+    selectedEnvironments,
+    sortField,
+    sortDirection,
+  ]);
 
   return { traces, loading, error };
 };
