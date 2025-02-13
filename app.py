@@ -17,11 +17,20 @@ from backend.apiKeys import apiKeys
 from backend.appcatalogue import AppCatalogue
 from backend.login import AuthApp  
 from backend.pricing import PricingAPI
+from backend.vault import vault
 
 app = Flask(__name__)
 
 debug = True
-CORS(app, resources={r"*": {"origins": "*"}})
+CORS(app, 
+     resources={r"*": {
+         "origins": ["http://localhost:3000", "http://127.0.0.1:3000"],  # Tambahkan kedua format URL
+         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         "allow_headers": ["Content-Type", "Authorization", "Accept"],
+         "supports_credentials": True,
+         "allow_credentials": True  # Tambahkan ini
+     }},
+     expose_headers=["Content-Type", "Authorization"])
 api = Api(app)
 
 client =  clickhouse_connect.get_client(host='openlit.my.id', port='8123', database="openlit", username='default',password='OPENLIT',
@@ -35,6 +44,7 @@ api.add_resource(ChatHistoryService, '/api/chathistory/<string:unique_id_chat>')
 api.add_resource(Exception, '/api/tracesExceptions/', '/api/tracesRequest/<string:appName>')
 api.add_resource(AppCatalogue, "/appcatalogue")
 app.register_blueprint(apiKeys, url_prefix='/apiKeys')
+app.register_blueprint(vault, url_prefix='/vault')
 AuthApp(app)
 PricingAPI(app)
 

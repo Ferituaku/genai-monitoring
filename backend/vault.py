@@ -1,29 +1,20 @@
-from flask import Flask, jsonify, request
-from flask_cors import CORS
-import re
+from flask import Blueprint, jsonify, request
 from datetime import datetime
 import pytz
 import sqlite3
-from db import Database
-from login import JWTManager
+import re
 import os
-from dotenv import load_dotenv
+from backend.login import JWTManager
+from backend.db import Database
 
-load_dotenv()
-
-app = Flask(__name__)
-CORS(app)
-
+vault = Blueprint('vault', __name__)
 wib = pytz.timezone('Asia/Jakarta')
-
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key')
-
 db = Database()
-jwt_manager = JWTManager(app.config['SECRET_KEY'])
+jwt_manager = JWTManager(os.getenv('SECRET_KEY', 'your-secret-key'))
 
 class Vault:
     def __init__(self, db):
-        self.db = db
+        self.db = db    
 
     def validate_project(self, project):
         return bool(re.match(r'^[A-Za-z0-9-_]{3,50}$', project))
@@ -75,7 +66,7 @@ class Vault:
             current_time.strftime('%Y-%m-%d %H:%M:%S')
         ))
 
-@app.route('/get_values', methods=['GET'])
+@vault.route('/get_values', methods=['GET'])
 @jwt_manager.token_required
 def get_values(token_data):
     try:
@@ -97,7 +88,7 @@ def get_values(token_data):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/add_vault', methods=['POST'])
+@vault.route('/add_vault', methods=['POST'])
 @jwt_manager.token_required
 def add_vault(token_data):
     try:
@@ -112,13 +103,13 @@ def add_vault(token_data):
         if not all([api_key, value, project]):
             return jsonify({'error': 'api_key, value, dan project wajib diisi'}), 400
 
-        vault = Vault(db)
+        vault_instance = Vault(db)
         user_email = token_data.get('email')
         if not user_email:
             return jsonify({'error': 'Email tidak ditemukan dalam token'}), 401
 
         try:
-            vault.add_value(api_key, user_email, project, value)
+            vault_instance.add_value(api_key, user_email, project, value)
         except sqlite3.IntegrityError:
             return jsonify({'error': 'Vault dengan API Key dan Project ini sudah ada'}), 400
 
@@ -135,7 +126,7 @@ def add_vault(token_data):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/update_value', methods=['PUT'])
+@vault.route('/update_value', methods=['PUT'])
 @jwt_manager.token_required
 def update_value(token_data):
     try:
@@ -165,11 +156,10 @@ def update_value(token_data):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/delete_value/<api_key>', methods=['DELETE'])
+@vault.route('/delete_value/<api_key>', methods=['DELETE'])
 @jwt_manager.token_required
 def delete_value(token_data, api_key):
     try:
-        # Hard delete
         query = 'DELETE FROM vault WHERE api_key = ?'
         db.execute_query(query, (api_key,))
 
@@ -180,6 +170,3 @@ def delete_value(token_data, api_key):
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-if __name__ == '__main__':
-    app.run(debug=True)
