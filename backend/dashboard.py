@@ -11,12 +11,34 @@ class Dashboard(Resource):
 
     def __init__(self):
         self.client = client  
-        self.days = request.args.get('days', default=7, type=int)
+        # self.days = request.args.get('days', default=7, type=int)
 
     def get(self):
         try:
-            start_date_str = datetime.now(timezone.utc) - timedelta(days=self.days)
-            end_date_str = datetime.now(timezone.utc)
+           # Handle both days and custom date range
+            days = request.args.get('days', type=int)
+            from_date = request.args.get('from')
+            to_date = request.args.get('to')
+
+            if from_date and to_date:
+                try:
+                    start_date_str = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
+                    end_date_str = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
+                except ValueError:
+                    abort(400, "Invalid date format. Use ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)")
+            elif days:
+                start_date_str = datetime.now(timezone.utc) - timedelta(days=days)
+                end_date_str = datetime.now(timezone.utc)
+            else:
+                # Default to 7 days if no parameters provided
+                start_date_str = datetime.now(timezone.utc) - timedelta(days=7)
+                end_date_str = datetime.now(timezone.utc)
+
+            # Your existing query parameters
+            query_params = {
+                'start_date': start_date_str,
+                'end_date': end_date_str
+            }
 
             total_request_query = """
                 SELECT COUNT(
@@ -29,7 +51,7 @@ class Dashboard(Resource):
                 WHERE Timestamp BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
             """
             
-            total_requests = client.query(total_request_query, {'start_date': start_date_str, 'end_date': end_date_str}).result_rows[0][0]
+            total_requests = client.query(total_request_query,query_params).result_rows[0][0]
              
                         # Query untuk rata2 token
             avg_token_query =  """
@@ -57,7 +79,7 @@ class Dashboard(Resource):
                 FROM request_counts_ok, token_counts
             """
             
-            avg_token = client.query(avg_token_query, {'start_date': start_date_str, 'end_date': end_date_str}).result_rows[0][2]
+            avg_token = client.query(avg_token_query,query_params).result_rows[0][2]
              
 
             # Query untuk rata2 cost
@@ -86,7 +108,7 @@ class Dashboard(Resource):
                 FROM request_counts_ok, cost_counts
             """
             
-            avg_cost = client.query(avg_cost_query,  {'start_date': start_date_str, 'end_date': end_date_str}).result_rows[0][2]
+            avg_cost = client.query(avg_cost_query, query_params).result_rows[0][2]
              
 
             avg_duration_query = """
@@ -98,7 +120,7 @@ class Dashboard(Resource):
                 WHERE Timestamp BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
             """
             
-            avg_duration = client.query(avg_duration_query, {'start_date': start_date_str, 'end_date': end_date_str}).result_rows[0][0]
+            avg_duration = client.query(avg_duration_query,query_params).result_rows[0][0]
              
 
             Cost_by_app_query = """
@@ -129,7 +151,7 @@ class Dashboard(Resource):
                 LIMIT 5
             """
             
-            Cost_by_app_result = client.query(Cost_by_app_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows
+            Cost_by_app_result = client.query(Cost_by_app_query,query_params).result_rows
 
             if not Cost_by_app_result:
                     return jsonify({"error": "No data found"})
@@ -164,7 +186,7 @@ class Dashboard(Resource):
             ORDER BY percentage DESC
             """
             
-            Gen_by_category_result = client.query(Gen_by_category_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows
+            Gen_by_category_result = client.query(Gen_by_category_query,query_params).result_rows
              
 
             if not Gen_by_category_result:
@@ -201,7 +223,7 @@ class Dashboard(Resource):
             
             """
             
-            Cost_by_env_result = client.query(Cost_by_env_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows
+            Cost_by_env_result = client.query(Cost_by_env_query,query_params).result_rows
              
 
             if not Cost_by_env_result:
@@ -239,7 +261,7 @@ class Dashboard(Resource):
             """
 
             
-            token_usege = client.query(token_usege_query, {'start_date': start_date_str, 'end_date': end_date_str}).result_rows
+            token_usege = client.query(token_usege_query,query_params).result_rows
               # Tutup koneksi setelah query selesai
 
             # Jika tidak ada data, kembalikan hasil kosong
@@ -282,7 +304,7 @@ class Dashboard(Resource):
                 FROM request_counts_ok, prompt_counts
             """
             
-            Avg_prompt_tokens = client.query(Avg_prompt_tokens_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows[0][2]
+            Avg_prompt_tokens = client.query(Avg_prompt_tokens_query,query_params).result_rows[0][2]
            
              
 
@@ -313,7 +335,7 @@ class Dashboard(Resource):
                 FROM request_counts_ok, prompt_counts
             """
             
-            Avg_completion_tokens = client.query(Avg_completion_tokens_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows[0][2]
+            Avg_completion_tokens = client.query(Avg_completion_tokens_query,query_params).result_rows[0][2]
              
             Top_Model_query = """
             WITH model_count AS (
@@ -338,7 +360,7 @@ class Dashboard(Resource):
             LIMIT 5
             """
             
-            Top_Model_result = client.query(Top_Model_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows
+            Top_Model_result = client.query(Top_Model_query,query_params).result_rows
              
             if not Top_Model_result:
                 return jsonify({"error": "No data found"})
@@ -377,7 +399,7 @@ class Dashboard(Resource):
             FROM request_counts_ok, prompt_counts
             """
             
-            Avg_completion_tokens = client.query(Avg_completion_tokens_query,{'start_date': start_date_str, 'end_date': end_date_str}).result_rows[0][2]
+            Avg_completion_tokens = client.query(Avg_completion_tokens_query,query_params).result_rows[0][2]
              
 
             request_pertime_query = """
@@ -394,7 +416,7 @@ class Dashboard(Resource):
             """
 
             
-            request_pertime = client.query(request_pertime_query, {'start_date': start_date_str, 'end_date': end_date_str}).result_rows
+            request_pertime = client.query(request_pertime_query,query_params).result_rows
               # Tutup koneksi setelah query selesai
 
             # Jika tidak ada data, kembalikan hasil kosong
@@ -416,8 +438,8 @@ class Dashboard(Resource):
 
             return jsonify({                
                 "total_requests": total_requests,
-                "start_date": start_date_str,
-                "end_date": end_date_str,
+                "start_date": start_date_str.isoformat(),
+                "end_date": end_date_str.isoformat(),
                 "avg_token": avg_token,
                 "avg_cost": avg_cost,
                 "avg_duration": avg_duration,
