@@ -1,6 +1,65 @@
 import { useState, useCallback } from "react";
 import { VaultData, VaultFormData, ApiResponse } from "@/types/vault";
 
+import { getToken } from "@/lib/auth";
+
+const API_BASE_URL = "http://127.0.0.1:5000/vault";
+
+const getAuthHeaders = () => {
+  const token = getToken(); // Gunakan getToken() untuk mendapatkan token dari cookie
+  return {
+    "Content-Type": "application/json",
+    Authorization: token ? `Bearer ${token}` : "", // Tambahkan token hanya jika ada
+  };
+};
+
+export const vaultClient = {
+  async getVaultData(): Promise<VaultData[]> {
+    const response = await fetch(`${API_BASE_URL}/get_values`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  },
+
+  async addVaultEntry(formData: VaultFormData): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/add_vault`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(formData),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Failed to add vault entry");
+    return { message: "Vault entry added successfully" };
+  },
+
+  async updateVaultEntry(key: string, value: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/update_value`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ api_key: key, value }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Failed to update vault entry");
+    return { message: "Vault entry updated successfully" };
+  },
+
+  async deleteVaultEntry(key: string): Promise<ApiResponse> {
+    const response = await fetch(`${API_BASE_URL}/delete_value/${key}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Failed to delete vault entry");
+    return { message: "Vault entry deleted successfully" };
+  },
+};
+
 export const useVault = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -9,12 +68,7 @@ export const useVault = () => {
   const fetchVaultData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/get_values`);
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch traces");
-      }
-      const data = await response.json();
+      const data = await vaultClient.getVaultData();
       setVaultData(data);
       setError(null);
     } catch (err) {
@@ -24,83 +78,13 @@ export const useVault = () => {
     }
   }, []);
 
-  const addVaultEntry = useCallback(
-    async (formData: VaultFormData): Promise<ApiResponse> => {
-      try {
-        const response = await fetch(`http://localhost:5000/add_vault`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        });
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Failed to add vault entry");
-        await fetchVaultData();
-        return { message: "Vault entry added successfully" };
-      } catch (err) {
-        return {
-          error:
-            err instanceof Error ? err.message : "Failed to add vault entry",
-        };
-      }
-    },
-    [fetchVaultData]
-  );
-
-  const updateVaultEntry = useCallback(
-    async (key: string, value: string): Promise<ApiResponse> => {
-      try {
-        const response = await fetch(`http://localhost:5000/update_value`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ api_key: key, value }),
-        });
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Failed to update vault entry");
-        await fetchVaultData();
-        return { message: "Vault entry updated successfully" };
-      } catch (err) {
-        return {
-          error:
-            err instanceof Error ? err.message : "Failed to update vault entry",
-        };
-      }
-    },
-    [fetchVaultData]
-  );
-
-  const deleteVaultEntry = useCallback(
-    async (key: string): Promise<ApiResponse> => {
-      try {
-        const response = await fetch(
-          `http://localhost:5000/delete_value/${key}`,
-          {
-            method: "DELETE",
-          }
-        );
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error || "Failed to delete vault entry");
-        await fetchVaultData();
-        return { message: "Vault entry deleted successfully" };
-      } catch (err) {
-        return {
-          error:
-            err instanceof Error ? err.message : "Failed to delete vault entry",
-        };
-      }
-    },
-    [fetchVaultData]
-  );
-
   return {
     vaultData,
     isLoading,
     error,
     fetchVaultData,
-    addVaultEntry,
-    updateVaultEntry,
-    deleteVaultEntry,
+    addVaultEntry: vaultClient.addVaultEntry,
+    updateVaultEntry: vaultClient.updateVaultEntry,
+    deleteVaultEntry: vaultClient.deleteVaultEntry,
   };
 };
