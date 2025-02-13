@@ -26,14 +26,14 @@ def create_tables():
 
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS vault (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             api_key TEXT NOT NULL,
             created_by TEXT,
             project TEXT NOT NULL,
             value TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            deleted_at TIMESTAMP,
-            is_deleted INTEGER DEFAULT 0,
+            UNIQUE(api_key, project),
             FOREIGN KEY (api_key) REFERENCES api_keys(api_key),
             FOREIGN KEY (project) REFERENCES api_keys(project)
         )
