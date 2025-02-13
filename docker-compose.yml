@@ -1,12 +1,25 @@
 version: '3.8'
 services:
-  app:
-    build: .
+  node-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: node-app  # Specifies the Flask stage in multi-stage build
     ports:
-      - "3000:3000"
+      - "5102:5102"
     volumes:
-      - .:/app
-      - /app/node_modules
-    command: npm run dev
-    environment:
-      - NODE_ENV=development
+      - .:/app/node
+      - /app/node/node_modules
+    command: npm run dev -- --port 5102
+
+  flask-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: python-app  # Specifies the Flask stage in multi-stage build
+    ports:
+      - "5101:5101"
+    volumes:
+      - ./backend:/app/python/backend
+      - ./database:/app/python/database
+    command: ["python", "/app/python/app.py", "--host=0.0.0.0", "--port=5101"]

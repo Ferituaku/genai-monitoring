@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, abort, request
 from flask_restful import Api, Resource
 import clickhouse_connect
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from flask_cors import CORS
 from backend.databaseopenlit import client
 
@@ -22,14 +22,35 @@ class Exception(Resource):
 
     def __init__(self):
         self.client = client  
-        self.days = request.args.get('days', default=7, type=int)
+        # self.days = request.args.get('days', default=7, type=int)
 
     def get(self, appName=None):  
         try:
             # Hitung tanggal mulai (hari ini - days)
-            start_date = datetime.now() - timedelta(days=self.days)
-            
-            # Query utama untuk mendapatkan traces
+            # start_date = datetime.now() - timedelta(days=self.days)
+            days = request.args.get('days', type=int)
+            from_date = request.args.get('from')
+            to_date = request.args.get('to')
+
+            if from_date and to_date:
+                try:
+                    start_date_str = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
+                    end_date_str = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
+                except ValueError:
+                    abort(400, "Invalid date format. Use ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)")
+            elif days:
+                start_date_str = datetime.now(timezone.utc) - timedelta(days=days)
+                end_date_str = datetime.now(timezone.utc)
+            else:
+                # Default to 7 days if no parameters provided
+                start_date_str = datetime.now(timezone.utc) - timedelta(days=7)
+                end_date_str = datetime.now(timezone.utc)
+
+            query_params = {
+                'start_date': start_date_str,
+                'end_date': end_date_str
+            }
+
             query = """
             SELECT 
                 Timestamp,
@@ -52,24 +73,24 @@ class Exception(Resource):
                 Events.Attributes
             FROM otel_traces 
             WHERE StatusCode IN ('STATUS_CODE_ERROR')
-            AND Timestamp >= '{start_date}'
+            AND BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
             """
             if appName:
                 query += f" AND ServiceName = '{appName}'"
             query += " ORDER BY Timestamp DESC"
 
-            query = query.format(start_date=start_date.strftime('%Y-%m-%d %H:%M:%S'))
+            query = query.format(query_params)
 
             # Jalankan query
             traces = client.query(query).result_rows
-            print(f"Raw Traces dari Query: {traces}")  # Debugging
+            print(f"Raw Traces dari Query: {traces}") 
 
             if not traces:
                 print("Query tidak mengembalikan data, mengembalikan data kosong...")
 
             formatted_traces = []
             for row in traces:
-                print(f"Row mentah: {row}")  # Debugging
+                print(f"Row mentah: {row}") 
                 
                 # Pastikan panjang row cukup sebelum mengakses indeks
                 try:
