@@ -1,85 +1,139 @@
-// hooks/Request/useTraceData.ts
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { TraceData } from "@/types/trace";
 import { useSearchParams } from "next/navigation";
-import { UseTraceDataProps } from "@/types/requests";
+import { getTimeFrameParams } from "@/lib/TimeFrame/api";
+import { TraceFilters } from "@/types/requests";
 
 export const useTraceData = ({
-  selectedModels,
-  selectedEnvironments,
   sortField,
   sortDirection,
-}: UseTraceDataProps) => {
+  filters,
+}: TraceFilters) => {
   const [traces, setTraces] = useState<TraceData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const searchParams = useSearchParams();
-  const days = searchParams?.get("days") || "7";
-  const fromDate = searchParams?.get("from");
-  const toDate = searchParams?.get("to");
 
-  useEffect(() => {
-    const fetchTraces = async () => {
-      try {
-        // Construct query parameters
-        const queryParams = new URLSearchParams();
+  const ambilDataTrace = useCallback(async () => {
+    let isMounted = true; // Mencegah memory leak
 
-        // Add time parameters
-        if (fromDate && toDate) {
-          queryParams.set("from", fromDate);
-          queryParams.set("to", toDate);
-        } else if (days) {
-          queryParams.set("days", days);
-        } else {
-          queryParams.set("days", "7"); // Default
-        }
+    try {
+      setLoading(true);
+      setError(null);
 
-        // Add other parameters
-        if (selectedModels.length) {
-          queryParams.set("model", selectedModels.join(","));
-        }
-        if (selectedEnvironments.length) {
-          queryParams.set(
-            "deployment_environment",
-            selectedEnvironments.join(",")
-          );
-        }
-        if (sortField) {
-          queryParams.set("sort_field", sortField);
-        }
-        if (sortDirection) {
-          queryParams.set("sort_direction", sortDirection);
-        }
+      const parameterWaktu = getTimeFrameParams(searchParams);
 
-        const response = await fetch(
-          `http://localhost:5000/api/tracesRequest/?${queryParams}`
-        );
+      const data = await fetchTraces({
+        sortField,
+        sortDirection,
+        timeFrame: parameterWaktu,
+        filters,
+      });
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch traces");
-        }
+      if (!isMounted) return;
 
-        const data = await response.json();
-        setTraces(data);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
+      setTraces(data);
+    } catch (err) {
+      if (!isMounted) return;
+
+      const pesanError =
+        err instanceof Error
+          ? err.message
+          : "Terjadi kesalahan saat mengambil data";
+
+      setError(pesanError);
+      console.error("Error dalam useTraceData:", err);
+    } finally {
+      if (isMounted) {
         setLoading(false);
       }
-    };
+    }
 
-    fetchTraces();
-  }, [
-    days,
-    fromDate,
-    toDate,
-    selectedModels,
-    selectedEnvironments,
-    sortField,
-    sortDirection,
-  ]);
+    return () => {
+      isMounted = false;
+    };
+  }, [searchParams, sortField, sortDirection, JSON.stringify(filters)]);
+
+  useEffect(() => {
+    ambilDataTrace();
+  }, [ambilDataTrace]);
 
   return { traces, loading, error };
+};
+
+export const fetchTraces = async ({
+  timeFrame,
+  filters,
+}: TraceFilters): Promise<TraceData[]> => {
+  const queryParams = new URLSearchParams();
+
+  // Parameter waktu
+  if (timeFrame.from && timeFrame.to) {
+    queryParams.set("from", timeFrame.from);
+    queryParams.set("to", timeFrame.to);
+  } else if (timeFrame.days) {
+    queryParams.set("days", timeFrame.days);
+  }
+
+  // Parameter filter
+  if (filters.environments?.length) {
+    queryParams.set("deployment_environment", filters.environments.join(","));
+  }
+
+  // Filter tambahan
+  const tambahkanFilter = (nama: string, nilai: any) => {
+    if (nilai !== undefined) {
+      queryParams.set(nama, nilai.toString());
+    }
+  };
+
+  tambahkanFilter("system", filters.system);
+  tambahkanFilter("model", filters.models);
+  tambahkanFilter("operation_name", filters.operationName);
+  tambahkanFilter("endpoint", filters.endpoint);
+
+  // Filter token range
+  if (filters.tokenRange) {
+    const { input, output, total } = filters.tokenRange;
+
+    if (input) {
+      tambahkanFilter("min_input_tokens", input.min);
+      tambahkanFilter("max_input_tokens", input.max);
+    }
+
+    if (output) {
+      tambahkanFilter("min_output_tokens", output.min);
+      tambahkanFilter("max_output_tokens", output.max);
+    }
+
+    if (total) {
+      tambahkanFilter("min_total_tokens", total.min);
+      tambahkanFilter("max_total_tokens", total.max);
+    }
+  }
+
+  // Filter durasi dan stream
+  if (filters.duration) {
+    tambahkanFilter("min_duration", filters.duration.min);
+    tambahkanFilter("max_duration", filters.duration.max);
+  }
+
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/tracesRequest/?${queryParams}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Kesalahan HTTP! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error dalam fetchTraces:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Gagal mengambil data trace"
+    );
+  }
 };

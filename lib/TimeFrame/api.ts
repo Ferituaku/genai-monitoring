@@ -11,7 +11,7 @@ export const getTimeFrameParams = (
     return { from, to };
   }
 
-  return { days: days || "7" }; // Default to 7 days if no params
+  return { days: days || "7" };
 };
 
 export const createTimeFrameQueryString = (
