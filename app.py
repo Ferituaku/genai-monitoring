@@ -15,10 +15,8 @@ from backend.databaseopenlit import client
 from backend.exception import Exception
 from backend.apiKeys import apiKeys
 from backend.appcatalogue import AppCatalogue
-# from backend.vault import vault
-
-
-# from modul.Login import before_request_func
+from backend.login import AuthApp  
+from backend.pricing import PricingAPI
 
 app = Flask(__name__)
 
@@ -27,7 +25,7 @@ CORS(app, resources={r"*": {"origins": "*"}})
 api = Api(app)
 
 client =  clickhouse_connect.get_client(host='openlit.my.id', port='8123', database="openlit", username='default',password='OPENLIT',
-        secure=False  # Menghindari session locking
+        secure=False 
     )
 
 api.add_resource(Dashboard, '/dashboard')
@@ -37,12 +35,9 @@ api.add_resource(ChatHistoryService, '/api/chathistory/<string:unique_id_chat>')
 api.add_resource(Exception, '/api/tracesExceptions/', '/api/tracesRequest/<string:appName>')
 api.add_resource(AppCatalogue, "/appcatalogue")
 app.register_blueprint(apiKeys, url_prefix='/apiKeys')
+AuthApp(app)
+PricingAPI(app)
 
-# app.register_blueprint(vault, url_prefix='/vault')
-
-
-
-# app.before_request(before_request_func)
 
 if __name__ == '__main__':
     app.run(debug=debug, host='0.0.0.0')

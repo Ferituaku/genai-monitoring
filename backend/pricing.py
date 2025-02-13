@@ -156,11 +156,11 @@ class PricingManager:
         return True, "Data deleted successfully"
 
 class PricingAPI:
-    def __init__(self):
+    def __init__(self,app):
         base_path = os.path.dirname(os.path.abspath(__file__))
         json_path = os.path.join(base_path, '..', 'lib', 'llm', 'token', 'pricing.json')
         self.pricing_manager = PricingManager(json_path)
-        self.app = Flask(__name__)
+        self.app = app
 
         CORS(self.app, resources={
             r"/data/*": {

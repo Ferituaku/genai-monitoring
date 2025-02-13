@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 import os
 from dotenv import load_dotenv
-from db import Database
+from .db import Database
 from datetime import datetime, timedelta
 import pytz
 
@@ -137,9 +137,9 @@ class JWTManager:
         return decorated
 
 class AuthApp:
-    def __init__(self):
+    def __init__(self,app):
         load_dotenv()
-        self.app = Flask(__name__)
+        self.app = app
         CORS(self.app)
         
         # Config
