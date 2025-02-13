@@ -3,7 +3,7 @@ from flask_restful import Api, Resource
 import clickhouse_connect
 from datetime import datetime, timedelta
 from flask_cors import CORS
-from backend.databaseopenlit import client
+from backend.database.databaseopenlit import client
 
 app = Flask(__name__)
 CORS(app)

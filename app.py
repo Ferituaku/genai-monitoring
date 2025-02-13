@@ -9,15 +9,15 @@ from flask_restful import Resource, Api
 from flask_cors import CORS
 from backend.dashboard import Dashboard
 from backend.request import Request
-from backend.chatbotapp import ProjectChatService
-from backend.chatbotapp import ChatHistoryService
-from backend.databaseopenlit import client
+from backend.admin.chatbotapp import ProjectChatService
+from backend.admin.chatbotapp import ChatHistoryService
+from backend.database.databaseopenlit import client
 from backend.exception import Exception
-from backend.apiKeys import apiKeys
-from backend.appcatalogue import AppCatalogue
-from backend.login import AuthApp  
-from backend.pricing import PricingAPI
-from backend.vault import vault
+from backend.admin.apiKeys import apiKeys
+from backend.admin.appcatalogue import AppCatalogue
+from backend.login.AuthApp import AuthApp  
+from backend.admin.pricing import PricingAPI
+from backend.admin.vault import vault
 
 app = Flask(__name__)
 
