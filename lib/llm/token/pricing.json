@@ -1,16 +1,16 @@
 {
     "embeddings": {
         "text-embedding-ada-002": 0.0001,
-        "text-embedding-3-small": 2e-05,
+        "text-embedding-3-small": 0.00002,
         "text-embedding-3-large": 0.00013,
         "ada": 0.0001,
-        "ada-v2": 0.0001,
+        "ada-v2": 0.00010,
         "text-ada-001": 0.0001,
         "azure_text-embedding-ada-002": 0.0001,
-        "azure_text-embedding-3-small": 2e-05,
+        "azure_text-embedding-3-small": 0.00002,
         "azure_text-embedding-3-large": 0.00013,
         "azure_ada": 0.0001,
-        "azure_ada-v2": 0.0001,
+        "azure_ada-v2": 0.00010,
         "azure_text-ada-001": 0.0001,
         "embed-english-v3.0": 0.0001,
         "embed-multilingual-v3.0": 0.0001,
@@ -21,7 +21,7 @@
         "embed-multilingual-v2.0": 0.0001,
         "mistral-embed": 0.0001,
         "amazon.titan-embed-text-v1": 0.0001,
-        "amazon.titan-embed-text-v2": 2e-05,
+        "amazon.titan-embed-text-v2": 0.00002,
         "textembedding-gecko": 0.0001,
         "textembedding-gecko@001": 0.0001,
         "textembedding-gecko@002": 0.0001,
@@ -30,31 +30,31 @@
     "images": {
         "dall-e-3": {
             "standard": {
-                "1024x1024": 0.04,
-                "1024x1792": 0.02,
-                "1792x1024": 0.08
+                "1024x1024": 0.040,
+                "1024x1792": 0.020,
+                "1792x1024": 0.080
             },
             "hd": {
-                "1024x1024": 0.08,
-                "1024x1792": 0.12,
-                "1792x1024": 0.12
+                "1024x1024": 0.080,
+                "1024x1792": 0.120,
+                "1792x1024": 0.120
             }
         },
         "azure_dall-e-3": {
             "standard": {
-                "1024x1024": 0.04,
-                "1024x1792": 0.02,
-                "1792x1024": 0.08
+                "1024x1024": 0.040,
+                "1024x1792": 0.020,
+                "1792x1024": 0.080
             },
             "hd": {
-                "1024x1024": 0.08,
-                "1024x1792": 0.12,
-                "1792x1024": 0.12
+                "1024x1024": 0.080,
+                "1024x1792": 0.120,
+                "1792x1024": 0.120
             }
         },
         "dall-e-2": {
             "standard": {
-                "1024x1024": 0.02,
+                "1024x1024": 0.020,
                 "512x512": 0.018,
                 "256x256": 0.016
             }
@@ -112,8 +112,8 @@
         }
     },
     "audio": {
-        "tts-1": 0.015,
-        "tts-1-hd": 0.03,
+        "tts-1" : 0.015,
+        "tts-1-hd": 0.030,
         "eleven_multilingual_v2": 0.24,
         "eleven_multilingual_v1": 0.24,
         "eleven_monolingual_v1": 0.24,
@@ -121,8 +121,8 @@
         "eleven_turbo_v2": 0.24,
         "eleven_english_sts_v2": 0.24,
         "eleven_multilingual_sts_v2": 0.24,
-        "best": 0.00010477777,
-        "nano": 3.333333e-05
+        "best": 0.00010277777,
+        "nano": 0.00003333333
     },
     "chat": {
         "gpt-4o": {
@@ -131,7 +131,7 @@
         },
         "gpt-4o-2024-08-06": {
             "promptPrice": 0.0025,
-            "completionPrice": 0.01
+            "completionPrice": 0.010
         },
         "gpt-4o-2024-05-13": {
             "promptPrice": 0.005,
@@ -179,7 +179,7 @@
         },
         "azure_gpt-35-turbo-instruct": {
             "promptPrice": 0.0015,
-            "completionPrice": 0.002
+            "completionPrice": 0.0020
         },
         "gpt-4": {
             "promptPrice": 0.03,
@@ -323,7 +323,7 @@
         },
         "cohere.command-text-v14": {
             "promptPrice": 0.0015,
-            "completionPrice": 0.002
+            "completionPrice": 0.0020
         },
         "cohere.command-light-text-v14": {
             "promptPrice": 0.0003,
@@ -342,7 +342,7 @@
             "completionPrice": 0.0015
         },
         "gemini-1.5-flash": {
-            "promptPrice": 7.5e-05,
+            "promptPrice": 0.000075,
             "completionPrice": 0.0003
         },
         "gemini-1.5-pro": {
@@ -410,7 +410,7 @@
             "completionPrice": 0.002
         },
         "llama3-8b-8192": {
-            "promptPrice": 5e-05,
+            "promptPrice": 0.00005,
             "completionPrice": 0.0001
         },
         "llama3-70b-8192": {
@@ -454,8 +454,8 @@
             "completionPrice": 0.0001
         },
         "reka-spark": {
-            "promptPrice": 5e-05,
-            "completionPrice": 5e-05
+            "promptPrice": 0.00005,
+            "completionPrice": 0.00005
         },
         "grok-beta": {
             "promptPrice": 0.0005,
@@ -477,54 +477,61 @@
             "promptPrice": 0.00088,
             "completionPrice": 0.00088
         },
-        "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo-vLLM-json": {
+        "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo-vLLM-json":{
             "promptPrice": 0.00088,
             "completionPrice": 0.00088
         },
-        "meta-llama/Meta-Llama-3.1-405B-Instruct-Lite-Pro-lora": {
+        "meta-llama/Meta-Llama-3.1-405B-Instruct-Lite-Pro-lora":{
             "promptPrice": 0.00088,
             "completionPrice": 0.00088
         },
-        "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo": {
+        "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo":{
             "promptPrice": 0.00088,
             "completionPrice": 0.00088
         },
-        "Qwen/QwQ-32B-Preview": {
+        "Qwen/QwQ-32B-Preview":{
             "promptPrice": 0.0012,
             "completionPrice": 0.0012
         },
-        "codellama/CodeLlama-34b-Instruct-hf": {
+        "codellama/CodeLlama-34b-Instruct-hf":{
             "promptPrice": 0.0008,
-            "completionPrice": 0.0008
+            "completionPrice":0.0008
         },
-        "databricks/dbrx-instruct": {
+        "databricks/dbrx-instruct":{
             "promptPrice": 0.0012,
             "completionPrice": 0.0012
         },
-        "deepseek-ai/deepseek-llm-67b-chat": {
+        "deepseek-ai/deepseek-llm-67b-chat":{
             "promptPrice": 0.0009,
             "completionPrice": 0.0009
         },
-        "google/gemma-2b-it": {
+        "google/gemma-2b-it":{
             "promptPrice": 0.0001,
             "completionPrice": 0.0001
         },
-        "google/gemma-2-27b-it": {
+        "google/gemma-2-27b-it":{
             "promptPrice": 0.0008,
             "completionPrice": 0.0008
         },
-        "google/gemma-2-9b-it": {
+        "google/gemma-2-9b-it":{
             "promptPrice": 0.0003,
             "completionPrice": 0.0003
         },
-        "Gryphe/MythoMax-L2-13b-Lite": {
+        "Gryphe/MythoMax-L2-13b-Lite":{
             "promptPrice": 0.0003,
             "completionPrice": 0.0003
         },
-        "nvidia/Llama-3.1-Nemotron-70B-Instruct-HF": {
+        "nvidia/Llama-3.1-Nemotron-70B-Instruct-HF":{
             "promptPrice": 0.0088,
             "completionPrice": 0.0088
         },
-        "test-model-1.0": 0.000976
+        "deepseek-chat":{
+            "promptPrice": 0.00014,
+            "completionPrice": 0.00028
+        },
+        "deepseek-reasoner":{
+            "promptPrice": 0.00055,
+            "completionPrice": 0.00219
+        }
     }
 }
