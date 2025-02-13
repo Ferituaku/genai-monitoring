@@ -1,5 +1,4 @@
 import { UseFilteredTracesProps } from "@/types/requests";
-import { TraceData } from "@/types/trace";
 import { useMemo } from "react";
 
 export const useFilteredTraces = ({

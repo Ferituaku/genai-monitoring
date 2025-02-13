@@ -182,7 +182,7 @@ const Dashboard: React.FC = () => {
       <div className="top-0 p-2">
         <DynamicBreadcrumb />
       </div>
-      <div className="top-2 right-0 z-10 pt-4 gap-4">
+      <div className="top-2 right-0 z-10 pt-2 gap-4">
         <div className="flex mb-4 relative items-center gap-4">
           <TimeFrame />
         </div>

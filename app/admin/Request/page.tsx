@@ -20,6 +20,7 @@ import { useTraceData } from "@/hooks/Request/useTraceData";
 import { useFilteredTraces } from "@/hooks/Request/useFilteredTrace";
 import { useSortedTraces } from "@/hooks/Request/useSortedTrace";
 import { SortDirection, SortField, TraceData } from "@/types/trace";
+import { getTimeFrameParams } from "@/lib/TimeFrame/api";
 
 const Request = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -28,22 +29,36 @@ const Request = () => {
   const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>(
     []
   );
+  const searchParams = useSearchParams();
   const [sortField, setSortField] = useState<SortField>("Timestamp");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [pageSize, setPageSize] = useState("10");
   const [modelSearchTerm, setModelSearchTerm] = useState("");
   const [environmentSearchTerm, setEnvironmentSearchTerm] = useState("");
-
+  const [tokenRange, setTokenRange] = useState({
+    input: { min: 0, max: 4000 },
+    output: { min: 0, max: 4000 },
+    total: { min: 0, max: 8000 },
+  });
+  const [duration, setDuration] = useState({ min: 0, max: 10000 });
+  const [isStream, setIsStream] = useState(false); //+
+  const parameterWaktu = getTimeFrameParams(searchParams);
   // Ambil data dari searchParams
   // const searchParams = useSearchParams();
   // const days = searchParams?.get("days") || "7";
 
   // Ambil data trace dari hook
   const { traces, loading, error } = useTraceData({
-    selectedModels,
-    selectedEnvironments,
+    timeFrame: parameterWaktu,
     sortField,
     sortDirection,
+    filters: {
+      models: selectedModels.length > 0 ? selectedModels.join(",") : undefined,
+      environments: selectedEnvironments,
+      tokenRange,
+      duration,
+      isStream,
+    },
   });
 
   // Filter traces berdasarkan searchTerm
@@ -185,6 +200,12 @@ const Request = () => {
                   setSelectedEnvironments={setSelectedEnvironments}
                   filteredUniqueModels={filteredUniqueModels}
                   filteredUniqueEnvironments={filteredUniqueEnvironments}
+                  tokenRange={tokenRange}
+                  setTokenRange={setTokenRange}
+                  duration={duration}
+                  setDuration={setDuration}
+                  isStream={isStream}
+                  setIsStream={setIsStream}
                   resetFilters={resetFilters}
                 />
               </CollapsibleContent>

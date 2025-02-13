@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, abort, request
 from flask_restful import Api, Resource
 import clickhouse_connect
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta,timezone
 from flask_cors import CORS
 from backend.databaseopenlit import client
 
@@ -10,11 +10,30 @@ class Request(Resource):
 
     def __init__(self):
         self.client = client  # Ambil dari database.py
-        self.days = request.args.get('days', default=7, type=int)
+        # self.days = request.args.get('days', default=7, type=int)
 
     def get(self, appName=None):  
         try:
-            
+            # Handle both days and custom date range
+            days = request.args.get('days',  default=7, type=int)
+            from_date = request.args.get('from')
+            to_date = request.args.get('to')
+
+            if from_date and to_date:
+                try:
+                    start_date = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
+                    end_date = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
+                except ValueError:
+                    abort(400, "Invalid date format. Use ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)")
+            elif days:
+                end_date = datetime.now(timezone.utc)
+                start_date = end_date - timedelta(days=days)
+            else:
+                # Default to 7 days if no parameters provided
+                end_date = datetime.now(timezone.utc)
+                start_date = end_date - timedelta(days=7)
+
+
             # Parameter filter
             deployment_environment = request.args.get('deployment_environment', default=None, type=str)
             system = request.args.get('system', default=None, type=str)
@@ -107,19 +126,30 @@ class Request(Resource):
             if max_duration is not None:
                 query += f" AND Duration <= {max_duration}"
             
-            query += """
-            )
-            SELECT *
-            FROM filtered_data
-            ORDER BY Timestamp DESC
-            LIMIT 50
+            # query += """
+            # )
+            # SELECT *
+            # FROM filtered_data
+            # ORDER BY Timestamp DESC
+            # LIMIT 50
+            # """
+
+            query = """
+            WITH filtered_data AS (
+                SELECT *
+                FROM filtered_data 
+                WHERE StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET')
+                AND Timestamp BETWEEN %(start_date)s AND %(end_date)s
             """
 
             # Format tanggal untuk query
-            query = query.format(start_date=start_date.strftime('%Y-%m-%d %H:%M:%S'))
-
+            # query = query.format(start_date=start_date.strftime('%Y-%m-%d %H:%M:%S'))
+            params = {
+                'start_date': start_date,
+                'end_date': end_date
+            }
             # Jalankan query
-            traces = client.query(query).result_rows
+            traces = client.query(query, params).result_rows
 
             if not traces:
                 return jsonify([])
