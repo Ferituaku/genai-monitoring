@@ -94,10 +94,14 @@ export const AppSidebar = ({
               )}
             >
               <img
-                src={isOpen ? "/images/astra-big.png" : "/images/astra-big.png"}
+                src={
+                  isOpen
+                    ? "/openai/ai-monitor/images/astra-big.png"
+                    : "/openai/ai-monitor/images/astra-big.png"
+                }
                 alt="Logo"
                 className={cn(
-                  "h-[20px] scale-150  transition-all duration-700 object-contain",
+                  "h-[20px] scale-100  transition-all duration-700 object-contain",
                   isOpen ? "w-auto" : "w-5"
                 )}
               />

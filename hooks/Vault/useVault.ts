@@ -3,13 +3,14 @@ import { VaultData, VaultFormData, ApiResponse } from "@/types/vault";
 
 import { getToken } from "@/lib/auth";
 
-const API_BASE_URL = "http://127.0.0.1:5000/vault";
+// const API_BASE_URL = "http://127.0.0.1:5000/vault";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
 
 const getAuthHeaders = () => {
-  const token = getToken(); // Gunakan getToken() untuk mendapatkan token dari cookie
+  const token = getToken();
   return {
     "Content-Type": "application/json",
-    Authorization: token ? `Bearer ${token}` : "", // Tambahkan token hanya jika ada
+    Authorization: token ? `Bearer ${token}` : "",
   };
 };
 
@@ -32,7 +33,8 @@ export const vaultClient = {
     });
 
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Failed to add vault entry");
+    if (!response.ok)
+      throw new Error(data.error || "Failed to add vault entry");
     return { message: "Vault entry added successfully" };
   },
 
@@ -44,7 +46,8 @@ export const vaultClient = {
     });
 
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Failed to update vault entry");
+    if (!response.ok)
+      throw new Error(data.error || "Failed to update vault entry");
     return { message: "Vault entry updated successfully" };
   },
 
@@ -55,7 +58,8 @@ export const vaultClient = {
     });
 
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Failed to delete vault entry");
+    if (!response.ok)
+      throw new Error(data.error || "Failed to delete vault entry");
     return { message: "Vault entry deleted successfully" };
   },
 };

@@ -16,6 +16,7 @@ import TimeFrame from "@/components/TimeFrame";
 import { useToast } from "@/hooks/use-toast";
 import { ApiService } from "@/lib/ChatService/api";
 import DynamicBreadcrumb from "@/components/Breadcrum";
+import { getTimeFrameParams } from "@/lib/TimeFrame/api";
 
 interface ChatSession {
   UniqueIDChat: string;
@@ -42,16 +43,13 @@ const Request = () => {
   const { toast } = useToast();
 
   const searchParams = useSearchParams();
-
+  const timeFrameParams = getTimeFrameParams(searchParams);
+  
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         setLoading(true);
-        const from = searchParams.get("from");
-        const to = searchParams.get("to");
-        const days = searchParams.get("days");
-
-        const data = await ApiService.getProjectChats({ days, from, to });
+        const data = await ApiService.getProjectChats(timeFrameParams);
         setProjects(data);
       } catch (err) {
         toast({
@@ -66,7 +64,7 @@ const Request = () => {
 
     fetchProjects();
   }, [toast, searchParams]);
-  
+
   const filteredProjects = useMemo(() => {
     return projects.filter((project) =>
       project.serviceName.toLowerCase().includes(searchTerm.toLowerCase())

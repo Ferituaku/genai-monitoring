@@ -30,6 +30,7 @@ export interface ChatHistoryData {
   TotalMessages: number;
   ChatHistory: ChatMessage[];
 }
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
 
 export class ApiService {
   static async getProjectChats(
@@ -38,7 +39,7 @@ export class ApiService {
     try {
       const queryString = createTimeFrameQueryString(timeParams);
       const response = await fetch(
-        `http://localhost:5000/api/projectchat?${queryString}`
+        `${API_BASE_URL}/api/projectchat?${queryString}`
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -54,7 +55,7 @@ export class ApiService {
   static async getChatHistory(uniqueIdChat: string): Promise<ChatHistoryData> {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/chathistory/${uniqueIdChat}`
+        `${API_BASE_URL}/api/chathistory/${uniqueIdChat}`
       );
 
       if (!response.ok) {

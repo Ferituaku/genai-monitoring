@@ -14,7 +14,7 @@ class Request(Resource):
 
     def get(self, appName=None):  
         try:
-            # Handle both days and custom date range
+            # Hitung tanggal mulai (hari ini - days)
             days = request.args.get('days',  default=7, type=int)
             from_date = request.args.get('from')
             to_date = request.args.get('to')
@@ -29,7 +29,7 @@ class Request(Resource):
                 end_date = datetime.now(timezone.utc)
                 start_date = end_date - timedelta(days=days)
             else:
-                # Default to 7 days if no parameters provided
+                # Default to 7 days 
                 end_date = datetime.now(timezone.utc)
                 start_date = end_date - timedelta(days=7)
 

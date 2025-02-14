@@ -4,6 +4,8 @@ import { useSearchParams } from "next/navigation";
 import { getTimeFrameParams } from "@/lib/TimeFrame/api";
 import { TraceFilters } from "@/types/requests";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
+
 export const useTraceData = ({
   sortField,
   sortDirection,
@@ -121,7 +123,7 @@ export const fetchTraces = async ({
 
   try {
     const response = await fetch(
-      `http://localhost:5000/api/tracesRequest/?${queryParams}`
+      `${API_BASE_URL}/api/tracesRequest/?${queryParams}`
     );
 
     if (!response.ok) {

@@ -1,6 +1,9 @@
 // request/api.ts
 
+import { TraceFilters } from "@/types/requests";
 import { TraceData } from "@/types/trace";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
 
 export const fetchTraces = async ({
   timeFrame,
@@ -80,7 +83,7 @@ export const fetchTraces = async ({
 
   try {
     const response = await fetch(
-      `http://localhost:5000/api/tracesRequest/?${queryParams}`
+      `${API_BASE_URL}/api/tracesRequest/?${queryParams}`
     );
 
     if (!response.ok) {

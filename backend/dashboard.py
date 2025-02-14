@@ -15,7 +15,7 @@ class Dashboard(Resource):
 
     def get(self):
         try:
-           # Handle both days and custom date range
+
             days = request.args.get('days', type=int)
             from_date = request.args.get('from')
             to_date = request.args.get('to')
@@ -30,7 +30,7 @@ class Dashboard(Resource):
                 start_date_str = datetime.now(timezone.utc) - timedelta(days=days)
                 end_date_str = datetime.now(timezone.utc)
             else:
-                # Default to 7 days if no parameters provided
+                # Default 7 days 
                 start_date_str = datetime.now(timezone.utc) - timedelta(days=7)
                 end_date_str = datetime.now(timezone.utc)
 
@@ -52,7 +52,6 @@ class Dashboard(Resource):
             
             total_requests = client.query(total_request_query,query_params).result_rows[0][0]
              
-                        # Query untuk rata2 token
             avg_token_query =  """
                 WITH request_counts_ok AS (
                     SELECT COUNT(
