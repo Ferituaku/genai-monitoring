@@ -1,53 +1,53 @@
-from flask import request, jsonify
-import jwt
-from datetime import datetime, timedelta
-from functools import wraps
-from datetime import datetime, timedelta
-import pytz
+# from flask import request, jsonify
+# import jwt
+# from datetime import datetime, timedelta
+# from functools import wraps
+# from datetime import datetime, timedelta
+# import pytz
 
-wib = pytz.timezone('Asia/Jakarta')
+# wib = pytz.timezone('Asia/Jakarta')
 
-class JWTManager:
-    def __init__(self, secret_key):
-        self.secret_key = secret_key
-        self.blacklisted_tokens = set()
+# class JWTManager:
+#     def __init__(self, secret_key):
+#         self.secret_key = secret_key
+#         self.blacklisted_tokens = set()
 
-    def generate_token(self, user_data):
-        return jwt.encode({
-            'user_id': user_data['id'],
-            'email': user_data['email'],
-            'exp': datetime.now(wib) + timedelta(hours=24)
-        }, self.secret_key)
+#     def generate_token(self, user_data):
+#         return jwt.encode({
+#             'user_id': user_data['id'],
+#             'email': user_data['email'],
+#             'exp': datetime.now(wib) + timedelta(hours=24)
+#         }, self.secret_key)
 
-    def decode_token(self, token):
-        return jwt.decode(token, self.secret_key, algorithms=["HS256"])
+#     def decode_token(self, token):
+#         return jwt.decode(token, self.secret_key, algorithms=["HS256"])
 
-    def blacklist_token(self, token):
-        self.blacklisted_tokens.add(token)
+#     def blacklist_token(self, token):
+#         self.blacklisted_tokens.add(token)
     
-    def token_required(self, f):
-        @wraps(f)
-        def decorated(*args, **kwargs):
-            token = None
-            if 'Authorization' in request.headers:
-                try:
-                    token = request.headers['Authorization'].split(" ")[1]
-                    if token in self.blacklisted_tokens:  # Cek blacklist
-                        return jsonify({'message': 'Token telah direvoke!'}), 401
-                except IndexError:
-                    return jsonify({'message': 'Token tidak valid!'}), 401
+#     def token_required(self, f):
+#         @wraps(f)
+#         def decorated(*args, **kwargs):
+#             token = None
+#             if 'Authorization' in request.headers:
+#                 try:
+#                     token = request.headers['Authorization'].split(" ")[1]
+#                     if token in self.blacklisted_tokens:  # Cek blacklist
+#                         return jsonify({'message': 'Token telah direvoke!'}), 401
+#                 except IndexError:
+#                     return jsonify({'message': 'Token tidak valid!'}), 401
 
-            if not token:
-                return jsonify({'message': 'Token tidak ada!'}), 401
+#             if not token:
+#                 return jsonify({'message': 'Token tidak ada!'}), 401
 
-            try:
-                data = self.decode_token(token)
-                return f(data, *args, **kwargs)
-            except jwt.ExpiredSignatureError:
-                return jsonify({'message': 'Token telah kadaluarsa!'}), 401
-            except jwt.InvalidTokenError:
-                return jsonify({'message': 'Token tidak valid!'}), 401
-            except Exception as e:
-                return jsonify({'message': 'Terjadi kesalahan!', 'error': str(e)}), 401
+#             try:
+#                 data = self.decode_token(token)
+#                 return f(data, *args, **kwargs)
+#             except jwt.ExpiredSignatureError:
+#                 return jsonify({'message': 'Token telah kadaluarsa!'}), 401
+#             except jwt.InvalidTokenError:
+#                 return jsonify({'message': 'Token tidak valid!'}), 401
+#             except Exception as e:
+#                 return jsonify({'message': 'Terjadi kesalahan!', 'error': str(e)}), 401
 
-        return decorated
+#         return decorated

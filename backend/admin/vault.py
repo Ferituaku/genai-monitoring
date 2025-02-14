@@ -4,7 +4,7 @@ import pytz
 import sqlite3
 import re
 import os
-from backend.login.JWTManager import JWTManager
+from backend.login import JWTManager
 from backend.database.db import Database
 
 vault = Blueprint('vault', __name__)
