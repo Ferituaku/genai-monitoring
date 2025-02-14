@@ -34,7 +34,6 @@ class Dashboard(Resource):
                 start_date_str = datetime.now(timezone.utc) - timedelta(days=7)
                 end_date_str = datetime.now(timezone.utc)
 
-            # Your existing query parameters
             query_params = {
                 'start_date': start_date_str,
                 'end_date': end_date_str

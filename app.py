@@ -9,28 +9,20 @@ from flask_restful import Resource, Api
 from flask_cors import CORS
 from backend.dashboard import Dashboard
 from backend.request import Request
-from backend.admin.chatbotapp import ProjectChatService
-from backend.admin.chatbotapp import ChatHistoryService
-from backend.database.databaseopenlit import client
+from backend.chatbotapp import ProjectChatService
+from backend.chatbotapp import ChatHistoryService
+from backend.databaseopenlit import client
 from backend.exception import Exception
-from backend.admin.apiKeys import apiKeys
-from backend.admin.appcatalogue import AppCatalogue
-from backend.login.AuthApp import AuthApp  
-from backend.admin.pricing import PricingAPI
-from backend.admin.vault import vault
+from backend.apiKeys import apiKeys
+from backend.appcatalogue import AppCatalogue
+from backend.login import AuthApp  
+from backend.pricing import PricingAPI
+import os
 
 app = Flask(__name__)
 
 debug = True
-CORS(app, 
-     resources={r"*": {
-         "origins": ["http://localhost:3000", "http://127.0.0.1:3000"],  # Tambahkan kedua format URL
-         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-         "allow_headers": ["Content-Type", "Authorization", "Accept"],
-         "supports_credentials": True,
-         "allow_credentials": True  # Tambahkan ini
-     }},
-     expose_headers=["Content-Type", "Authorization"])
+CORS(app, resources={r"*": {"origins": "*"}})
 api = Api(app)
 
 client =  clickhouse_connect.get_client(host='openlit.my.id', port='8123', database="openlit", username='default',password='OPENLIT',
@@ -44,10 +36,10 @@ api.add_resource(ChatHistoryService, '/api/chathistory/<string:unique_id_chat>')
 api.add_resource(Exception, '/api/tracesExceptions/', '/api/tracesRequest/<string:appName>')
 api.add_resource(AppCatalogue, "/appcatalogue")
 app.register_blueprint(apiKeys, url_prefix='/apiKeys')
-app.register_blueprint(vault, url_prefix='/vault')
 AuthApp(app)
 PricingAPI(app)
 
 
 if __name__ == '__main__':
-    app.run(debug=debug, host='0.0.0.0')
+    port = int(os.environ.get("PORT", 5101))  # Default to 5101
+    app.run(host="0.0.0.0", port=port, debug=True)

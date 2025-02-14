@@ -18,6 +18,7 @@ import { useSearchParams } from "next/navigation";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 import { ErrorTraceData } from "@/types/exceptions";
 import { SortDirection, SortField } from "@/types/trace";
+import { getTimeFrameParams } from "@/lib/TimeFrame/api";
 
 const Exceptions = () => {
   const [traces, setTraces] = useState<ErrorTraceData[]>([]);
@@ -26,6 +27,7 @@ const Exceptions = () => {
   const [pageSize, setPageSize] = useState("10");
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
+  const timeFrameParams = getTimeFrameParams(searchParams);
   const days = searchParams?.get("days") || "7"; //buat handle time frame show data
   const [sortField, setSortField] = useState<SortField>("Timestamp");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
@@ -34,9 +36,16 @@ const Exceptions = () => {
     const fetchTraces = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `http://localhost:5000/api/tracesExceptions/?days=${days}`
-        );
+        let url = new URL("http://localhost:5000/api/tracesExceptions/");
+
+        if (timeFrameParams.from && timeFrameParams.to) {
+          url.searchParams.set("from", timeFrameParams.from);
+          url.searchParams.set("to", timeFrameParams.to);
+        } else if (timeFrameParams.days) {
+          url.searchParams.set("days", timeFrameParams.days);
+        }
+
+        const response = await fetch(url.toString());
         if (!response.ok) {
           throw new Error("Failed to fetch traces");
         }
@@ -51,7 +60,7 @@ const Exceptions = () => {
     };
 
     fetchTraces();
-  }, [days]);
+  }, [timeFrameParams]);
 
   const filteredTraces = useMemo(() => {
     return traces.filter((trace) =>
