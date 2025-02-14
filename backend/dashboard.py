@@ -4,7 +4,7 @@ from flask import Flask, jsonify, request, abort
 from flask_restful import Api, Resource
 from datetime import datetime, timedelta,timezone
 from flask_cors import CORS
-from backend.databaseopenlit import client
+from backend.database.databaseopenlit import client
 
 
 class Dashboard(Resource):
