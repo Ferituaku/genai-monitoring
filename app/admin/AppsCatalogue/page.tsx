@@ -1,6 +1,6 @@
 "use client";
 
-import { ApplicationGrid } from "@/components/appsCatalogue/AppGrid";
+import { ApplicationGrid } from "@/components/AppsCatalogue/AppGrid";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 import { Input } from "@/components/ui/input";
 import { ApplicationService } from "@/hooks/Catalogue/useAppCatalogue";

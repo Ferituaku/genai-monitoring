@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 
 import { Card } from "@/components/ui/card";
 import TimeFrame from "@/components/TimeFrame";
-import ExceptionRow from "../../../components/exceptions/ExceptionRow";
+import ExceptionRow from "../../../components/Exceptions/ExceptionRow";
 import { useSearchParams } from "next/navigation";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 import { ErrorTraceData } from "@/types/exceptions";

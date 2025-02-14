@@ -12,10 +12,10 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import DynamicBreadcrumb from "@/components/Breadcrum";
-import { PageSizeSelector } from "@/components/request/PageSizeSelector";
-import { SortSelector } from "@/components/request/SortSelector";
-import { RequestTable } from "@/components/request/RequestTable";
-import { FilterPanel } from "@/components/request/FilterPanel";
+import { PageSizeSelector } from "@/components/Request/PageSizeSelector";
+import { SortSelector } from "@/components/Request/SortSelector";
+import { RequestTable } from "@/components/Request/RequestTable";
+import { FilterPanel } from "@/components/Request/FilterPanel";
 import { useTraceData } from "@/hooks/Request/useTraceData";
 import { useFilteredTraces } from "@/hooks/Request/useFilteredTrace";
 import { useSortedTraces } from "@/hooks/Request/useSortedTrace";

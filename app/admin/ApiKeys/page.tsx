@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Copy, Loader2, Trash2 } from "lucide-react";
 import { apiClient, ApiKey } from "@/lib/ApiKeys/api";
 import { useToast } from "@/hooks/use-toast";
-import { GenerateApiKeyDialog } from "@/components/apikeys/generateApiKey";
+import { GenerateApiKeyDialog } from "@/components/ApiKeys/generateApiKey";
 
 export default function ApiKeysPage() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);

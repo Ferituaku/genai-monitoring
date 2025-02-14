@@ -8,8 +8,8 @@ import { VaultFormData } from "@/types/vault";
 import { useToast } from "@/hooks/use-toast";
 import { useVault } from "@/hooks/Vault/useVault";
 import DynamicBreadcrumb from "@/components/Breadcrum";
-import { VaultTable } from "@/components/vault/VaultTable";
-import { AddKeyModal } from "@/components/vault/AddKeyVault";
+import { VaultTable } from "@/components/Vault/VaultTable";
+import { AddKeyModal } from "@/components/Vault/AddKeyVault";
 
 export default function VaultPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);

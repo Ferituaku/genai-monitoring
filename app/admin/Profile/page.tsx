@@ -1,6 +1,6 @@
 // app/admin/profile/page.tsx
 import DynamicBreadcrumb from "@/components/Breadcrum";
-import { ProfileEdit } from "@/components/profile/ProfileEdit";
+import { ProfileEdit } from "@/components/Profile/ProfileEdit";
 
 export default function AdminProfilePage() {
   const initialData = {
