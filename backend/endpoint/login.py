@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 import os
 from dotenv import load_dotenv
-from backend.database.db import Database
+from endpoint.database.db import Database
 from datetime import datetime, timedelta
 import pytz
 
