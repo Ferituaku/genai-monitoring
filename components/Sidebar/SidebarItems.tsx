@@ -1,9 +1,11 @@
 import { Box } from "lucide-react";
 
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || "/openai/ai-monitor";
+
 export const menuItems = [
   {
     label: "Dashboard",
-    href: "/admin/Dashboard",
+    href: `${BASE_PATH}/admin/Dashboard`,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -27,7 +29,7 @@ export const menuItems = [
   },
   {
     label: "Request",
-    href: "/admin/Request",
+    href: `${BASE_PATH}/admin/Request`,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -50,7 +52,7 @@ export const menuItems = [
   },
   {
     label: "Apps Catalogue",
-    href: "/admin/AppsCatalogue",
+    href: `${BASE_PATH}/admin/AppsCatalogue`,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -73,7 +75,7 @@ export const menuItems = [
   },
   {
     label: "Chat Services",
-    href: "/admin/AppServices",
+    href: `${BASE_PATH}/admin/AppServices`,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -95,7 +97,7 @@ export const menuItems = [
   },
   {
     label: "Exceptions",
-    href: "/admin/Exceptions",
+    href: `${BASE_PATH}/admin/Exceptions`,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -117,7 +119,7 @@ export const menuItems = [
   },
   {
     label: "Vault",
-    href: "/admin/Vault",
+    href: `${BASE_PATH}/admin/Vault`,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -141,7 +143,7 @@ export const menuItems = [
   },
   {
     label: "Api-Keys",
-    href: "/admin/ApiKeys",
+    href: `${BASE_PATH}/admin/ApiKeys`,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -163,7 +165,7 @@ export const menuItems = [
   },
   {
     label: "Price Edit",
-    href: "/admin/PriceEdit",
+    href: `${BASE_PATH}/admin/PriceEdit`,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
