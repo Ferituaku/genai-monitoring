@@ -1,4 +1,4 @@
-from backend.database.db import Database
+from backend.endpoint.database.db import Database
 
 def create_tables():
     db = Database()

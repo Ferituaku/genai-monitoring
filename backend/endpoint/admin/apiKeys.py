@@ -4,7 +4,7 @@ import os
 import base64
 import re
 from datetime import datetime
-from backend.database.db import Database
+from endpoint.database.db import Database
 
 
 apiKeys = Blueprint('apiKeys', __name__)  

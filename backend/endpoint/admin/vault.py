@@ -4,8 +4,8 @@ import pytz
 import sqlite3
 import re
 import os
-from backend.login import JWTManager
-from backend.database.db import Database
+from endpoint.login import JWTManager
+from endpoint.database.db import Database
 
 vault = Blueprint('vault', __name__)
 wib = pytz.timezone('Asia/Jakarta')

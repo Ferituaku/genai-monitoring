@@ -8,17 +8,18 @@ import os
 from flask import Flask, request
 from flask_restful import Resource, Api
 from flask_cors import CORS
-from backend.dashboard import Dashboard
-from backend.request import Request
-from backend.admin.chatbotapp import ProjectChatService
-from backend.admin.chatbotapp import ChatHistoryService
-from backend.database.databaseopenlit import client
-from backend.exception import Exception
-from backend.admin.apiKeys import apiKeys
-from backend.admin.appcatalogue import AppCatalogue
-from backend.login import AuthApp  
-from backend.admin.pricing import PricingAPI
-from backend.admin.vault import vault
+
+from endpoint.dashboard import Dashboard
+from endpoint.request import Request
+from endpoint.admin.chatbotapp import ProjectChatService
+from endpoint.admin.chatbotapp import ChatHistoryService
+from endpoint.database.databaseopenlit import client
+from endpoint.exception import Exception
+from endpoint.admin.apiKeys import apiKeys
+from endpoint.admin.appcatalogue import AppCatalogue
+from endpoint.login import AuthApp  
+from endpoint.admin.pricing import PricingAPI
+from endpoint.admin.vault import vault
 
 app = Flask(__name__)
 
