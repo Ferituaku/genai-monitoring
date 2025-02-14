@@ -1,12 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
-import { usePathname } from "next/navigation";
+import React from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+
 import {
   Select,
   SelectContent,
@@ -14,15 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, ArrowUpDown, SlidersHorizontal } from "lucide-react";
 
 const NavBar = () => {
-  const pathname = usePathname();
-
   return (
     <header className="sticky left-0 right-0 top-0 flex h-[80px] items-center justify-between px-4 sm:px-10 transition-all duration-300 pb-2 bg-white bg-opacity-0">
-      <div className="flex items-start sm:ml-[200px] lg:ml-10">
-      </div>
+      <div className="flex items-start sm:ml-[200px] lg:ml-10"></div>
       <div className="flex items-center justify-end gap-4 pl-2 rounded-lg shadow-md py-2 px-4 bg-blue-600">
         <Switch id="airplane-mode" className="bg-gray-300 border-transparent" />
         <Label

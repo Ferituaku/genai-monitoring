@@ -46,7 +46,7 @@ export default function Home() {
         <div className="flex justify-center">
           <div className="relative w-[240px] h-[80px]">
             <Image
-              src="/images/ASTRA_international.png"
+              src="/openai/ai-monitor/images/astra-big.png"
               alt="Astra International"
               fill
               className="object-contain"
