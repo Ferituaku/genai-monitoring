@@ -19,6 +19,7 @@ import DynamicBreadcrumb from "@/components/Breadcrum";
 import { ErrorTraceData } from "@/types/exceptions";
 import { SortDirection, SortField } from "@/types/trace";
 import { getTimeFrameParams } from "@/lib/TimeFrame/api";
+import { fetchExceptionTraces } from "@/lib/Exceptions/api";
 
 const Exceptions = () => {
   const [traces, setTraces] = useState<ErrorTraceData[]>([]);
@@ -31,25 +32,14 @@ const Exceptions = () => {
   const days = searchParams?.get("days") || "7"; //buat handle time frame show data
   const [sortField, setSortField] = useState<SortField>("Timestamp");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5101";
 
   useEffect(() => {
-    const fetchTraces = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        let url = new URL("http://localhost:5000/api/tracesExceptions/");
-
-        if (timeFrameParams.from && timeFrameParams.to) {
-          url.searchParams.set("from", timeFrameParams.from);
-          url.searchParams.set("to", timeFrameParams.to);
-        } else if (timeFrameParams.days) {
-          url.searchParams.set("days", timeFrameParams.days);
-        }
-
-        const response = await fetch(url.toString());
-        if (!response.ok) {
-          throw new Error("Failed to fetch traces");
-        }
-        const data = await response.json();
+        const data = await fetchExceptionTraces(timeFrameParams);
         setTraces(data);
         setError(null);
       } catch (err) {
@@ -59,7 +49,7 @@ const Exceptions = () => {
       }
     };
 
-    fetchTraces();
+    fetchData();
   }, [timeFrameParams]);
 
   const filteredTraces = useMemo(() => {

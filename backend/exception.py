@@ -5,18 +5,18 @@ from datetime import datetime, timedelta, timezone
 from flask_cors import CORS
 from backend.database.databaseopenlit import client
 
-app = Flask(__name__)
-CORS(app)
-api = Api(app)
+# app = Flask(__name__)
+# CORS(app)
+# api = Api(app)
 
-# Koneksi ClickHouse
-client = clickhouse_connect.get_client(
-    host='openlit.my.id',
-    port=8123,
-    database='openlit',
-    username='default',
-    password='OPENLIT'
-)
+# # Koneksi ClickHouse
+# client = clickhouse_connect.get_client(
+#     host='openlit.my.id',
+#     port=8123,
+#     database='openlit',
+#     username='default',
+#     password='OPENLIT'
+# )
 
 class Exception(Resource):
 
@@ -28,27 +28,27 @@ class Exception(Resource):
         try:
             # Hitung tanggal mulai (hari ini - days)
             # start_date = datetime.now() - timedelta(days=self.days)
-            days = request.args.get('days', type=int)
+            days = request.args.get('days',default=7, type=int)
             from_date = request.args.get('from')
             to_date = request.args.get('to')
 
             if from_date and to_date:
                 try:
-                    start_date_str = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
-                    end_date_str = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
+                    start_date = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
+                    end_date = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
                 except ValueError:
                     abort(400, "Invalid date format. Use ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)")
             elif days:
-                start_date_str = datetime.now(timezone.utc) - timedelta(days=days)
-                end_date_str = datetime.now(timezone.utc)
+                end_date = datetime.now(timezone.utc)
+                start_date = end_date - timedelta(days=days)
             else:
-                # Default to 7 days if no parameters provided
-                start_date_str = datetime.now(timezone.utc) - timedelta(days=7)
-                end_date_str = datetime.now(timezone.utc)
+                # Default to 7 days 
+                end_date = datetime.now(timezone.utc)
+                start_date = end_date - timedelta(days=7)
 
             query_params = {
-                'start_date': start_date_str,
-                'end_date': end_date_str
+                'start_date': start_date,
+                'end_date': end_date
             }
 
             query = """

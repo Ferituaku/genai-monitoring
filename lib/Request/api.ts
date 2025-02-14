@@ -3,7 +3,7 @@
 import { TraceFilters } from "@/types/requests";
 import { TraceData } from "@/types/trace";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5101";
 
 export const fetchTraces = async ({
   timeFrame,
@@ -21,13 +21,13 @@ export const fetchTraces = async ({
 
   // Filter params
   if (filters.environments?.length) {
-    queryParams.set("deployment_environment", filters.environments.join(","));
+    queryParams.set("deployment_environment", filters.environments[0]);
   }
   if (filters.system) {
     queryParams.set("system", filters.system);
   }
   if (filters.models) {
-    queryParams.set("model", filters.models);
+    queryParams.set("models", filters.models[0]);
   }
   if (filters.operationName) {
     queryParams.set("operation_name", filters.operationName);
