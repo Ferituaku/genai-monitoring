@@ -26,13 +26,14 @@ import {
   createTimeFrameQueryString,
   getTimeFrameParams,
 } from "@/lib/TimeFrame/api";
+import { Loader2 } from "lucide-react";
 
 const Dashboard: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
-  
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -76,8 +77,8 @@ const Dashboard: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-[300px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     );
   }
@@ -265,7 +266,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-1 gap-6 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-6 mb-6">
             <MetricCard
               title="Avg prompt tokens / request"
               value={dashboardData?.avg_prompt_tokens?.toString()}
@@ -314,7 +315,7 @@ const Dashboard: React.FC = () => {
             />
           </div>
           <div className="col-span-2 mb-4 bg-white p-4 rounded-2xl shadow-lg h-auto">
-            <h2 className="text-lg font-bold mb-2">Request Per Time</h2>
+            <h2 className="text-lg font-bold mb-2">Token Usage</h2>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height={280}>
                 <LineChart data={tokenUsage}>

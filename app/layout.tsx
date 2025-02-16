@@ -13,9 +13,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || "/openai/ai-monitor";
+
 export const metadata: Metadata = {
   title: "AI Monitoring Web Application",
   description: "Observe and monitoring your Generative AI Projects",
+  icons: {
+    icon: { url: `${BASE_PATH}/favicon.ico` },
+  },
 };
 
 export default function RootLayout({

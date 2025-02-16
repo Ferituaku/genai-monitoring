@@ -1,13 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { JSX } from "react/jsx-dev-runtime";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
-import { ChevronLeft, Moon, Sun } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { ChevronRight } from "lucide-react";
 import { menuItems } from "@/components/Sidebar/SidebarItems";
 import SideButton from "./SidebarButton";
-import { Building } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { Button } from "../ui/button";
 import { logout } from "@/lib/auth";
 
@@ -75,7 +71,7 @@ export const AppSidebar = ({
         className={cn(
           "fixed inset-y-0 ml-2 left-2 top-2 bottom-2 z-30 flex flex-col",
           "bg-blue-600 text-white shadow-lg rounded-lg",
-          "transition-all duration-300 ease-in-out",
+          "transition-all duration-700 ease-in-out",
           isOpen ? "w-56" : "w-[68px]",
           "lg:static lg:mb-2 mt-2"
         )}
@@ -96,12 +92,12 @@ export const AppSidebar = ({
               <img
                 src={
                   isOpen
-                    ? "/openai/ai-monitor/images/astra-big.png"
-                    : "/openai/ai-monitor/images/astra-big.png"
+                    ? "/openai/ai-monitor/images/astra-logo.png"
+                    : "/openai/ai-monitor/images/astra-logo.png"
                 }
                 alt="Logo"
                 className={cn(
-                  "h-[20px] scale-100  transition-all duration-700 object-contain",
+                  "h-[20px] scale-110  transition-all duration-700 object-contain",
                   isOpen ? "w-auto" : "w-5"
                 )}
               />
@@ -139,16 +135,25 @@ export const AppSidebar = ({
         </div>
 
         {/* Navigation */}
-        <nav className="flex flex-col gap-2 px-4 pt-4">
-          {menuItems.map((item) => (
-            <SideButton
-              key={item.label}
-              label={isOpen ? item.label : ""}
-              href={item.href}
-              icon={item.icon}
-              isActive={pathname === item.href}
-            />
-          ))}
+        <nav className="flex flex-col gap-2 px-4 pt-4 transition-all ease-in-out duration-500">
+          {menuItems.map((item) => {
+            const isCurrentPath =
+              pathname?.toLowerCase() === item.href?.toLowerCase();
+            console.log(`Checking ${item.label}:`, {
+              pathname,
+              itemHref: item.href,
+              isCurrentPath,
+            });
+            return (
+              <SideButton
+                key={item.label}
+                label={isOpen ? item.label : ""}
+                href={item.href}
+                icon={item.icon}
+                isActive={pathname === item.href}
+              />
+            );
+          })}
         </nav>
       </aside>
     </>

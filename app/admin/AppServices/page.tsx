@@ -44,7 +44,7 @@ const Request = () => {
 
   const searchParams = useSearchParams();
   const timeFrameParams = getTimeFrameParams(searchParams);
-  
+
   useEffect(() => {
     const fetchProjects = async () => {
       try {

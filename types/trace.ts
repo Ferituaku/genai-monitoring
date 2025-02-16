@@ -28,7 +28,7 @@ export interface TraceData {
     "telemetry.sdk.language": string;
     "telemetry.sdk.name": string;
   };
-  Duration: string;
+  Duration: number;
   "Events.Attributes": Array<{
     "gen_ai.prompt"?: string;
     "gen_ai.completion"?: string;
@@ -48,5 +48,3 @@ export type SortField =
   | "SpanAttributes.gen_ai.usage.cost";
 
 export type SortDirection = "asc" | "desc";
-
-

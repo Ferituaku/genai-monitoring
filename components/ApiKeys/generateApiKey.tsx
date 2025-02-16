@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiClient } from "@/lib/ApiKeys/api";
+import { apiClient } from "@/lib/ApiKeysService/api";
 
 interface GenerateApiKeyDialogProps {
   onKeyCreated: () => void;

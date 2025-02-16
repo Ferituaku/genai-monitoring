@@ -19,7 +19,7 @@ import DynamicBreadcrumb from "@/components/Breadcrum";
 import { ErrorTraceData } from "@/types/exceptions";
 import { SortDirection, SortField } from "@/types/trace";
 import { getTimeFrameParams } from "@/lib/TimeFrame/api";
-import { fetchExceptionTraces } from "@/lib/Exceptions/api";
+import { fetchExceptionTraces } from "@/lib/ExceptionService/api";
 
 const Exceptions = () => {
   const [traces, setTraces] = useState<ErrorTraceData[]>([]);

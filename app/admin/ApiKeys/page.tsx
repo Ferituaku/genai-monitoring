@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Copy, Loader2, Trash2 } from "lucide-react";
-import { apiClient, ApiKey } from "@/lib/ApiKeys/api";
+import { apiClient, ApiKey } from "@/lib/ApiKeysService/api";
 import { useToast } from "@/hooks/use-toast";
 import { GenerateApiKeyDialog } from "@/components/ApiKeys/generateApiKey";
 
