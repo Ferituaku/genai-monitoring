@@ -12,7 +12,7 @@ class Request(Resource):
         self.client = client  # Ambil dari database.py
         # self.days = request.args.get('days', default=7, type=int)
 
-    def get(self, appName=None):  
+    def get(self, appName):  
         try:
             # Hitung tanggal mulai (hari ini - days)
             days = request.args.get('days',  default=7, type=int)
@@ -25,106 +25,180 @@ class Request(Resource):
                     end_date = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
                 except ValueError:
                     abort(400, "Invalid date format. Use ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)")
-            elif days:
-                end_date = datetime.now(timezone.utc)
-                start_date = end_date - timedelta(days=days)
+            # elif days:
+            #     end_date = datetime.now(timezone.utc)
+            #     start_date = end_date - timedelta(days=days)
             else:
                 # Default to 7 days 
                 end_date = datetime.now(timezone.utc)
-                start_date = end_date - timedelta(days=7)
+                start_date = end_date - timedelta(days=days)
 
 
             # Parameter filter
-            deployment_environment = request.args.get('deployment_environment', default=None, type=str)
-            system = request.args.get('system', default=None, type=str)
-            model = request.args.get('model', default=None, type=str)
-            operation_name = request.args.get('operation_name', default=None, type=str)
-            endpoint = request.args.get('endpoint', default=None, type=str)
-            min_input_tokens = request.args.get('min_input_tokens', default=None, type=int)
-            max_input_tokens = request.args.get('max_input_tokens', default=None, type=int)
-            min_output_tokens = request.args.get('min_output_tokens', default=None, type=int)
-            max_output_tokens = request.args.get('max_output_tokens', default=None, type=int)
-            min_total_tokens = request.args.get('min_total_tokens', default=None, type=int)
-            max_total_tokens = request.args.get('max_total_tokens', default=None, type=int)
-            min_duration = request.args.get('min_duration', default=None, type=float)
-            max_duration = request.args.get('max_duration', default=None, type=float)
-            is_stream = request.args.get('is_stream', default=None, type=str)
+            # deployment_environment = request.args.get('deployment_environment', default=None, type=str)
+            # system = request.args.get('system', default=None, type=str)
+            # model = request.args.get('model', default=None, type=str)
+            # operation_name = request.args.get('operation_name', default=None, type=str)
+            # endpoint = request.args.get('endpoint', default=None, type=str)
+            # min_input_tokens = request.args.get('min_input_tokens', default=None, type=int)
+            # max_input_tokens = request.args.get('max_input_tokens', default=None, type=int)
+            # min_output_tokens = request.args.get('min_output_tokens', default=None, type=int)
+            # max_output_tokens = request.args.get('max_output_tokens', default=None, type=int)
+            # min_total_tokens = request.args.get('min_total_tokens', default=None, type=int)
+            # max_total_tokens = request.args.get('max_total_tokens', default=None, type=int)
+            # min_duration = request.args.get('min_duration', default=None, type=float)
+            # max_duration = request.args.get('max_duration', default=None, type=float)
+            # is_stream = request.args.get('is_stream', default=None, type=str)
             
             # Hitung tanggal mulai
-            start_date = datetime.now() - timedelta(days=self.days)
+            # start_date = datetime.now() - timedelta(days=self.days)
+           
             
             # Query dasar dengan subquery
             query = """
-            WITH filtered_data AS (
-                SELECT 
-                    Timestamp,
-                    TraceId,
-                    SpanId,
-                    ParentSpanId,
-                    TraceState,
-                    SpanName,
-                    SpanKind,
-                    ServiceName,
-                    ResourceAttributes,
-                    ScopeName,
-                    ScopeVersion,
-                    SpanAttributes,
-                    Duration,
-                    StatusCode,
-                    StatusMessage,
-                    Events.Timestamp, 
-                    Events.Name, 
-                    Events.Attributes
-                FROM otel_traces 
-                WHERE StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET')
-                AND Timestamp >= '{start_date}'
-            """
+                    SELECT 
+                        ServiceName,
+                        Timestamp,
+                        TraceId,
+                        SpanId,
+                        ParentSpanId,
+                        TraceState,
+                        SpanName,
+                        SpanKind,
+                        ServiceName,
+                        ResourceAttributes,
+                        ScopeName,
+                        ScopeVersion,
+                        SpanAttributes,
+                        Duration,
+                        StatusCode,
+                        StatusMessage,
+                        Events.Timestamp, 
+                        Events.Name, 
+                        Events.Attributes
+                    FROM otel_traces 
+                    WHERE StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET')
+                    AND Timestamp  BETWEEN %(start_date)s AND %(end_date)s
+                """
+            
+
+            params = {
+                        'start_date': start_date,
+                        'end_date': end_date
+                    }
+                
+            # WITH filtered_data AS ()
+            #     SELECT * FROM filtered_data
+            #     ORDER BY Timestamp DESC
+            #     LIMIT 50
+                    
+            filters = {
+                'deployment_environment': {
+                    'column': "ResourceAttributes['deployment.environment']",
+                    'type': str,
+                    'operator': '='
+                },
+                'model': {
+                    'column': "SpanAttributes['gen_ai.request.model']",
+                    'type': str,
+                    'operator': '='
+                },
+                'min_input_tokens': {
+                    'column': "toInt32(SpanAttributes['gen_ai.usage.input_tokens'])",
+                    'type': int,
+                    'operator': '>='
+                },
+                'max_input_tokens': {
+                    'column': "toInt32(SpanAttributes['gen_ai.usage.input_tokens'])",
+                    'type': int,
+                    'operator': '<='
+                },
+                'min_output_tokens': {
+                    'column': "toInt32(SpanAttributes['gen_ai.usage.output_tokens'])",
+                    'type': int,
+                    'operator': '>='
+                },
+                'max_output_tokens': {
+                    'column': "toInt32(SpanAttributes['gen_ai.usage.output_tokens'])",
+                    'type': int,
+                    'operator': '<='
+                },
+                'min_total_tokens': {
+                    'column': "toInt32(SpanAttributes['gen_ai.usage.total_tokens'])",
+                    'type': int,
+                    'operator': '>='
+                },
+                'max_total_tokens': {
+                    'column': "toInt32(SpanAttributes['gen_ai.usage.total_tokens'])",
+                    'type': int,
+                    'operator': '<='
+                },
+                'min_duration': {
+                    'column': 'Duration',
+                    'type': float,
+                    'operator': '>='
+                },
+                'max_duration': {
+                    'column': 'Duration',
+                    'type': float,
+                    'operator': '<='
+                },
+                'is_stream': {
+                    'column': "SpanAttributes['gen_ai.request.is_stream']",
+                    'type': str,
+                    'operator': '='
+                }
+            }
 
             # Filter berdasarkan appName
-            if appName:
-                query += f" AND ServiceName = '{appName}'"
-            
-            # Filter dari ResourceAttributes
-            if deployment_environment:
-                query += f" AND ResourceAttributes['deployment.environment'] = '{deployment_environment}'"
+            # if appName:
+            #     query = query.replace(
+            #     "WHERE", 
+            #     "WHERE ServiceName = %(app_name)s AND"
+            #     )
+            #     params['app_name'] = appName
 
-            # Filter dari SpanAttributes
-            if system:
-                query += f" AND SpanAttributes['gen_ai.system'] = '{system}'"
-            
-            if model:
-                query += f" AND SpanAttributes['gen_ai.request.model'] = '{model}'"
-            
-            if operation_name:
-                query += f" AND SpanAttributes['gen_ai.operation.name'] = '{operation_name}'"
-            
-            if endpoint:
-                query += f" AND SpanAttributes['gen_ai.endpoint'] = '{endpoint}'"
-            
-            if is_stream:
-                query += f" AND SpanAttributes['gen_ai.request.is_stream'] = '{is_stream}'"
+            # # # Filter dari ResourceAttributes
+            # if deployment_environment:
+            #     query += f" AND ResourceAttributes['deployment.environment'] = '{deployment_environment}'"
 
-            # Filter token usage
-            if min_input_tokens:
-                query += f" AND toInt32(SpanAttributes['gen_ai.usage.input_tokens']) >= {min_input_tokens}"
-            if max_input_tokens:
-                query += f" AND toInt32(SpanAttributes['gen_ai.usage.input_tokens']) <= {max_input_tokens}"
-                
-            if min_output_tokens:
-                query += f" AND toInt32(SpanAttributes['gen_ai.usage.output_tokens']) >= {min_output_tokens}"
-            if max_output_tokens:
-                query += f" AND toInt32(SpanAttributes['gen_ai.usage.output_tokens']) <= {max_output_tokens}"
-                
-            if min_total_tokens:
-                query += f" AND toInt32(SpanAttributes['gen_ai.usage.total_tokens']) >= {min_total_tokens}"
-            if max_total_tokens:
-                query += f" AND toInt32(SpanAttributes['gen_ai.usage.total_tokens']) <= {max_total_tokens}"
+            # # Filter dari SpanAttributes
+            # if system:
+            #     query += f" AND SpanAttributes['gen_ai.system'] = '{system}'"
             
-            # Filter duration
-            if min_duration is not None:
-                query += f" AND Duration >= {min_duration}"
-            if max_duration is not None:
-                query += f" AND Duration <= {max_duration}"
+            # if model:
+            #     query += f" AND SpanAttributes['gen_ai.request.model'] = '{model}'"
+            
+            # if operation_name:
+            #     query += f" AND SpanAttributes['gen_ai.operation.name'] = '{operation_name}'"
+            
+            # if endpoint:
+            #     query += f" AND SpanAttributes['gen_ai.endpoint'] = '{endpoint}'"
+            
+            # if is_stream:
+            #     query += f" AND SpanAttributes['gen_ai.request.is_stream'] = '{is_stream}'"
+
+            # # Filter token usage
+            # if min_input_tokens:
+            #     query += f" AND toInt32(SpanAttributes['gen_ai.usage.input_tokens']) >= {min_input_tokens}"
+            # if max_input_tokens:
+            #     query += f" AND toInt32(SpanAttributes['gen_ai.usage.input_tokens']) <= {max_input_tokens}"
+                
+            # if min_output_tokens:
+            #     query += f" AND toInt32(SpanAttributes['gen_ai.usage.output_tokens']) >= {min_output_tokens}"
+            # if max_output_tokens:
+            #     query += f" AND toInt32(SpanAttributes['gen_ai.usage.output_tokens']) <= {max_output_tokens}"
+                
+            # if min_total_tokens:
+            #     query += f" AND toInt32(SpanAttributes['gen_ai.usage.total_tokens']) >= {min_total_tokens}"
+            # if max_total_tokens:
+            #     query += f" AND toInt32(SpanAttributes['gen_ai.usage.total_tokens']) <= {max_total_tokens}"
+            
+            # # Filter duration
+            # if min_duration is not None:
+            #     query += f" AND Duration >= {min_duration}"
+            # if max_duration is not None:
+            #     query += f" AND Duration <= {max_duration}"
             
             # query += """
             # )
@@ -134,51 +208,87 @@ class Request(Resource):
             # LIMIT 50
             # """
 
-            query = """
-            WITH filtered_data AS (
-                SELECT *
-                FROM filtered_data 
-                WHERE StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET')
-                AND Timestamp BETWEEN %(start_date)s AND %(end_date)s
-            """
+            
+            # query = """
+            # WITH filtered_data AS (
+            #     SELECT *
+            #     FROM filtered_data 
+            #     WHERE StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET')
+            #     AND Timestamp BETWEEN %(start_date)s AND %(end_date)s
+            # """
 
             # Format tanggal untuk query
             # query = query.format(start_date=start_date.strftime('%Y-%m-%d %H:%M:%S'))
-            params = {
-                'start_date': start_date,
-                'end_date': end_date
-            }
+            
+            # if appName:
+            #     query += " AND ServiceName = %(app_name)s"
+            #     params['app_name'] = appName
+
+
+            # query += "\nORDER BY Timestamp DESC LIMIT 50"
+            
+            for param_name, filter_config in filters.items():
+                value = request.args.get(param_name, type=filter_config['type'])
+                if value is not None:
+                    query += f" AND {filter_config['column']} {filter_config['operator']} %({param_name})s"
+                    params[param_name] = value
+
+            query += " ORDER BY Timestamp DESC"
             # Jalankan query
-            traces = client.query(query, params).result_rows
+            traces = client.query(query, params=params).result_rows
 
             if not traces:
                 return jsonify([])
 
             formatted_traces = []
             for row in traces:
+                # trace_data = {
+                #     "ServiceName": row[0],
+                #     "Timestamp": row[0].isoformat() if isinstance(row[0], datetime) else str(row[0]),
+                #     "TraceId": row[1] if len(row) > 1 else "",
+                #     "SpanId": row[2] if len(row) > 2 else "",
+                #     "ParentSpanId": row[3] if len(row) > 3 else "",
+                #     "TraceState": row[4] if len(row) > 4 else "",
+                #     "SpanName": row[5] if len(row) > 5 else "",
+                #     "SpanKind": row[6] if len(row) > 6 else "",
+                #     "ServiceName": row[7] if len(row) > 7 else "",
+                #     "ResourceAttributes": row[8] if len(row) > 8 and isinstance(row[8], dict) else {},
+                #     "ScopeName": row[9] if len(row) > 9 else "",
+                #     "ScopeVersion": row[10] if len(row) > 10 else "",
+                #     "SpanAttributes": row[11] if len(row) > 11 and isinstance(row[11], dict) else {},
+                #     "Duration": row[12] if len(row) > 12 else "",
+                #     "StatusCode": row[13] if len(row) > 13 else "STATUS_CODE_OK",
+                #     "StatusMessage": row[14] if len(row) > 14 else "",
+                #     "Events.Timestamp": [ts.isoformat() if isinstance(ts, datetime) else str(ts) for ts in (row[15] if len(row) > 15 and isinstance(row[15], list) else [])],
+                #     "Events.Name": row[16] if len(row) > 16 and isinstance(row[16], list) else [],
+                #     "Events.Attributes": row[17] if len(row) > 17 and isinstance(row[17], list) else [],
+                #     "Links.TraceId": [],
+                #     "Links.SpanId": [],
+                #     "Links.TraceState": [],
+                #     "Links.Attributes": []
+                # }
                 trace_data = {
+                    "ServiceName": row[0],
                     "Timestamp": row[0].isoformat() if isinstance(row[0], datetime) else str(row[0]),
-                    "TraceId": row[1] if len(row) > 1 else "",
-                    "SpanId": row[2] if len(row) > 2 else "",
-                    "ParentSpanId": row[3] if len(row) > 3 else "",
-                    "TraceState": row[4] if len(row) > 4 else "",
-                    "SpanName": row[5] if len(row) > 5 else "",
-                    "SpanKind": row[6] if len(row) > 6 else "",
-                    "ServiceName": row[7] if len(row) > 7 else "",
-                    "ResourceAttributes": row[8] if len(row) > 8 and isinstance(row[8], dict) else {},
-                    "ScopeName": row[9] if len(row) > 9 else "",
-                    "ScopeVersion": row[10] if len(row) > 10 else "",
-                    "SpanAttributes": row[11] if len(row) > 11 and isinstance(row[11], dict) else {},
-                    "Duration": row[12] if len(row) > 12 else "",
-                    "StatusCode": row[13] if len(row) > 13 else "STATUS_CODE_OK",
-                    "StatusMessage": row[14] if len(row) > 14 else "",
-                    "Events.Timestamp": [ts.isoformat() if isinstance(ts, datetime) else str(ts) for ts in (row[15] if len(row) > 15 and isinstance(row[15], list) else [])],
-                    "Events.Name": row[16] if len(row) > 16 and isinstance(row[16], list) else [],
-                    "Events.Attributes": row[17] if len(row) > 17 and isinstance(row[17], list) else [],
-                    "Links.TraceId": [],
-                    "Links.SpanId": [],
-                    "Links.TraceState": [],
-                    "Links.Attributes": []
+                    "TraceId": row[1],
+                    "SpanId": row[2],
+                    "ParentSpanId": row[3],
+                    "TraceState": row[4],
+                    "SpanName": row[5],
+                    "SpanKind": row[6],
+                    "ServiceName": row[7],
+                    "ResourceAttributes": row[8] if isinstance(row[8], dict) else {},
+                    "ScopeName": row[9],
+                    "ScopeVersion": row[10],
+                    "SpanAttributes": row[11] if isinstance(row[11], dict) else {},
+                    "Duration": row[12],
+                    "StatusCode": row[13],
+                    "StatusMessage": row[14],
+                    "Events": {
+                        "Timestamp": row[15] if isinstance(row[15], list) else [],
+                        "Name": row[16] if isinstance(row[16], list) else [],
+                        "Attributes": row[17] if isinstance(row[17], list) else []
+                    }
                 }
                 formatted_traces.append(trace_data)
 
