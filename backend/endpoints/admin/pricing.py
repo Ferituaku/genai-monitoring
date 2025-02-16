@@ -1,10 +1,10 @@
-from flask import Flask, jsonify, request
+from flask import jsonify, request
 import json
 from flask_cors import CORS
 import os
 
 class PricingManager:
-    def __init__(self, file_path):
+    def __init__(self, file_path):              
         self.file_path = file_path
         self.data = self._load_data()
 
@@ -158,7 +158,7 @@ class PricingManager:
 class PricingAPI:
     def __init__(self,app):
         base_path = os.path.dirname(os.path.abspath(__file__))
-        json_path = os.path.join(base_path, '..', 'lib', 'llm', 'token', 'pricing.json')
+        json_path = os.path.join(base_path, '..', '..', 'data', 'database', 'pricing.json')
         self.pricing_manager = PricingManager(json_path)
         self.app = app
 
@@ -210,7 +210,7 @@ class PricingAPI:
         if new_value is None:
             return jsonify({"error": "Missing 'value' in request body"}), 400
 
-        success, message = self.pricing_manager.update_model_data(model, data_model, new_value)  # Kirim new_value
+        success, message = self.pricing_manager.update_model_data(model, data_model, new_value)  
         if not success:
             return jsonify({"error": message}), 404
 
@@ -236,10 +236,10 @@ class PricingAPI:
             model: self.pricing_manager.get_model_data(model)
         }), 200
 
-    def run(self, debug=True, port=5000):
+    def run(self, debug=True, port=5101 ):
         """Run the Flask application."""
         self.app.run(debug=debug, port=port)
 
 if __name__ == '__main__':
     api = PricingAPI()
-    api.run(debug=True, port=5000)
+    api.run(debug=True, port=5101)

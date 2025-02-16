@@ -9,17 +9,17 @@ from flask import Flask, request
 from flask_restful import Resource, Api
 from flask_cors import CORS
 
-from endpoint.dashboard import Dashboard
-from endpoint.request import Request
-from endpoint.admin.chatbotapp import ProjectChatService
-from endpoint.admin.chatbotapp import ChatHistoryService
-from endpoint.database.databaseopenlit import client
-from endpoint.exception import Exception
-from endpoint.admin.apiKeys import apiKeys
-from endpoint.admin.appcatalogue import AppCatalogue
-from endpoint.login import AuthApp  
-from endpoint.admin.pricing import PricingAPI
-from endpoint.admin.vault import vault
+# from endpoints.general.dashboard import Dashboard
+# from endpoints.general.request import Request
+# from endpoints.admin.chatbotapp import ProjectChatService
+# from endpoints.admin.chatbotapp import ChatHistoryService
+# from data.configuration.databaseopenlit import client
+# from endpoints.general.exception import Exception
+from endpoints.admin.apiKeys import apiKeys
+# from endpoints.admin.appcatalogue import AppCatalogue
+# from endpoints.general.login import AuthApp  
+from endpoints.admin.pricing import PricingAPI
+from endpoints.admin.vault import vault
 
 app = Flask(__name__)
 
@@ -35,19 +35,19 @@ CORS(app,
      expose_headers=["Content-Type", "Authorization"])
 api = Api(app)
 
-client =  clickhouse_connect.get_client(host='openlit.my.id', port='8123', database="openlit", username='default',password='OPENLIT',
-        secure=False 
-    )
+# client =  clickhouse_connect.get_client(host='openlit.my.id', port='8123', database="openlit", username='default',password='OPENLIT',
+#         secure=False 
+#     )
 
-api.add_resource(Dashboard, '/dashboard')
-api.add_resource(Request,'/api/tracesRequest/','/api/tracesRequest/<string:appName>')
-api.add_resource(ProjectChatService, '/api/projectchat')
-api.add_resource(ChatHistoryService, '/api/chathistory/<string:unique_id_chat>')
-api.add_resource(Exception, '/api/tracesExceptions/', '/api/tracesRequest/<string:appName>')
-api.add_resource(AppCatalogue, "/appcatalogue")
+# api.add_resource(Dashboard, '/dashboard')
+# api.add_resource(Request,'/api/tracesRequest/','/api/tracesRequest/<string:appName>')
+# api.add_resource(ProjectChatService, '/api/projectchat')
+# api.add_resource(ChatHistoryService, '/api/chathistory/<string:unique_id_chat>')
+# api.add_resource(Exception, '/api/tracesExceptions/', '/api/tracesRequest/<string:appName>')
+# api.add_resource(AppCatalogue, "/appcatalogue")
 app.register_blueprint(apiKeys, url_prefix='/apiKeys')
 app.register_blueprint(vault, url_prefix='/vault')
-AuthApp(app)
+# AuthApp(app)
 PricingAPI(app)
 
 

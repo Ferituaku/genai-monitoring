@@ -1,10 +1,7 @@
-import clickhouse_connect
-print(clickhouse_connect.__file__)
-from flask import Flask, jsonify, request, abort
-from flask_restful import Api, Resource
+from flask import jsonify, request, abort
+from flask_restful import Resource
 from datetime import datetime, timedelta,timezone
-from flask_cors import CORS
-from endpoint.database.databaseopenlit import client
+from data.configuration.databaseopenlit import client
 
 
 class Dashboard(Resource):
