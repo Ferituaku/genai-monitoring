@@ -1,10 +1,9 @@
-from flask import Flask, jsonify, request,Blueprint
-from flask_cors import CORS
+from flask import jsonify, request,Blueprint
 import os
 import base64
 import re
 from datetime import datetime
-from endpoint.database.db import Database
+from data.configuration.db import Database
 
 
 apiKeys = Blueprint('apiKeys', __name__)  

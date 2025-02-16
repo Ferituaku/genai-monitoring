@@ -2,29 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DynamicBreadcrumb from "@/components/Breadcrum";
-
-interface ModelData {
-  [key: string]: number;
-}
-
-interface Models {
-  [key: string]: ModelData;
-}
-
-const API_BASE_URL = "http://localhost:5000/data";
+import { PriceEditApiService, Models } from "@/lib/PriceEdit/api";
+import CreateModelForm from "@/components/PriceEdit/CreateModelForm";
+import EditModelForm from "@/components/PriceEdit/EditModelForm";
 
 const ModelPriceManager = () => {
   const [modelName, setModelName] = useState("");
@@ -46,12 +29,9 @@ const ModelPriceManager = () => {
   const fetchModels = async () => {
     try {
       setLoading(true);
-      const response = await fetch(API_BASE_URL);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      const data = await PriceEditApiService.getModels();
       setModels(data);
+      setError(null);
     } catch (error) {
       setError("Failed to fetch models data");
       console.error("Fetch error:", error);
@@ -79,21 +59,11 @@ const ModelPriceManager = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/${modelName}/${selectedDetail}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ value: parseFloat(newPrice) }),
-        }
+      await PriceEditApiService.updatePrice(
+        modelName,
+        selectedDetail,
+        parseFloat(newPrice)
       );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
       await fetchModels();
       setCurrentPrice(parseFloat(newPrice));
       setNewPrice("");
@@ -112,20 +82,11 @@ const ModelPriceManager = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/${newModelName}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          [newDetailName]: parseFloat(newDetailPrice),
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
+      await PriceEditApiService.createModel(
+        newModelName,
+        newDetailName,
+        parseFloat(newDetailPrice)
+      );
       await fetchModels();
       setNewModelName("");
       setNewDetailName("");
@@ -145,17 +106,7 @@ const ModelPriceManager = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/${modelName}/${selectedDetail}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
+      await PriceEditApiService.deleteDetail(modelName, selectedDetail);
       await fetchModels();
       setSelectedDetail("");
       setCurrentPrice(null);
@@ -207,199 +158,35 @@ const ModelPriceManager = () => {
               </TabsList>
 
               <TabsContent value="create">
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Model Name</label>
-
-                    <Select
-                      value={newModelName}
-                      onValueChange={setNewModelName}
-                      disabled={loading}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Model Name" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.keys(models).map((model) => (
-                          <SelectItem key={model} value={model}>
-                            {model}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Detail Name</label>
-                    <Input
-                      type="text"
-                      value={newDetailName}
-                      onChange={(e) => setNewDetailName(e.target.value)}
-                      placeholder="Enter detail name"
-                      disabled={loading}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Price</label>
-                    <Input
-                      type="number"
-                      step="0.000001"
-                      value={newDetailPrice}
-                      onChange={(e) => setNewDetailPrice(e.target.value)}
-                      placeholder="Enter price"
-                      disabled={loading}
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={handleCancel}
-                      disabled={loading}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={handleCreateModel}
-                      disabled={
-                        !newModelName ||
-                        !newDetailName ||
-                        !newDetailPrice ||
-                        loading
-                      }
-                    >
-                      {loading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing
-                        </>
-                      ) : (
-                        "Create Model"
-                      )}
-                    </Button>
-                  </div>
-                </div>
+                <CreateModelForm
+                  loading={loading}
+                  models={models}
+                  newModelName={newModelName}
+                  newDetailName={newDetailName}
+                  newDetailPrice={newDetailPrice}
+                  onModelNameChange={setNewModelName}
+                  onDetailNameChange={setNewDetailName}
+                  onDetailPriceChange={setNewDetailPrice}
+                  onCancel={handleCancel}
+                  onSubmit={handleCreateModel}
+                />
               </TabsContent>
 
               <TabsContent value="view">
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Model Name</label>
-                    <Select
-                      value={modelName}
-                      onValueChange={handleModelSelect}
-                      disabled={loading}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Model Name" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.keys(models).map((model) => (
-                          <SelectItem key={model} value={model}>
-                            {model}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {modelName && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">
-                        Model Detail
-                      </label>
-                      <Select
-                        value={selectedDetail}
-                        onValueChange={handleDetailSelect}
-                        disabled={loading || !modelName}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Detail to Edit" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.keys(models[modelName] || {}).map(
-                            (detail) => (
-                              <SelectItem key={detail} value={detail}>
-                                {detail}
-                              </SelectItem>
-                            )
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {selectedDetail && (
-                    <>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">
-                          Current Price
-                        </label>
-                        <Input
-                          type="text"
-                          readOnly
-                          value={currentPrice?.toString() || ""}
-                          className="bg-muted"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">New Price</label>
-                        <Input
-                          type="number"
-                          step="0.000001"
-                          value={newPrice}
-                          onChange={(e) => setNewPrice(e.target.value)}
-                          placeholder="Enter new price"
-                          disabled={loading}
-                        />
-                      </div>
-
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          onClick={handleCancel}
-                          disabled={loading}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          onClick={handleDeleteDetail}
-                          disabled={loading}
-                        >
-                          {loading ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Processing
-                            </>
-                          ) : (
-                            "Delete"
-                          )}
-                        </Button>
-                        <Button
-                          onClick={handleUpdatePrice}
-                          disabled={
-                            !modelName ||
-                            !selectedDetail ||
-                            !newPrice ||
-                            loading
-                          }
-                        >
-                          {loading ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Processing
-                            </>
-                          ) : (
-                            "Save Changes"
-                          )}
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                </div>
+                <EditModelForm
+                  loading={loading}
+                  models={models}
+                  modelName={modelName}
+                  selectedDetail={selectedDetail}
+                  currentPrice={currentPrice}
+                  newPrice={newPrice}
+                  onModelSelect={handleModelSelect}
+                  onDetailSelect={handleDetailSelect}
+                  onNewPriceChange={setNewPrice}
+                  onCancel={handleCancel}
+                  onDelete={handleDeleteDetail}
+                  onUpdate={handleUpdatePrice}
+                />
               </TabsContent>
             </Tabs>
           </CardContent>

@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, url_for, redirect, session
+from flask import request, jsonify, url_for, redirect, session
 from flask_cors import CORS
 from flask_session import Session
 from authlib.integrations.flask_client import OAuth
@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 import os
 from dotenv import load_dotenv
-from endpoint.database.db import Database
+from data.configuration.db import Database
 from datetime import datetime, timedelta
 import pytz
 

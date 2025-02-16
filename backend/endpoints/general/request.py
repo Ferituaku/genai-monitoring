@@ -1,9 +1,7 @@
-from flask import Flask, jsonify, abort, request
+from flask import jsonify, abort, request
 from flask_restful import Api, Resource
-import clickhouse_connect
 from datetime import datetime, timedelta,timezone
-from flask_cors import CORS
-from endpoint.database.databaseopenlit import client
+from data.configuration.databaseopenlit import client
 
 
 class Request(Resource):

@@ -1,7 +1,6 @@
-from flask import Flask, jsonify, request
-from flask_restful import Api, Resource
-from flask_cors import CORS
-from endpoint.database.databaseopenlit import client
+from flask import jsonify, request
+from flask_restful import Resource
+from data.configuration.databaseopenlit import client
 
 class AppCatalogue(Resource):
 

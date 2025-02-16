@@ -1,22 +1,8 @@
-from flask import Flask, jsonify, abort, request
-from flask_restful import Api, Resource
-import clickhouse_connect
+from flask import jsonify, abort, request
+from flask_restful import Resource
 from datetime import datetime, timedelta, timezone
-from flask_cors import CORS
-from endpoint.database.databaseopenlit import client
+from data.configuration.databaseopenlit import client
 
-# app = Flask(__name__)
-# CORS(app)
-# api = Api(app)
-
-# # Koneksi ClickHouse
-# client = clickhouse_connect.get_client(
-#     host='openlit.my.id',
-#     port=8123,
-#     database='openlit',
-#     username='default',
-#     password='OPENLIT'
-# )
 
 class Exception(Resource):
 
