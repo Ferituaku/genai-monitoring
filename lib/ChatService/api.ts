@@ -1,7 +1,7 @@
 // services/api.ts
 
 import { TimeFrameParams } from "@/types/timeframe";
-import { createTimeFrameQueryString } from "../TimeFrame/api";
+import { create_time_frame_query_string } from "../TimeFrame/api";
 
 interface ChatSession {
   UniqueIDChat: string;
@@ -30,32 +30,37 @@ export interface ChatHistoryData {
   TotalMessages: number;
   ChatHistory: ChatMessage[];
 }
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
 
 export class ApiService {
-  static async getProjectChats(
+  private static readonly API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5101";
+
+  static async get_project_chats(
     timeParams: TimeFrameParams
   ): Promise<ProjectChat[]> {
     try {
-      const queryString = createTimeFrameQueryString(timeParams);
+      const queryString = create_time_frame_query_string(timeParams);
       const response = await fetch(
-        `${API_BASE_URL}/api/projectchat?${queryString}`
+        `${this.API_BASE_URL}/api/projectchat?${queryString}`
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await response.json();
-      return data;
+      const DATA = await response.json();
+      return DATA;
     } catch (error) {
       console.error("Error fetching project chats:", error);
       throw error;
     }
   }
 
-  static async getChatHistory(uniqueIdChat: string): Promise<ChatHistoryData> {
+  static async get_chat_history(
+    uniqueIdChat: string
+  ): Promise<ChatHistoryData> {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/chathistory/${uniqueIdChat}`
+        `${this.API_BASE_URL}/api/chathistory/${uniqueIdChat}`
       );
 
       if (!response.ok) {

@@ -13,7 +13,7 @@ const ChartComponent = ({ title, data }: { title: string; data: any }) => {
       </div>
     );
 
-  const formattedData = Object.entries(data).map(([key, value]: any) => ({
+  const FORMATTED_DATA = Object.entries(data).map(([key, value]: any) => ({
     name: value[0],
     value: parseFloat(value[1].replace("%", "")),
   }));
@@ -37,7 +37,7 @@ const ChartComponent = ({ title, data }: { title: string; data: any }) => {
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={formattedData}
+              data={FORMATTED_DATA}
               cx="50%"
               cy="50%"
               innerRadius={40}
@@ -71,7 +71,7 @@ const ChartComponent = ({ title, data }: { title: string; data: any }) => {
                 );
               }}
             >
-              {formattedData.map((entry, index) => (
+              {FORMATTED_DATA.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={COLORS[index % COLORS.length]}

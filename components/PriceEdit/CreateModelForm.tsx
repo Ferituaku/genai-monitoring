@@ -24,7 +24,7 @@ interface CreateModelFormProps {
   onSubmit: () => void;
 }
 
-const CreateModelForm: React.FC<CreateModelFormProps> = ({
+const CREATE_MODEL_FORM: React.FC<CreateModelFormProps> = ({
   loading,
   models,
   newModelName,
@@ -103,4 +103,4 @@ const CreateModelForm: React.FC<CreateModelFormProps> = ({
   );
 };
 
-export default CreateModelForm;
+export default CREATE_MODEL_FORM;

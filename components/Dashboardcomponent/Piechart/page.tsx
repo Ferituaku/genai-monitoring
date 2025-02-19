@@ -6,37 +6,44 @@ import TopModel from "./TopModel";
 import Genbycategory from "./Genbycategory";
 import Costbyenv from "./Costbyenv";
 import Costbyapp from "./Costbyapp";
+import {
+  create_time_frame_query_string,
+  get_time_frame_params,
+} from "@/lib/TimeFrame/api";
+import { DashboardApiService } from "@/lib/DashboardService/api";
 
 export default function DashboardCharts() {
-  const [data, setData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const searchParams = useSearchParams();
-  const days = searchParams.get("days");
+  const [DATA, SET_DATA] = useState<any>(null);
+  const [IS_LOADING, SET_IS_LOADING] = useState(true);
+  const SEARCH_PARAMS = useSearchParams();
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch(`http://127.0.0.1:5000/dashboard?days=${days}`);
-        const result = await response.json();
-        console.log("Fetched Data:", result);
-        setData(result);
+        SET_IS_LOADING(true);
+        const TIME_FRAME_PARAMS = get_time_frame_params(SEARCH_PARAMS);
+        const DATA = await DashboardApiService.get_dashboard_data(
+          TIME_FRAME_PARAMS
+        );
+        console.log("Fetched Data:", DATA);
+        SET_DATA(DATA);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
-        setIsLoading(false);
+        SET_IS_LOADING(false);
       }
     }
     fetchData();
-  }, [days]);
+  }, [SEARCH_PARAMS]);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (IS_LOADING) return <div>Loading...</div>;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <TopModel data={data?.["Top Model"] || {}} />
-      <Genbycategory data={data?.["Gen by category"] || {}} />
-      <Costbyenv data={data?.["Cost by env"] || {}} />
-      <Costbyapp data={data?.["Cost by app"] || {}} />
+      <TopModel data={DATA?.["Top Model"] || {}} />
+      <Genbycategory data={DATA?.["Gen by category"] || {}} />
+      <Costbyenv data={DATA?.["Cost by env"] || {}} />
+      <Costbyapp data={DATA?.["Cost by app"] || {}} />
     </div>
   );
 }

@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { ChevronRight } from "lucide-react";
-import { menuItems } from "@/components/Sidebar/SidebarItems";
 import SideButton from "./SidebarButton";
 import {
   DropdownMenu,
@@ -17,6 +16,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import { logout } from "@/lib/auth";
+import { MENU_ITEMS } from "./SidebarItems";
 
 interface SidebarProps {
   userRole?: "admin" | "user" | "user1";
@@ -31,7 +31,7 @@ export const AppSidebar = ({
   onSidebarToggle,
   defaultOpen = true,
 }: SidebarProps) => {
-  const pathname = usePathname();
+  const PATHNAME = usePathname();
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   // Handle sidebar state changes
@@ -63,6 +63,7 @@ export const AppSidebar = ({
   const handleSignOut = () => {
     logout();
   };
+  const [isAnimating, setIsAnimating] = useState(false);
 
   return (
     <>
@@ -71,9 +72,10 @@ export const AppSidebar = ({
         className={cn(
           "fixed inset-y-0 ml-2 left-2 top-2 bottom-2 z-30 flex flex-col",
           "bg-blue-600 text-white shadow-lg rounded-lg",
-          "transition-all duration-700 ease-in-out",
+          "transform transition-all duration-500 ease-in-out",
           isOpen ? "w-56" : "w-[68px]",
-          "lg:static lg:mb-2 mt-2"
+          "lg:static lg:mb-2 mt-2",
+          isAnimating && "pointer-events-none"
         )}
       >
         <div className="flex items-center gap-1 border-b border-blue-500/20 p-4">
@@ -82,11 +84,11 @@ export const AppSidebar = ({
               className={cn(
                 "flex justify-center items-center w-full gap-2 p-2",
                 "rounded-md text-sm font-medium",
-                "bg-slate-100 transition-colors hover:bg-slate-300/70",
-                "focus-visible:outline-none focus-visible:ring-2",
+                "bg-slate-100 transition-all duration-300 ease-in-out",
+                "hover:bg-slate-300/70 focus-visible:outline-none focus-visible:ring-2",
                 "focus-visible:ring-white/20 focus-visible:ring-offset-2",
-                "disabled:pointer-events-none disabled:opacity-50 transition-all ease-in-out ",
-                isOpen ? "w-full" : "hidden"
+                "disabled:pointer-events-none disabled:opacity-50",
+                isOpen ? "w-full opacity-100" : "hidden"
               )}
             >
               <img
@@ -97,8 +99,8 @@ export const AppSidebar = ({
                 }
                 alt="Logo"
                 className={cn(
-                  "h-[20px] scale-110  transition-all duration-700 object-contain",
-                  isOpen ? "w-auto" : "w-5"
+                  "h-[20px] transition-all duration-500 object-contain",
+                  isOpen ? "scale-100" : "scale-0"
                 )}
               />
             </DropdownMenuTrigger>
@@ -123,24 +125,28 @@ export const AppSidebar = ({
             </DropdownMenuContent>
           </DropdownMenu>
           <Button
-            className="flex justify-end p-2 cursor-pointer opacity-60 hover:opacity-100 transition-all ease-in-out mt-auto"
+            className={cn(
+              "p-2 cursor-pointer transition-all duration-300",
+              "hover:bg-blue-700 rounded-xl",
+              "focus:outline-none focus:ring-2 focus:ring-white/20"
+            )}
             onClick={toggleSidebar}
           >
             {isOpen ? (
-              <ChevronLeft className="w-6 h-9 text-white transition-transform duration-300 object-contain" />
+              <ChevronLeft className="w-5 h-5 text-white transform transition-transform duration-300" />
             ) : (
-              <ChevronRight className="w-6 h-9 text-white transition-transform duration-300 object-contain" />
+              <ChevronRight className="w-5 h-5 text-white transform transition-transform duration-300" />
             )}
           </Button>
         </div>
 
         {/* Navigation */}
         <nav className="flex flex-col gap-2 px-4 pt-4 transition-all ease-in-out duration-500">
-          {menuItems.map((item) => {
+          {MENU_ITEMS.map((item) => {
             const isCurrentPath =
-              pathname?.toLowerCase() === item.href?.toLowerCase();
+              PATHNAME?.toLowerCase() === item.href?.toLowerCase();
             console.log(`Checking ${item.label}:`, {
-              pathname,
+              PATHNAME,
               itemHref: item.href,
               isCurrentPath,
             });
@@ -150,7 +156,7 @@ export const AppSidebar = ({
                 label={isOpen ? item.label : ""}
                 href={item.href}
                 icon={item.icon}
-                isActive={pathname === item.href}
+                isActive={PATHNAME === item.href}
               />
             );
           })}

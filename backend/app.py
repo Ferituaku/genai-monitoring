@@ -7,11 +7,19 @@ import os
 from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
+from flask_compress import Compress
 
 from endpoints.general.dashboard import Dashboard
+<<<<<<< HEAD
 from endpoints.general.request import Request   
 from endpoints.admin.chatbotapp import ProjectChatService
 from endpoints.admin.chatbotapp import ChatHistoryService
+=======
+from endpoints.general.request import Request
+from endpoints.admin.chatbotapp import ProjectChatService
+from endpoints.admin.chatbotapp import ChatHistoryService
+from data.configuration.databaseopenlit import client
+>>>>>>> 3a96d22321fa8341920186c4321bdab3736a58e3
 from endpoints.general.exception import Exception
 from endpoints.admin.apiKeys import apiKeys
 from endpoints.admin.appcatalogue import AppCatalogue
@@ -21,6 +29,8 @@ from endpoints.admin.vault import vault
 
 app = Flask(__name__)
 
+compress = Compress()
+compress.init_app(app)
 debug = True
 CORS(app, resources={r"*": {"origins": "*"}})
 # CORS(app, 

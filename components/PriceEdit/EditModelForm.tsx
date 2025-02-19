@@ -26,7 +26,7 @@ interface EditModelFormProps {
   onUpdate: () => void;
 }
 
-const EditModelForm: React.FC<EditModelFormProps> = ({
+const EDIT_MODEL_FORM: React.FC<EditModelFormProps> = ({
   loading,
   models,
   modelName,
@@ -44,7 +44,11 @@ const EditModelForm: React.FC<EditModelFormProps> = ({
     <div className="space-y-6">
       <div className="space-y-2">
         <label className="text-sm font-medium">Model Name</label>
-        <Select value={modelName} onValueChange={onModelSelect} disabled={loading}>
+        <Select
+          value={modelName}
+          onValueChange={onModelSelect}
+          disabled={loading}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select Model Name" />
           </SelectTrigger>
@@ -138,4 +142,4 @@ const EditModelForm: React.FC<EditModelFormProps> = ({
   );
 };
 
-export default EditModelForm;
+export default EDIT_MODEL_FORM;

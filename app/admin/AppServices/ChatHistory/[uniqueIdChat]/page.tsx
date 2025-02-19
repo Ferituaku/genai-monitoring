@@ -23,20 +23,22 @@ interface ChatHistoryData {
   ChatHistory: ChatMessage[];
 }
 
-const ChatHistoryPage = () => {
-  const [chatHistory, setChatHistory] = useState<ChatHistoryData | null>(null);
-  const [loading, setLoading] = useState(true);
+const CHAT_HISTORY_PAGE = () => {
+  const [CHAT_HISTORY, SET_CHAT_HISTORY] = useState<ChatHistoryData | null>(
+    null
+  );
+  const [LOADING, SET_LOADING] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const params = useParams();
   const uniqueIdChat = params.uniqueIdChat as string;
 
   useEffect(() => {
-    const fetchChatHistory = async () => {
+    const FETCH_CHAT_HISTORY = async () => {
       try {
-        setLoading(true);
-        const data = await ApiService.getChatHistory(uniqueIdChat);
-        setChatHistory(data);
+        SET_LOADING(true);
+        const DATA = await ApiService.get_chat_history(uniqueIdChat);
+        SET_CHAT_HISTORY(DATA);
       } catch (err) {
         toast({
           variant: "destructive",
@@ -44,16 +46,16 @@ const ChatHistoryPage = () => {
           description: "Failed to fetch chat history. Please try again later.",
         });
       } finally {
-        setLoading(false);
+        SET_LOADING(false);
       }
     };
 
     if (uniqueIdChat) {
-      fetchChatHistory();
+      FETCH_CHAT_HISTORY();
     }
   }, [uniqueIdChat, toast]);
 
-  if (loading) {
+  if (LOADING) {
     return (
       <div className="text-center mt-10">
         <div role="status">
@@ -87,7 +89,7 @@ const ChatHistoryPage = () => {
     );
   }
 
-  if (!chatHistory) {
+  if (!CHAT_HISTORY) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-500">
         No chat history available
@@ -109,25 +111,25 @@ const ChatHistoryPage = () => {
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center space-x-2">
               <Server className="h-5 w-5 text-gray-500" />
-              <span>Service: {chatHistory.ServiceName}</span>
+              <span>Service: {CHAT_HISTORY.ServiceName}</span>
             </div>
             <div className="flex items-center space-x-2">
               <Globe className="h-5 w-5 text-gray-500" />
-              <span>Environment: {chatHistory.Environment}</span>
+              <span>Environment: {CHAT_HISTORY.Environment}</span>
             </div>
             <div className="flex items-center space-x-2">
               <MessageCircle className="h-5 w-5 text-gray-500" />
-              <span>Total Messages: {chatHistory.TotalMessages}</span>
+              <span>Total Messages: {CHAT_HISTORY.TotalMessages}</span>
             </div>
             <div className="flex items-center space-x-2">
               <Clock className="h-5 w-5 text-gray-500" />
-              <span>Session ID: {chatHistory.UniqueIDChat}</span>
+              <span>Session ID: {CHAT_HISTORY.UniqueIDChat}</span>
             </div>
           </div>
         </Card>
 
         <div className="space-y-4">
-          {chatHistory.ChatHistory.map((message, index) => (
+          {CHAT_HISTORY.ChatHistory.map((message, index) => (
             <Card key={index} className="p-4">
               <div className="flex items-start space-x-4">
                 <div className="flex-shrink-0">
@@ -171,4 +173,4 @@ const ChatHistoryPage = () => {
   );
 };
 
-export default ChatHistoryPage;
+export default CHAT_HISTORY_PAGE;
