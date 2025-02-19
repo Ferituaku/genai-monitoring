@@ -3,7 +3,7 @@ import { Application } from "@/types/catalogue";
 import React from "react";
 
 interface ApplicationTableRowProps {
-  application: Application;
+  APPLICATIONS: Application;
 }
 
 export class ApplicationTableRow extends React.Component<ApplicationTableRowProps> {
@@ -12,13 +12,15 @@ export class ApplicationTableRow extends React.Component<ApplicationTableRowProp
   }
 
   render() {
-    const { application } = this.props;
+    const { APPLICATIONS } = this.props;
     return (
       <TableRow>
-        <TableCell className="font-medium">{application.name}</TableCell>
-        <TableCell>{application.createdAt}</TableCell>
+        <TableCell className="font-medium">
+          {APPLICATIONS.ProjectName}
+        </TableCell>
+        <TableCell>{APPLICATIONS.CreatedAt}</TableCell>
         <TableCell className="text-start">
-          {this.formatDate(application.lastUpdated)}
+          {this.formatDate(APPLICATIONS.LastUpdate)}
         </TableCell>
       </TableRow>
     );

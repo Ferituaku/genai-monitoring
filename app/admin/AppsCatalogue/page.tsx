@@ -3,35 +3,35 @@
 import { ApplicationGrid } from "@/components/AppsCatalogue/AppGrid";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 import { Input } from "@/components/ui/input";
-import { ApplicationService } from "@/hooks/Catalogue/useAppCatalogue";
+import { ApplicationService } from "@/lib/CatalogueService/api";
 import { Application } from "@/types/catalogue";
 import { Search } from "lucide-react";
 
 import React, { useState, useEffect } from "react";
 
 const Catalogue = () => {
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [APPLICATIONS, SET_APPLICATIONS] = useState<Application[]>([]);
+  const [LOADING, SET_LOADING] = useState(true);
+  const [ERROR, SET_ERROR] = useState<string | null>(null);
+  const [SEARCH_QUERY, SET_SEARCH_QUERY] = useState("");
 
   useEffect(() => {
-    const fetchApplications = async () => {
+    const FETCH_APPLICATIONS = async () => {
       try {
-        const service = new ApplicationService();
-        const data = await service.getApplications();
-        setApplications(data);
-        setLoading(false);
+        const SERVICE = new ApplicationService();
+        const DATA = await SERVICE.getApplications();
+        SET_APPLICATIONS(DATA);
+        SET_LOADING(false);
       } catch (err) {
-        setError("Failed to fetch applications");
-        setLoading(false);
+        SET_ERROR("Failed to fetch applications");
+        SET_LOADING(false);
       }
     };
 
-    fetchApplications();
+    FETCH_APPLICATIONS();
   }, []);
-  const filteredApplications = applications.filter((app) =>
-    app["Project name"].toLowerCase().includes(searchQuery.toLowerCase())
+  const FILTERED_APPLICATION = APPLICATIONS.filter((app) =>
+    app.ProjectName.toLowerCase().includes(SEARCH_QUERY.toLowerCase())
   );
 
   return (
@@ -47,14 +47,14 @@ const Catalogue = () => {
             type="text"
             placeholder="Cari proyek"
             className="pl-10 bg-white/5 border-gray-700 hover:bg-slate-400/10 transition-colors focus:border-blue-600"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={SEARCH_QUERY}
+            onChange={(e) => SET_SEARCH_QUERY(e.target.value)}
           />
         </div>
       </div>
       <div className="top-20 rounded-lg">
         <div className="p-4">
-          <ApplicationGrid applications={filteredApplications} />
+          <ApplicationGrid APPLICATIONS={FILTERED_APPLICATION} />
         </div>
       </div>
     </div>

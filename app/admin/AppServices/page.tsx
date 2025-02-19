@@ -12,11 +12,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import TimeFrame from "@/components/TimeFrame";
+import TimeFrame from "@/components/TimeFrame/TimeFrame";
 import { useToast } from "@/hooks/use-toast";
 import { ApiService } from "@/lib/ChatService/api";
 import DynamicBreadcrumb from "@/components/Breadcrum";
-import { getTimeFrameParams } from "@/lib/TimeFrame/api";
+import { get_time_frame_params } from "@/lib/TimeFrame/api";
 
 interface ChatSession {
   UniqueIDChat: string;
@@ -32,25 +32,25 @@ interface ProjectChat {
 }
 
 const Request = () => {
-  const [projects, setProjects] = useState<ProjectChat[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(
+  const [PROJECTS, SET_PROJECTS] = useState<ProjectChat[]>([]);
+  const [LOADING, SET_LOADING] = useState(true);
+  const [SEARCH_TERM, SET_SEARCH_TERM] = useState("");
+  const [EXPANDED_PROJECTS, SET_EXPANDED_PROJECTS] = useState<Set<string>>(
     new Set()
   );
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const [ERROR, SET_ERROR] = useState<string | null>(null);
+  const ROUTER = useRouter();
   const { toast } = useToast();
 
-  const searchParams = useSearchParams();
-  const timeFrameParams = getTimeFrameParams(searchParams);
+  const SEARCH_PARAMS = useSearchParams();
+  const TIME_FRAME_PARAMS = get_time_frame_params(SEARCH_PARAMS);
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        setLoading(true);
-        const data = await ApiService.getProjectChats(timeFrameParams);
-        setProjects(data);
+        SET_LOADING(true);
+        const DATA = await ApiService.get_project_chats(TIME_FRAME_PARAMS);
+        SET_PROJECTS(DATA);
       } catch (err) {
         toast({
           variant: "destructive",
@@ -58,36 +58,36 @@ const Request = () => {
           description: "Failed to fetch projects. Please try again later.",
         });
       } finally {
-        setLoading(false);
+        SET_LOADING(false);
       }
     };
 
     fetchProjects();
-  }, [toast, searchParams]);
+  }, [toast, SEARCH_PARAMS]);
 
-  const filteredProjects = useMemo(() => {
-    return projects.filter((project) =>
-      project.serviceName.toLowerCase().includes(searchTerm.toLowerCase())
+  const FILTERED_PROJECTS = useMemo(() => {
+    return PROJECTS.filter((project) =>
+      project.serviceName.toLowerCase().includes(SEARCH_TERM.toLowerCase())
     );
-  }, [projects, searchTerm]);
+  }, [PROJECTS, SEARCH_TERM]);
 
-  const toggleProjectExpansion = (projectKey: string) => {
-    setExpandedProjects((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(projectKey)) {
-        newSet.delete(projectKey);
+  const TOGGLE_PROJECTS_EXPANSION = (projectKey: string) => {
+    SET_EXPANDED_PROJECTS((prev) => {
+      const NEW_SET = new Set(prev);
+      if (NEW_SET.has(projectKey)) {
+        NEW_SET.delete(projectKey);
       } else {
-        newSet.add(projectKey);
+        NEW_SET.add(projectKey);
       }
-      return newSet;
+      return NEW_SET;
     });
   };
 
-  const navigateToChatSession = (uniqueIdChat: string) => {
-    router.push(`/admin/AppServices/ChatHistory/${uniqueIdChat}`);
+  const NAVIGATE_TO_CHAT_SESSION = (uniqueIdChat: string) => {
+    ROUTER.push(`/admin/AppServices/ChatHistory/${uniqueIdChat}`);
   };
 
-  if (loading) {
+  if (LOADING) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
@@ -95,10 +95,10 @@ const Request = () => {
     );
   }
 
-  if (error) {
+  if (ERROR) {
     return (
       <div className="min-h-screen ml-64 flex items-center justify-center text-red-500">
-        {error}
+        {ERROR}
       </div>
     );
   }
@@ -120,8 +120,8 @@ const Request = () => {
                 type="text"
                 placeholder="Search project"
                 className="pl-10 bg-white/5 border-gray-700 hover:bg-slate-400/10 transition-colors focus:border-blue-600"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={SEARCH_TERM}
+                onChange={(e) => SET_SEARCH_TERM(e.target.value)}
               />
             </div>
           </div>
@@ -149,12 +149,12 @@ const Request = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredProjects.map((project) => {
-                  const projectKey = `${project.serviceName}-${project.environment}`;
-                  const isExpanded = expandedProjects.has(projectKey);
+                {FILTERED_PROJECTS.map((project) => {
+                  const PROJECT_KEY = `${project.serviceName}-${project.environment}`;
+                  const IS_FRAGMENT = EXPANDED_PROJECTS.has(PROJECT_KEY);
 
                   return (
-                    <React.Fragment key={projectKey}>
+                    <React.Fragment key={PROJECT_KEY}>
                       <tr className="border-t border-gray-700 hover:bg-slate-400/10 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           {project.serviceName}
@@ -168,10 +168,12 @@ const Request = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
                           <Button
                             variant="outline"
-                            onClick={() => toggleProjectExpansion(projectKey)}
+                            onClick={() =>
+                              TOGGLE_PROJECTS_EXPANSION(PROJECT_KEY)
+                            }
                             className="hover:bg-primary"
                           >
-                            {isExpanded ? (
+                            {IS_FRAGMENT ? (
                               <ChevronUp className="h-4 w-4" />
                             ) : (
                               <ChevronDown className="h-4 w-4" />
@@ -179,7 +181,7 @@ const Request = () => {
                           </Button>
                         </td>
                       </tr>
-                      {isExpanded && (
+                      {IS_FRAGMENT && (
                         <tr>
                           <td colSpan={4} className="p-0">
                             <div className="bg-gray-50 px-8 py-4">
@@ -221,7 +223,7 @@ const Request = () => {
                                         <Button
                                           variant="outline"
                                           onClick={() =>
-                                            navigateToChatSession(
+                                            NAVIGATE_TO_CHAT_SESSION(
                                               session.UniqueIDChat
                                             )
                                           }

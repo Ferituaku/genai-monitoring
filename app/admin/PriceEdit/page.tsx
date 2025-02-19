@@ -6,8 +6,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 import { PriceEditApiService, Models } from "@/lib/PriceEdit/api";
-import CreateModelForm from "@/components/PriceEdit/CreateModelForm";
-import EditModelForm from "@/components/PriceEdit/EditModelForm";
+import CREATE_MODEL_FORM from "@/components/PriceEdit/CreateModelForm";
+import EDIT_MODEL_FORM from "@/components/PriceEdit/EditModelForm";
 
 const ModelPriceManager = () => {
   const [modelName, setModelName] = useState("");
@@ -23,10 +23,10 @@ const ModelPriceManager = () => {
   const [newDetailPrice, setNewDetailPrice] = useState("");
 
   useEffect(() => {
-    fetchModels();
+    FETCH_MODEL();
   }, []);
 
-  const fetchModels = async () => {
+  const FETCH_MODEL = async () => {
     try {
       setLoading(true);
       const data = await PriceEditApiService.getModels();
@@ -40,21 +40,21 @@ const ModelPriceManager = () => {
     }
   };
 
-  const handleModelSelect = (value: string) => {
+  const HANDLE_MODEL_SELECT = (value: string) => {
     setModelName(value);
     setSelectedDetail("");
     setCurrentPrice(null);
     setNewPrice("");
   };
 
-  const handleDetailSelect = (value: string) => {
+  const HANDLE_DETAIL_SELECT = (value: string) => {
     setSelectedDetail(value);
     if (models[modelName]?.[value] !== undefined) {
       setCurrentPrice(models[modelName][value]);
     }
   };
 
-  const handleUpdatePrice = async () => {
+  const HANDLE_UPDATE_PRICE = async () => {
     if (!modelName || !selectedDetail || !newPrice) return;
 
     setLoading(true);
@@ -64,7 +64,7 @@ const ModelPriceManager = () => {
         selectedDetail,
         parseFloat(newPrice)
       );
-      await fetchModels();
+      await FETCH_MODEL();
       setCurrentPrice(parseFloat(newPrice));
       setNewPrice("");
       setError(null);
@@ -77,7 +77,7 @@ const ModelPriceManager = () => {
     }
   };
 
-  const handleCreateModel = async () => {
+  const HANDLE_CRATE_MODEL = async () => {
     if (!newModelName || !newDetailName || !newDetailPrice) return;
 
     setLoading(true);
@@ -87,7 +87,7 @@ const ModelPriceManager = () => {
         newDetailName,
         parseFloat(newDetailPrice)
       );
-      await fetchModels();
+      await FETCH_MODEL();
       setNewModelName("");
       setNewDetailName("");
       setNewDetailPrice("");
@@ -101,13 +101,13 @@ const ModelPriceManager = () => {
     }
   };
 
-  const handleDeleteDetail = async () => {
+  const HANDLE_DELETE_DETAIL = async () => {
     if (!modelName || !selectedDetail) return;
 
     setLoading(true);
     try {
       await PriceEditApiService.deleteDetail(modelName, selectedDetail);
-      await fetchModels();
+      await FETCH_MODEL();
       setSelectedDetail("");
       setCurrentPrice(null);
       setError(null);
@@ -119,7 +119,7 @@ const ModelPriceManager = () => {
     }
   };
 
-  const handleCancel = () => {
+  const HANDLE_CANCEL = () => {
     setModelName("");
     setSelectedDetail("");
     setNewPrice("");
@@ -158,7 +158,7 @@ const ModelPriceManager = () => {
               </TabsList>
 
               <TabsContent value="create">
-                <CreateModelForm
+                <CREATE_MODEL_FORM
                   loading={loading}
                   models={models}
                   newModelName={newModelName}
@@ -167,25 +167,25 @@ const ModelPriceManager = () => {
                   onModelNameChange={setNewModelName}
                   onDetailNameChange={setNewDetailName}
                   onDetailPriceChange={setNewDetailPrice}
-                  onCancel={handleCancel}
-                  onSubmit={handleCreateModel}
+                  onCancel={HANDLE_CANCEL}
+                  onSubmit={HANDLE_CRATE_MODEL}
                 />
               </TabsContent>
 
               <TabsContent value="view">
-                <EditModelForm
+                <EDIT_MODEL_FORM
                   loading={loading}
                   models={models}
                   modelName={modelName}
                   selectedDetail={selectedDetail}
                   currentPrice={currentPrice}
                   newPrice={newPrice}
-                  onModelSelect={handleModelSelect}
-                  onDetailSelect={handleDetailSelect}
+                  onModelSelect={HANDLE_MODEL_SELECT}
+                  onDetailSelect={HANDLE_DETAIL_SELECT}
                   onNewPriceChange={setNewPrice}
-                  onCancel={handleCancel}
-                  onDelete={handleDeleteDetail}
-                  onUpdate={handleUpdatePrice}
+                  onCancel={HANDLE_CANCEL}
+                  onDelete={HANDLE_DELETE_DETAIL}
+                  onUpdate={HANDLE_UPDATE_PRICE}
                 />
               </TabsContent>
             </Tabs>

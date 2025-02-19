@@ -4,15 +4,15 @@ import { ApplicationCard } from "./AppCard";
 
 // components/ApplicationGrid/ApplicationGrid.tsx
 interface ApplicationGridProps {
-  applications: Application[];
+  APPLICATIONS: Application[];
 }
 
 export class ApplicationGrid extends React.Component<ApplicationGridProps> {
   render() {
-    const { applications } = this.props;
+    const { APPLICATIONS } = this.props;
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ">
-        {applications.map((app, index) => (
+        {APPLICATIONS.map((app, index) => (
           <ApplicationCard key={index} application={app} />
         ))}
       </div>

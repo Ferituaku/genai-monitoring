@@ -18,19 +18,19 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Copy, Loader2, Trash2 } from "lucide-react";
-import { apiClient, ApiKey } from "@/lib/ApiKeysService/api";
+import { API_CLIENT, ApiKey } from "@/lib/ApiKeysService/api";
 import { useToast } from "@/hooks/use-toast";
 import { GenerateApiKeyDialog } from "@/components/ApiKeys/generateApiKey";
 
 export default function ApiKeysPage() {
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [API_KEYS, SET_API_KEYS] = useState<ApiKey[]>([]);
+  const [LOADING, SET_LOADING] = useState(true);
   const { toast } = useToast();
 
-  const fetchApiKeys = async () => {
+  const FETCH_API_KEY = async () => {
     try {
-      const keys = await apiClient.getAllApiKeys();
-      setApiKeys(keys);
+      const keys = await API_CLIENT.get_all_api_keys();
+      SET_API_KEYS(keys);
     } catch (error) {
       toast({
         title: "Error",
@@ -38,15 +38,15 @@ export default function ApiKeysPage() {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      SET_LOADING(false);
     }
   };
 
   useEffect(() => {
-    fetchApiKeys();
+    FETCH_API_KEY();
   }, []);
 
-  const handleCopyApiKey = (apiKey: string) => {
+  const HANDLE_COPY_APIKEY = (apiKey: string) => {
     navigator.clipboard.writeText(apiKey);
     toast({
       title: "Copied",
@@ -54,14 +54,14 @@ export default function ApiKeysPage() {
     });
   };
 
-  const handleDeleteApiKey = async (apiKey: string) => {
+  const HANDLE_DELETE = async (apiKey: string) => {
     try {
-      await apiClient.deleteApiKey(apiKey);
+      await API_CLIENT.delete_api_key(apiKey);
       toast({
         title: "Success",
         description: "API key deleted successfully",
       });
-      fetchApiKeys();
+      FETCH_API_KEY();
     } catch (error) {
       toast({
         title: "Error",
@@ -72,7 +72,7 @@ export default function ApiKeysPage() {
     }
   };
 
-  if (loading) {
+  if (LOADING) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
@@ -101,14 +101,14 @@ export default function ApiKeysPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {apiKeys.length === 0 ? (
+              {API_KEYS.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center">
                     No API keys available
                   </TableCell>
                 </TableRow>
               ) : (
-                apiKeys.map((key) => (
+                API_KEYS.map((key) => (
                   <TableRow key={key.api_key}>
                     <TableCell className="font-medium">{key.name}</TableCell>
                     <TableCell>
@@ -120,14 +120,14 @@ export default function ApiKeysPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleCopyApiKey(key.api_key)}
+                          onClick={() => HANDLE_COPY_APIKEY(key.api_key)}
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDeleteApiKey(key.api_key)}
+                          onClick={() => HANDLE_DELETE(key.api_key)}
                         >
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
@@ -141,7 +141,7 @@ export default function ApiKeysPage() {
         </CardContent>
       </Card>
 
-      <GenerateApiKeyDialog onKeyCreated={fetchApiKeys} />
+      <GenerateApiKeyDialog onKeyCreated={FETCH_API_KEY} />
     </div>
   );
 }
