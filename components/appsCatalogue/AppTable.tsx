@@ -5,18 +5,18 @@ import { ApplicationTableHeader } from "./AppTableHeader";
 import { ApplicationTableRow } from "./AppTableRow";
 
 interface ApplicationTableProps {
-  applications: Application[];
+  APPLICATIONS: Application[];
 }
 
 export class ApplicationTable extends React.Component<ApplicationTableProps> {
   render() {
-    const { applications } = this.props;
+    const { APPLICATIONS } = this.props;
     return (
       <Table>
         <ApplicationTableHeader />
         <TableBody>
-          {applications.map((app) => (
-            <ApplicationTableRow key={app.name} application={app} />
+          {APPLICATIONS.map((app) => (
+            <ApplicationTableRow key={app.ProjectName} APPLICATIONS={app} />
           ))}
         </TableBody>
       </Table>

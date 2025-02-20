@@ -1,21 +1,23 @@
-from flask import jsonify, abort, request
+from flask import Flask, jsonify, abort, request
 from flask_restful import Api, Resource
-from datetime import datetime, timedelta,timezone
+from datetime import datetime, timedelta, timezone
 from data.configuration.databaseopenlit import client
 
+app = Flask(__name__)
+api = Api(app)
 
 class Request(Resource):
-
     def __init__(self):
-        self.client = client  # Ambil dari database.py
-        # self.days = request.args.get('days', default=7, type=int)
+        self.client = client
 
-    def get(self, appName):  
+    def get(self):
         try:
-            # Hitung tanggal mulai (hari ini - days)
-            days = request.args.get('days',  default=7, type=int)
-            from_date = request.args.get('from')
-            to_date = request.args.get('to')
+            # Parsing query params (camelCase & snake_case support)
+            params = request.args.to_dict()
+            
+            # Date Range Filtering
+            from_date = params.get('from') or params.get('fromDate') or params.get('from_date')
+            to_date = params.get('to') or params.get('toDate') or params.get('to_date')
 
             if from_date and to_date:
                 try:
@@ -23,275 +25,124 @@ class Request(Resource):
                     end_date = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
                 except ValueError:
                     abort(400, "Invalid date format. Use ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)")
-            # elif days:
-            #     end_date = datetime.now(timezone.utc)
-            #     start_date = end_date - timedelta(days=days)
             else:
-                # Default to 7 days 
                 end_date = datetime.now(timezone.utc)
-                start_date = end_date - timedelta(days=days)
+                start_date = end_date - timedelta(days=7)
 
+            # Format datetime for query
+            start_date_str = start_date.strftime('%Y-%m-%d %H:%M:%S')
+            end_date_str = end_date.strftime('%Y-%m-%d %H:%M:%S')
 
-            # Parameter filter
-            # deployment_environment = request.args.get('deployment_environment', default=None, type=str)
-            # system = request.args.get('system', default=None, type=str)
-            # model = request.args.get('model', default=None, type=str)
-            # operation_name = request.args.get('operation_name', default=None, type=str)
-            # endpoint = request.args.get('endpoint', default=None, type=str)
-            # min_input_tokens = request.args.get('min_input_tokens', default=None, type=int)
-            # max_input_tokens = request.args.get('max_input_tokens', default=None, type=int)
-            # min_output_tokens = request.args.get('min_output_tokens', default=None, type=int)
-            # max_output_tokens = request.args.get('max_output_tokens', default=None, type=int)
-            # min_total_tokens = request.args.get('min_total_tokens', default=None, type=int)
-            # max_total_tokens = request.args.get('max_total_tokens', default=None, type=int)
-            # min_duration = request.args.get('min_duration', default=None, type=float)
-            # max_duration = request.args.get('max_duration', default=None, type=float)
-            # is_stream = request.args.get('is_stream', default=None, type=str)
-            
-            # Hitung tanggal mulai
-            # start_date = datetime.now() - timedelta(days=self.days)
-           
-            
-            # Query dasar dengan subquery
-            query = """
-                    SELECT 
-                        ServiceName,
-                        Timestamp,
-                        TraceId,
-                        SpanId,
-                        ParentSpanId,
-                        TraceState,
-                        SpanName,
-                        SpanKind,
-                        ServiceName,
-                        ResourceAttributes,
-                        ScopeName,
-                        ScopeVersion,
-                        SpanAttributes,
-                        Duration,
-                        StatusCode,
-                        StatusMessage,
-                        Events.Timestamp, 
-                        Events.Name, 
-                        Events.Attributes
-                    FROM otel_traces 
-                    WHERE StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET')
-                    AND Timestamp  BETWEEN %(start_date)s AND %(end_date)s
-                """
-            
-
-            params = {
-                        'start_date': start_date,
-                        'end_date': end_date
-                    }
-                
-            # WITH filtered_data AS ()
-            #     SELECT * FROM filtered_data
-            #     ORDER BY Timestamp DESC
-            #     LIMIT 50
-                    
-            filters = {
-                'deployment_environment': {
-                    'column': "ResourceAttributes['deployment.environment']",
-                    'type': str,
-                    'operator': '='
-                },
-                'model': {
-                    'column': "SpanAttributes['gen_ai.request.model']",
-                    'type': str,
-                    'operator': '='
-                },
-                'min_input_tokens': {
-                    'column': "toInt32(SpanAttributes['gen_ai.usage.input_tokens'])",
-                    'type': int,
-                    'operator': '>='
-                },
-                'max_input_tokens': {
-                    'column': "toInt32(SpanAttributes['gen_ai.usage.input_tokens'])",
-                    'type': int,
-                    'operator': '<='
-                },
-                'min_output_tokens': {
-                    'column': "toInt32(SpanAttributes['gen_ai.usage.output_tokens'])",
-                    'type': int,
-                    'operator': '>='
-                },
-                'max_output_tokens': {
-                    'column': "toInt32(SpanAttributes['gen_ai.usage.output_tokens'])",
-                    'type': int,
-                    'operator': '<='
-                },
-                'min_total_tokens': {
-                    'column': "toInt32(SpanAttributes['gen_ai.usage.total_tokens'])",
-                    'type': int,
-                    'operator': '>='
-                },
-                'max_total_tokens': {
-                    'column': "toInt32(SpanAttributes['gen_ai.usage.total_tokens'])",
-                    'type': int,
-                    'operator': '<='
-                },
-                'min_duration': {
-                    'column': 'Duration',
-                    'type': float,
-                    'operator': '>='
-                },
-                'max_duration': {
-                    'column': 'Duration',
-                    'type': float,
-                    'operator': '<='
-                },
-                'is_stream': {
-                    'column': "SpanAttributes['gen_ai.request.is_stream']",
-                    'type': str,
-                    'operator': '='
-                }
+            # Allowed filters and sorting columns
+            filter_mappings = {
+                'appName': "ResourceAttributes['service.name']",
+                'deploymentEnvironment': "ResourceAttributes['deployment.environment']",
+                'system': "SpanAttributes['gen_ai.system']",
+                'model': "SpanAttributes['gen_ai.request.model']",
+                'operationName': "SpanAttributes['gen_ai.operation.name']",
+                'endpoint': "SpanAttributes['gen_ai.endpoint']",
+                'isStream': "SpanAttributes['gen_ai.request.is_stream']",
+                'minInputTokens': "toInt32(SpanAttributes['gen_ai.usage.input_tokens'])",
+                'maxInputTokens': "toInt32(SpanAttributes['gen_ai.usage.input_tokens'])",
+                'minOutputTokens': "toInt32(SpanAttributes['gen_ai.usage.output_tokens'])",
+                'maxOutputTokens': "toInt32(SpanAttributes['gen_ai.usage.output_tokens'])",
+                'minTotalTokens': "toInt32(SpanAttributes['gen_ai.usage.total_tokens'])",
+                'maxTotalTokens': "toInt32(SpanAttributes['gen_ai.usage.total_tokens'])",
+                'minDuration': 'Duration',
+                'maxDuration': 'Duration'
             }
 
-            # Filter berdasarkan appName
-            # if appName:
-            #     query = query.replace(
-            #     "WHERE", 
-            #     "WHERE ServiceName = %(app_name)s AND"
-            #     )
-            #     params['app_name'] = appName
+            # Build SQL Query
+            query = f"""
+            SELECT 
+                ServiceName,
+                Timestamp,
+                TraceId,
+                SpanId,
+                ParentSpanId,
+                TraceState,
+                SpanName,
+                SpanKind,
+                ResourceAttributes,
+                ScopeName,
+                ScopeVersion,
+                SpanAttributes,
+                Duration,
+                StatusCode,
+                StatusMessage,
+                Events.Timestamp,
+                Events.Name,
+                Events.Attributes
+            FROM otel_traces
+            WHERE Timestamp BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
+            """
 
-            # # # Filter dari ResourceAttributes
-            # if deployment_environment:
-            #     query += f" AND ResourceAttributes['deployment.environment'] = '{deployment_environment}'"
+            params_query = {
+                'start_date': start_date_str,
+                'end_date': end_date_str
+            }
 
-            # # Filter dari SpanAttributes
-            # if system:
-            #     query += f" AND SpanAttributes['gen_ai.system'] = '{system}'"
-            
-            # if model:
-            #     query += f" AND SpanAttributes['gen_ai.request.model'] = '{model}'"
-            
-            # if operation_name:
-            #     query += f" AND SpanAttributes['gen_ai.operation.name'] = '{operation_name}'"
-            
-            # if endpoint:
-            #     query += f" AND SpanAttributes['gen_ai.endpoint'] = '{endpoint}'"
-            
-            # if is_stream:
-            #     query += f" AND SpanAttributes['gen_ai.request.is_stream'] = '{is_stream}'"
+            # Apply Filters
+            for key, column in filter_mappings.items():
+                camel_key = key
+                snake_key = key.replace('CamelCase', '_').lower()
 
-            # # Filter token usage
-            # if min_input_tokens:
-            #     query += f" AND toInt32(SpanAttributes['gen_ai.usage.input_tokens']) >= {min_input_tokens}"
-            # if max_input_tokens:
-            #     query += f" AND toInt32(SpanAttributes['gen_ai.usage.input_tokens']) <= {max_input_tokens}"
-                
-            # if min_output_tokens:
-            #     query += f" AND toInt32(SpanAttributes['gen_ai.usage.output_tokens']) >= {min_output_tokens}"
-            # if max_output_tokens:
-            #     query += f" AND toInt32(SpanAttributes['gen_ai.usage.output_tokens']) <= {max_output_tokens}"
-                
-            # if min_total_tokens:
-            #     query += f" AND toInt32(SpanAttributes['gen_ai.usage.total_tokens']) >= {min_total_tokens}"
-            # if max_total_tokens:
-            #     query += f" AND toInt32(SpanAttributes['gen_ai.usage.total_tokens']) <= {max_total_tokens}"
-            
-            # # Filter duration
-            # if min_duration is not None:
-            #     query += f" AND Duration >= {min_duration}"
-            # if max_duration is not None:
-            #     query += f" AND Duration <= {max_duration}"
-            
-            # query += """
-            # )
-            # SELECT *
-            # FROM filtered_data
-            # ORDER BY Timestamp DESC
-            # LIMIT 50
-            # """
+                value = params.get(camel_key) or params.get(snake_key)
+                if value:
+                    operator = '>=' if 'min' in key else '<=' if 'max' in key else '='
+                    query += f" AND {column} {operator} %({key})s"
+                    params_query[key] = value
 
-            
-            # query = """
-            # WITH filtered_data AS (
-            #     SELECT *
-            #     FROM filtered_data 
-            #     WHERE StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET')
-            #     AND Timestamp BETWEEN %(start_date)s AND %(end_date)s
-            # """
+            # Sorting (Optional)
+            sort_by = params.get('sortBy') or params.get('sort_by')
+            sort_order = params.get('sortOrder') or params.get('sort_order', 'desc')
 
-            # Format tanggal untuk query
-            # query = query.format(start_date=start_date.strftime('%Y-%m-%d %H:%M:%S'))
-            
-            # if appName:
-            #     query += " AND ServiceName = %(app_name)s"
-            #     params['app_name'] = appName
+            if sort_by and sort_by in filter_mappings:
+                query += f" ORDER BY {filter_mappings[sort_by]} {sort_order.upper()}"
 
+            query += " LIMIT 50"
 
-            # query += "\nORDER BY Timestamp DESC LIMIT 50"
-            
-            for param_name, filter_config in filters.items():
-                value = request.args.get(param_name, type=filter_config['type'])
-                if value is not None:
-                    query += f" AND {filter_config['column']} {filter_config['operator']} %({param_name})s"
-                    params[param_name] = value
-
-            query += " ORDER BY Timestamp DESC"
-            # Jalankan query
-            traces = client.query(query, params=params).result_rows
+            # Execute query
+            traces = self.client.query(query, params_query).result_rows
 
             if not traces:
                 return jsonify([])
 
+            # Format Response
             formatted_traces = []
             for row in traces:
-                # trace_data = {
-                #     "ServiceName": row[0],
-                #     "Timestamp": row[0].isoformat() if isinstance(row[0], datetime) else str(row[0]),
-                #     "TraceId": row[1] if len(row) > 1 else "",
-                #     "SpanId": row[2] if len(row) > 2 else "",
-                #     "ParentSpanId": row[3] if len(row) > 3 else "",
-                #     "TraceState": row[4] if len(row) > 4 else "",
-                #     "SpanName": row[5] if len(row) > 5 else "",
-                #     "SpanKind": row[6] if len(row) > 6 else "",
-                #     "ServiceName": row[7] if len(row) > 7 else "",
-                #     "ResourceAttributes": row[8] if len(row) > 8 and isinstance(row[8], dict) else {},
-                #     "ScopeName": row[9] if len(row) > 9 else "",
-                #     "ScopeVersion": row[10] if len(row) > 10 else "",
-                #     "SpanAttributes": row[11] if len(row) > 11 and isinstance(row[11], dict) else {},
-                #     "Duration": row[12] if len(row) > 12 else "",
-                #     "StatusCode": row[13] if len(row) > 13 else "STATUS_CODE_OK",
-                #     "StatusMessage": row[14] if len(row) > 14 else "",
-                #     "Events.Timestamp": [ts.isoformat() if isinstance(ts, datetime) else str(ts) for ts in (row[15] if len(row) > 15 and isinstance(row[15], list) else [])],
-                #     "Events.Name": row[16] if len(row) > 16 and isinstance(row[16], list) else [],
-                #     "Events.Attributes": row[17] if len(row) > 17 and isinstance(row[17], list) else [],
-                #     "Links.TraceId": [],
-                #     "Links.SpanId": [],
-                #     "Links.TraceState": [],
-                #     "Links.Attributes": []
-                # }
                 trace_data = {
-                    "ServiceName": row[0],
-                    "Timestamp": row[0].isoformat() if isinstance(row[0], datetime) else str(row[0]),
-                    "TraceId": row[1],
-                    "SpanId": row[2],
-                    "ParentSpanId": row[3],
-                    "TraceState": row[4],
-                    "SpanName": row[5],
-                    "SpanKind": row[6],
-                    "ServiceName": row[7],
-                    "ResourceAttributes": row[8] if isinstance(row[8], dict) else {},
-                    "ScopeName": row[9],
-                    "ScopeVersion": row[10],
-                    "SpanAttributes": row[11] if isinstance(row[11], dict) else {},
-                    "Duration": row[12],
-                    "StatusCode": row[13],
-                    "StatusMessage": row[14],
-                    "Events": {
-                        "Timestamp": row[15] if isinstance(row[15], list) else [],
-                        "Name": row[16] if isinstance(row[16], list) else [],
-                        "Attributes": row[17] if isinstance(row[17], list) else []
+                    "serviceName": row[0],
+                    "timestamp": row[1].isoformat() if isinstance(row[1], datetime) else str(row[1]),
+                    "traceId": row[2],
+                    "spanId": row[3],
+                    "parentSpanId": row[4],
+                    "traceState": row[5],
+                    "spanName": row[6],
+                    "spanKind": row[7],
+                    "resourceAttributes": row[8] if isinstance(row[8], dict) else {},
+                    "scopeName": row[9],
+                    "scopeVersion": row[10],
+                    "spanAttributes": row[11] if isinstance(row[11], dict) else {},
+                    "duration": row[12],
+                    "statusCode": row[13],
+                    "statusMessage": row[14],
+                    "events": {
+                        "timestamp": row[15] if isinstance(row[15], list) else [],
+                        "name": row[16] if isinstance(row[16], list) else [],
+                        "attributes": row[17] if isinstance(row[17], list) else []
                     }
                 }
                 formatted_traces.append(trace_data)
 
             return jsonify(formatted_traces)
-            
+
         except Exception as e:
-            print(f"Error dalam get: {str(e)}")  
+            print(f"Error in get: {str(e)}")
             abort(500, f"Terjadi kesalahan server: {str(e)}")
+
+# Add Resource to API
+api.add_resource(Request, '/api/tracesRequest/')
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5101)

@@ -1,6 +1,6 @@
 import { TimeFrameParams } from "@/types/timeframe";
 
-export const getTimeFrameParams = (
+export const get_time_frame_params = (
   searchParams: URLSearchParams
 ): TimeFrameParams => {
   const days = searchParams.get("days");
@@ -14,17 +14,17 @@ export const getTimeFrameParams = (
   return { days: days || "7" };
 };
 
-export const createTimeFrameQueryString = (
+export const create_time_frame_query_string = (
   timeParams: TimeFrameParams
 ): string => {
-  const queryParams = new URLSearchParams();
+  const QUERY_PARAMS = new URLSearchParams();
 
   if (timeParams.from && timeParams.to) {
-    queryParams.set("from", timeParams.from);
-    queryParams.set("to", timeParams.to);
+    QUERY_PARAMS.set("from", timeParams.from);
+    QUERY_PARAMS.set("to", timeParams.to);
   } else if (timeParams.days) {
-    queryParams.set("days", timeParams.days);
+    QUERY_PARAMS.set("days", timeParams.days);
   }
 
-  return queryParams.toString();
+  return QUERY_PARAMS.toString();
 };

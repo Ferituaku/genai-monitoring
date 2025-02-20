@@ -2,10 +2,10 @@
 
 // import { div } from "framer-motion/client";
 import React, { useState } from "react";
-import MetricCard from "@/components/MetricCard";
+import MetricCard from "@/components/DashboardComponent/MetricCard";
 import DonutChart from "@/components/DonutChart";
 import ChartRequest from "@/components/ChartRequest";
-import TimeFrame from "@/components/TimeFrame";
+import TimeFrame from "@/components/TimeFrame/TimeFrame";
 import Totalrequests from "./Angka/total_request";
 import Avgtoken from "./Angka/avg_token";
 import Avgcost from "./Angka/avg_cost";
@@ -14,25 +14,21 @@ import Avgduration from "./Angka/avg_duration";
 import Avgprompttokens from "./Angka/avg_prompt_tokens";
 import Avgcompletiontokens from "./Angka/avg_completion_tokens";
 
-
-
 const Dashboard: React.FC = () => {
-
   //waktu/time frame masih dummy belum ada penyesuaian dengan data yg difetch dari api database openlitnye, sama custom belum dikasih date range picker
 
   return (
     <div className="min-h-screen">
       <div className="p-2 pt-20">
-      
-      <div className="flex relative items-center gap-4">
-              <TimeFrame />
+        <div className="flex relative items-center gap-4">
+          <TimeFrame />
         </div>
-       
+
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4  ">
           <div className="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-1 gap-6 mb-4 min-h-[450px]">
             <MetricCard
               title="Avg prompt tokens / request"
-              value= {<Avgprompttokens/>}
+              value={<Avgprompttokens />}
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -54,7 +50,7 @@ const Dashboard: React.FC = () => {
             />
             <MetricCard
               title="Avg completion tokens / request"
-              value={<Avgcompletiontokens/>}
+              value={<Avgcompletiontokens />}
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -75,7 +71,6 @@ const Dashboard: React.FC = () => {
               subValue=""
             />
           </div>
-
         </div>
       </div>
     </div>

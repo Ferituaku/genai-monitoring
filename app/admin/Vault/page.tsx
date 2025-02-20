@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { VaultFormData } from "@/types/vault";
 import { useToast } from "@/hooks/use-toast";
-import { useVault } from "@/hooks/Vault/useVault";
+import { useVault } from "@/hooks/Vault/use-vault";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 import { VaultTable } from "@/components/Vault/VaultTable";
 import { AddKeyModal } from "@/components/Vault/AddKeyVault";

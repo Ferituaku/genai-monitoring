@@ -4,7 +4,7 @@ import { Activity, CalendarDays, Clock } from "lucide-react";
 import React from "react";
 
 interface ApplicationCardProps {
-  application: Application;
+  APPLICATIONS: Application;
 }
 
 export class ApplicationCard extends React.Component<ApplicationCardProps> {
@@ -19,30 +19,28 @@ export class ApplicationCard extends React.Component<ApplicationCardProps> {
   }
 
   render() {
-    const { application } = this.props;
+    const { APPLICATIONS } = this.props;
     return (
       <Card className="hover:shadow-lg hover:scale-105 transition-all border-l-blue-600 border-l-[6px]">
         <CardHeader>
-          <h3 className="text-lg font-semibold">
-            {application["Project name"]}
-          </h3>
+          <h3 className="text-lg font-semibold">{APPLICATIONS.ProjectName}</h3>
         </CardHeader>
         <CardContent>
           <div className="space-y-3 text-sm text-gray-600">
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
               <span>
-                Total Requests: {application["Jumlah Request"].toLocaleString()}
+                Total Requests: {APPLICATIONS.JumlahRequest.toLocaleString()}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4" />
-              <span>Created: {this.formatDate(application["Created at"])}</span>
+              <span>Created: {this.formatDate(APPLICATIONS.CreatedAt)}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
               <span>
-                Last Update: {this.formatDate(application["Last update"])}
+                Last Update: {this.formatDate(APPLICATIONS.LastUpdate)}
               </span>
             </div>
           </div>

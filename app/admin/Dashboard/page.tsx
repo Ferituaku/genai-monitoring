@@ -2,14 +2,13 @@
 
 // import { div } from "framer-motion/client";
 import React, { useState, useEffect } from "react";
-import MetricCard from "@/components/MetricCard";
-import TimeFrame from "@/components/TimeFrame";
+import TimeFrame from "@/components/TimeFrame/TimeFrame";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 import { useSearchParams } from "next/navigation";
-import TopModel from "../../../components/Dashboardcomponent/Piechart/TopModel";
-import Genbycategory from "../../../components/Dashboardcomponent/Piechart/Genbycategory";
-import Costbyapp from "../../../components/Dashboardcomponent/Piechart/Costbyapp";
-import Costbyenv from "../../../components/Dashboardcomponent/Piechart/Costbyenv";
+import TopModel from "../../../components/DashboardComponent/Piechart/TopModel";
+import Genbycategory from "../../../components/DashboardComponent/Piechart/Genbycategory";
+import Costbyapp from "../../../components/DashboardComponent/Piechart/Costbyapp";
+import Costbyenv from "../../../components/DashboardComponent/Piechart/Costbyenv";
 import {
   LineChart,
   Line,
@@ -21,39 +20,37 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { DashboardApiService } from "@/lib/DashboardService/api";
-import { TimeFrameParams } from "@/types/timeframe";
-import {
-  createTimeFrameQueryString,
-  getTimeFrameParams,
-} from "@/lib/TimeFrame/api";
 import { Loader2 } from "lucide-react";
+import { get_time_frame_params } from "@/lib/TimeFrame/api";
+import METRIC_CARD from "@/components/DashboardComponent/MetricCard";
 
-const Dashboard: React.FC = () => {
-  const [dashboardData, setDashboardData] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const searchParams = useSearchParams();
+const DASHBOARD: React.FC = () => {
+  const [DASHBOARD_DATA, SET_DASHBOARD_DATA] = useState<any>(null);
+  const [ERROR, SET_ERROR] = useState<string | null>(null);
+  const [IS_LOADING, SET_IS_LOADING] = useState(true);
+  const SEARCH_PARAMS = useSearchParams();
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    //FETCH data dashboard dari api.ts menggunakan get_dashboard_data
+    const FETCH_DASHBOARD_DATA = async () => {
       try {
-        setIsLoading(true);
-        const timeFrameParams = getTimeFrameParams(searchParams);
-        const data = await DashboardApiService.getDashboardData(
-          timeFrameParams
+        SET_IS_LOADING(true);
+        const TIME_FRAME_PARAMS = get_time_frame_params(SEARCH_PARAMS);
+        const DATA = await DashboardApiService.get_dashboard_data(
+          TIME_FRAME_PARAMS
         );
-        setDashboardData(data);
-        setError(null);
+        SET_DASHBOARD_DATA(DATA);
+        SET_ERROR(null);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
-        setError(error instanceof Error ? error.message : "An error occurred");
+        SET_ERROR(error instanceof Error ? error.message : "An error occurred");
       } finally {
-        setIsLoading(false);
+        SET_IS_LOADING(false);
       }
     };
 
-    fetchDashboardData();
-  }, [searchParams]);
+    FETCH_DASHBOARD_DATA();
+  }, [SEARCH_PARAMS]);
 
   const processRequestData = (data: any[]) => {
     return data.map((item) => ({
@@ -75,7 +72,7 @@ const Dashboard: React.FC = () => {
     }));
   };
 
-  if (isLoading) {
+  if (IS_LOADING) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
@@ -83,19 +80,19 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (ERROR) {
     return (
       <div className="flex justify-center items-center h-[300px] text-red-500">
-        <p>Error loading data: {error}</p>
+        <p>Error loading data: {ERROR}</p>
       </div>
     );
   }
 
-  const requestData = dashboardData?.request_pertime
-    ? processRequestData(dashboardData.request_pertime)
+  const REQUEST_DATA = DASHBOARD_DATA?.request_pertime
+    ? processRequestData(DASHBOARD_DATA.request_pertime)
     : [];
-  const tokenUsage = dashboardData?.token_usage
-    ? processTokenData(dashboardData.token_usage)
+  const TOKEN_USAGE = DASHBOARD_DATA?.token_usage
+    ? processTokenData(DASHBOARD_DATA.token_usage)
     : [];
 
   return (
@@ -108,9 +105,9 @@ const Dashboard: React.FC = () => {
           <TimeFrame />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          <MetricCard
+          <METRIC_CARD
             title="Total Request"
-            value={dashboardData?.total_requests?.toString()}
+            value={DASHBOARD_DATA?.total_requests?.toString()}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -130,9 +127,9 @@ const Dashboard: React.FC = () => {
             }
             subValue=""
           />
-          <MetricCard
+          <METRIC_CARD
             title="Avg tokens per request"
-            value={dashboardData?.avg_token?.toString()}
+            value={DASHBOARD_DATA?.avg_token?.toString()}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -152,9 +149,9 @@ const Dashboard: React.FC = () => {
             }
             subValue=""
           />
-          <MetricCard
+          <METRIC_CARD
             title="Avg Cost per request"
-            value={dashboardData?.avg_cost?.toString()}
+            value={DASHBOARD_DATA?.avg_cost?.toString()}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -174,9 +171,9 @@ const Dashboard: React.FC = () => {
             }
             subValue=""
           />
-          <MetricCard
+          <METRIC_CARD
             title="Avg Request Duration"
-            value={dashboardData?.avg_duration?.toString()}
+            value={DASHBOARD_DATA?.avg_duration?.toString()}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -202,26 +199,26 @@ const Dashboard: React.FC = () => {
           <div className="col-span-2 mb-4 bg-white p-4 rounded-lg shadow-lg h-auto">
             <h2 className="text-lg font-bold mb-2">Request Per Time</h2>
             <ResponsiveContainer width="100%" height={420}>
-              <LineChart data={requestData}>
+              <LineChart data={REQUEST_DATA}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="date" tick={{ fill: "#6b7280" }} />
                 <YAxis tick={{ fill: "#6b7280" }} />
                 <Tooltip
                   content={({ payload }) => {
                     if (!payload || payload.length === 0) return null;
-                    const data = payload[0].payload;
+                    const DATA = payload[0].payload;
                     return (
                       <div className="bg-white p-2 shadow-md rounded border border-gray-300">
-                        <p className="text-sm font-bold">{data.date}</p>
-                        <p className="text-xs">Total Requests: {data.total}</p>
+                        <p className="text-sm font-bold">{DATA.date}</p>
+                        <p className="text-xs">Total Requests: {DATA.total}</p>
                         <p className="text-xs text-green-600">
-                          OK: {data.total_ok}
+                          OK: {DATA.total_ok}
                         </p>
                         <p className="text-xs text-red-600">
-                          Error: {data.total_error}
+                          Error: {DATA.total_error}
                         </p>
                         <p className="text-xs text-yellow-600">
-                          Unset: {data.total_unset}
+                          Unset: {DATA.total_unset}
                         </p>
                       </div>
                     );
@@ -244,32 +241,32 @@ const Dashboard: React.FC = () => {
               <h2 className="text-md font-light text-slate-700 mb-4">
                 Cost by application
               </h2>
-              <Costbyapp data={dashboardData?.["Cost by app"] || {}} />
+              <Costbyapp data={DASHBOARD_DATA?.["Cost by app"] || {}} />
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg">
               <h2 className="text-md font-light text-slate-700 mb-4">
                 Generate by category
               </h2>
-              <Genbycategory data={dashboardData?.["Gen by category"] || {}} />
+              <Genbycategory data={DASHBOARD_DATA?.["Gen by category"] || {}} />
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg">
               <h2 className="text-md font-light text-slate-700 mb-4">
                 Cost by environment
               </h2>
-              <Costbyenv data={dashboardData?.["Cost by env"] || {}} />
+              <Costbyenv data={DASHBOARD_DATA?.["Cost by env"] || {}} />
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg">
               <h2 className="text-md font-light text-slate-700 mb-4">
                 Top Models
               </h2>
-              <TopModel data={dashboardData?.["Top Model"] || {}} />
+              <TopModel data={DASHBOARD_DATA?.["Top Model"] || {}} />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-6 mb-6">
-            <MetricCard
+            <METRIC_CARD
               title="Avg prompt tokens / request"
-              value={dashboardData?.avg_prompt_tokens?.toString()}
+              value={DASHBOARD_DATA?.avg_prompt_tokens?.toString()}
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -289,9 +286,9 @@ const Dashboard: React.FC = () => {
               }
               subValue=""
             />
-            <MetricCard
+            <METRIC_CARD
               title="Avg completion tokens / request"
-              value={dashboardData?.avg_completion_tokens?.toString()}
+              value={DASHBOARD_DATA?.avg_completion_tokens?.toString()}
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -318,7 +315,7 @@ const Dashboard: React.FC = () => {
             <h2 className="text-lg font-bold mb-2">Token Usage</h2>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height={280}>
-                <LineChart data={tokenUsage}>
+                <LineChart data={TOKEN_USAGE}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis
                     className="text-xs"
@@ -329,16 +326,16 @@ const Dashboard: React.FC = () => {
                   <Tooltip
                     content={({ payload }) => {
                       if (!payload || payload.length === 0) return null;
-                      const data = payload[0].payload;
+                      const DATA = payload[0].payload;
                       return (
                         <div className="bg-white p-2 shadow-md rounded border border-gray-300">
-                          <p className="text-sm font-bold">{data.date}</p>
-                          <p className="text-xs">Total Tokens: {data.total}</p>
+                          <p className="text-sm font-bold">{DATA.date}</p>
+                          <p className="text-xs">Total Tokens: {DATA.total}</p>
                           <p className="text-xs text-green-600">
-                            Prompt: {data.prompt}
+                            Prompt: {DATA.prompt}
                           </p>
                           <p className="text-xs text-blue-600">
-                            Completion: {data.completion}
+                            Completion: {DATA.completion}
                           </p>
                         </div>
                       );
@@ -363,4 +360,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export default DASHBOARD;

@@ -2,7 +2,7 @@ import { Box } from "lucide-react";
 
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || "/openai/ai-monitor";
 
-export const menuItems = [
+export const MENU_ITEMS = [
   {
     label: "Dashboard",
     href: `${BASE_PATH}/admin/Dashboard`,

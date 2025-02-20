@@ -2,9 +2,9 @@
 
 // import { div } from "framer-motion/client";
 import React, { useState } from "react";
-import MetricCard from "@/components/MetricCard";
+import MetricCard from "@/components/DashboardComponent/MetricCard";
 import ChartRequest from "@/components/ChartRequest";
-import TimeFrame from "@/components/TimeFrame";
+import TimeFrame from "@/components/TimeFrame/TimeFrame";
 import Totalrequests from "./Dashboardcomponent/Angka/total_request";
 import Avgtoken from "./Dashboardcomponent/Angka/avg_token";
 import Avgcost from "./Dashboardcomponent/Angka/avg_cost";
