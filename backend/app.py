@@ -13,7 +13,6 @@ from endpoints.general.dashboard import Dashboard
 from endpoints.general.request import Request
 from endpoints.admin.chatbotapp import ProjectChatService
 from endpoints.admin.chatbotapp import ChatHistoryService
-from data.configuration.databaseopenlit import client
 from endpoints.general.exception import Exception
 from endpoints.admin.apiKeys import apiKeys
 from endpoints.admin.appcatalogue import AppCatalogue
@@ -53,17 +52,16 @@ app.register_blueprint(vault, url_prefix='/vault')
 api = Api(app)
 
 
-# api.add_resource(Dashboard, '/dashboard')
+api.add_resource(Dashboard, '/dashboard')
 api.add_resource(Request,'/api/tracesRequest/')
-# api.add_resource(ProjectChatService, '/api/projectchat')
-# api.add_resource(ChatHistoryService, '/api/chathistory/<string:unique_id_chat>')
-# api.add_resource(Exception, '/api/tracesExceptions/', '/api/traceExceptions/<string:appName>')
-# api.add_resource(AppCatalogue, "/appcatalogue")
-# app.register_blueprint(apiKeys, url_prefix='/apiKeys')
-# app.register_blueprint(vault, url_prefix='/vault')
->>>>>>> 9e595088995db83ed8b60a02b5d24985ddfa5402
-# AuthApp(app)
-# PricingAPI(app)
+api.add_resource(ProjectChatService, '/api/projectchat')
+api.add_resource(ChatHistoryService, '/api/chathistory/<string:unique_id_chat>')
+api.add_resource(Exception, '/api/tracesExceptions/')
+api.add_resource(AppCatalogue, "/appcatalogue")
+app.register_blueprint(apiKeys, url_prefix='/apiKeys')
+app.register_blueprint(vault, url_prefix='/vault')
+AuthApp(app)
+PricingAPI(app)
 
 
 if __name__ == '__main__':

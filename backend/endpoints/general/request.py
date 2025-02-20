@@ -1,10 +1,7 @@
-from flask import Flask, jsonify, abort, request
-from flask_restful import Api, Resource
+from flask import jsonify, abort, request
+from flask_restful import Resource
 from datetime import datetime, timedelta, timezone
 from data.configuration.databaseopenlit import client
-
-app = Flask(__name__)
-api = Api(app)
 
 class Request(Resource):
     def __init__(self):
@@ -49,7 +46,8 @@ class Request(Resource):
                 'minTotalTokens': "toInt32(SpanAttributes['gen_ai.usage.total_tokens'])",
                 'maxTotalTokens': "toInt32(SpanAttributes['gen_ai.usage.total_tokens'])",
                 'minDuration': 'Duration',
-                'maxDuration': 'Duration'
+                'maxDuration': 'Duration',
+                'statusCode': 'StatusCode'
             }
 
             # Build SQL Query
@@ -88,19 +86,18 @@ class Request(Resource):
                 snake_key = key.replace('CamelCase', '_').lower()
 
                 value = params.get(camel_key) or params.get(snake_key)
-                if value:
+                
+                # Handle status code default
+                if key == 'statusCode' and not value:
+                    query += " AND StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET')"
+                elif value:
+                    if key == 'statusCode' and value not in ['STATUS_CODE_OK', 'STATUS_CODE_UNSET']:
+                        abort(400, "Invalid statusCode. Use 'STATUS_CODE_OK' or 'STATUS_CODE_UNSET'")
                     operator = '>=' if 'min' in key else '<=' if 'max' in key else '='
                     query += f" AND {column} {operator} %({key})s"
                     params_query[key] = value
 
-            # Sorting (Optional)
-            sort_by = params.get('sortBy') or params.get('sort_by')
-            sort_order = params.get('sortOrder') or params.get('sort_order', 'desc')
-
-            if sort_by and sort_by in filter_mappings:
-                query += f" ORDER BY {filter_mappings[sort_by]} {sort_order.upper()}"
-
-            query += " LIMIT 50"
+            query += " ORDER BY Timestamp DESC LIMIT 50"
 
             # Execute query
             traces = self.client.query(query, params_query).result_rows
@@ -140,9 +137,3 @@ class Request(Resource):
         except Exception as e:
             print(f"Error in get: {str(e)}")
             abort(500, f"Terjadi kesalahan server: {str(e)}")
-
-# Add Resource to API
-api.add_resource(Request, '/api/tracesRequest/')
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5101)

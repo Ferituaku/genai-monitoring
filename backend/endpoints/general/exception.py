@@ -3,20 +3,18 @@ from flask_restful import Resource
 from datetime import datetime, timedelta, timezone
 from data.configuration.databaseopenlit import client
 
-
 class Exception(Resource):
-
     def __init__(self):
-        self.client = client  
-        # self.days = request.args.get('days', default=7, type=int)
+        self.client = client
 
-    def get(self, appName=None):  
+    def get(self):
         try:
-            # Hitung tanggal mulai (hari ini - days)
-            # start_date = datetime.now() - timedelta(days=self.days)
-            days = request.args.get('days',default=7, type=int)
-            from_date = request.args.get('from')
-            to_date = request.args.get('to')
+            # Parsing query params (camelCase & snake_case support)
+            params = request.args.to_dict()
+            
+            # Date Range Filtering
+            from_date = params.get('from') or params.get('fromDate') or params.get('from_date')
+            to_date = params.get('to') or params.get('toDate') or params.get('to_date')
 
             if from_date and to_date:
                 try:
@@ -24,21 +22,37 @@ class Exception(Resource):
                     end_date = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
                 except ValueError:
                     abort(400, "Invalid date format. Use ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)")
-            elif days:
-                end_date = datetime.now(timezone.utc)
-                start_date = end_date - timedelta(days=days)
             else:
-                # Default to 7 days 
                 end_date = datetime.now(timezone.utc)
                 start_date = end_date - timedelta(days=7)
 
-            query_params = {
-                'start_date': start_date,
-                'end_date': end_date
+            # Format datetime for query
+            start_date_str = start_date.strftime('%Y-%m-%d %H:%M:%S')
+            end_date_str = end_date.strftime('%Y-%m-%d %H:%M:%S')
+
+            # Allowed filters and sorting columns
+            filter_mappings = {
+                'appName': "ResourceAttributes['service.name']",
+                'deploymentEnvironment': "ResourceAttributes['deployment.environment']",
+                'system': "SpanAttributes['gen_ai.system']",
+                'model': "SpanAttributes['gen_ai.request.model']",
+                'operationName': "SpanAttributes['gen_ai.operation.name']",
+                'endpoint': "SpanAttributes['gen_ai.endpoint']",
+                'isStream': "SpanAttributes['gen_ai.request.is_stream']",
+                'minInputTokens': "toInt32(SpanAttributes['gen_ai.usage.input_tokens'])",
+                'maxInputTokens': "toInt32(SpanAttributes['gen_ai.usage.input_tokens'])",
+                'minOutputTokens': "toInt32(SpanAttributes['gen_ai.usage.output_tokens'])",
+                'maxOutputTokens': "toInt32(SpanAttributes['gen_ai.usage.output_tokens'])",
+                'minTotalTokens': "toInt32(SpanAttributes['gen_ai.usage.total_tokens'])",
+                'maxTotalTokens': "toInt32(SpanAttributes['gen_ai.usage.total_tokens'])",
+                'minDuration': 'Duration',
+                'maxDuration': 'Duration'
             }
 
-            query = """
+            # Build SQL Query
+            query = f"""
             SELECT 
+                ServiceName,
                 Timestamp,
                 TraceId,
                 SpanId,
@@ -46,7 +60,6 @@ class Exception(Resource):
                 TraceState,
                 SpanName,
                 SpanKind,
-                ServiceName,
                 ResourceAttributes,
                 ScopeName,
                 ScopeVersion,
@@ -54,62 +67,67 @@ class Exception(Resource):
                 Duration,
                 StatusCode,
                 StatusMessage,
-                Events.Timestamp, 
-                Events.Name, 
+                Events.Timestamp,
+                Events.Name,
                 Events.Attributes
-            FROM otel_traces 
-            WHERE StatusCode IN ('STATUS_CODE_ERROR')
-            AND BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
+            FROM otel_traces
+            WHERE Timestamp BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
+            AND StatusCode = 'STATUS_CODE_ERROR'
             """
-            if appName:
-                query += f" AND ServiceName = '{appName}'"
-            query += " ORDER BY Timestamp DESC"
 
-            query = query.format(query_params)
+            params_query = {
+                'start_date': start_date_str,
+                'end_date': end_date_str
+            }
 
-            # Jalankan query
-            traces = client.query(query).result_rows
-            print(f"Raw Traces dari Query: {traces}") 
+            # Apply Filters
+            for key, column in filter_mappings.items():
+                camel_key = key
+                snake_key = key.replace('CamelCase', '_').lower()
+
+                value = params.get(camel_key) or params.get(snake_key)
+                if value:
+                    operator = '>=' if 'min' in key else '<=' if 'max' in key else '='
+                    query += f" AND {column} {operator} %({key})s"
+                    params_query[key] = value
+
+            query += " ORDER BY Timestamp DESC LIMIT 50"
+
+            # Execute query
+            traces = self.client.query(query, params_query).result_rows
 
             if not traces:
-                print("Query tidak mengembalikan data, mengembalikan data kosong...")
+                return jsonify([])
 
+            # Format Response
             formatted_traces = []
             for row in traces:
-                print(f"Row mentah: {row}") 
-                
-                # Pastikan panjang row cukup sebelum mengakses indeks
-                try:
-                    trace_data = {
-                        "Timestamp": row[0].isoformat() if isinstance(row[0], datetime) else str(row[0]),
-                        "TraceId": row[1] if len(row) > 1 else "",
-                        "SpanId": row[2] if len(row) > 2 else "",
-                        "ParentSpanId": row[3] if len(row) > 3 else "",
-                        "TraceState": row[4] if len(row) > 4 else "",
-                        "SpanName": row[5] if len(row) > 5 else "",
-                        "SpanKind": row[6] if len(row) > 6 else "",
-                        "ServiceName": row[7] if len(row) > 7 else "",
-                        "ResourceAttributes": row[8] if len(row) > 8 and isinstance(row[8], dict) else {},
-                        "ScopeName": row[9] if len(row) > 9 else "",
-                        "ScopeVersion": row[10] if len(row) > 10 else "",
-                        "SpanAttributes": row[11] if len(row) > 11 and isinstance(row[11], dict) else {},
-                        "Duration": row[12] if len(row) > 12 else "",
-                        "StatusCode": row[13] if len(row) > 13 else "STATUS_CODE_OK",
-                        "StatusMessage": row[14] if len(row) > 14 else "",
-                        "Events.Timestamp": [ts.isoformat() if isinstance(ts, datetime) else str(ts) for ts in (row[15] if len(row) > 15 and isinstance(row[15], list) else [])],
-                        "Events.Name": row[16] if len(row) > 16 and isinstance(row[16], list) else [],
-                        "Events.Attributes": row[17] if len(row) > 17 and isinstance(row[17], list) else [],
-                        "Links.TraceId": [],
-                        "Links.SpanId": [],
-                        "Links.TraceState": [],
-                        "Links.Attributes": []
+                trace_data = {
+                    "serviceName": row[0],
+                    "timestamp": row[1].isoformat() if isinstance(row[1], datetime) else str(row[1]),
+                    "traceId": row[2],
+                    "spanId": row[3],
+                    "parentSpanId": row[4],
+                    "traceState": row[5],
+                    "spanName": row[6],
+                    "spanKind": row[7],
+                    "resourceAttributes": row[8] if isinstance(row[8], dict) else {},
+                    "scopeName": row[9],
+                    "scopeVersion": row[10],
+                    "spanAttributes": row[11] if isinstance(row[11], dict) else {},
+                    "duration": row[12],
+                    "statusCode": row[13],
+                    "statusMessage": row[14],
+                    "events": {
+                        "timestamp": row[15] if isinstance(row[15], list) else [],
+                        "name": row[16] if isinstance(row[16], list) else [],
+                        "attributes": row[17] if isinstance(row[17], list) else []
                     }
-                    formatted_traces.append(trace_data)
-                except IndexError as e:
-                    print(f"Kesalahan parsing row: {str(e)}")
+                }
+                formatted_traces.append(trace_data)
 
             return jsonify(formatted_traces)
-            
+
         except Exception as e:
-            print(f"Error dalam get: {str(e)}")  
+            print(f"Error in get: {str(e)}")
             abort(500, f"Terjadi kesalahan server: {str(e)}")
