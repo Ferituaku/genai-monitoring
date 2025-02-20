@@ -10,16 +10,10 @@ from flask_cors import CORS
 from flask_compress import Compress
 
 from endpoints.general.dashboard import Dashboard
-<<<<<<< HEAD
-from endpoints.general.request import Request   
-from endpoints.admin.chatbotapp import ProjectChatService
-from endpoints.admin.chatbotapp import ChatHistoryService
-=======
 from endpoints.general.request import Request
 from endpoints.admin.chatbotapp import ProjectChatService
 from endpoints.admin.chatbotapp import ChatHistoryService
 from data.configuration.databaseopenlit import client
->>>>>>> 3a96d22321fa8341920186c4321bdab3736a58e3
 from endpoints.general.exception import Exception
 from endpoints.admin.apiKeys import apiKeys
 from endpoints.admin.appcatalogue import AppCatalogue
@@ -45,16 +39,16 @@ CORS(app, resources={r"*": {"origins": "*"}})
 api = Api(app)
 
 
-api.add_resource(Dashboard, '/dashboard')
+# api.add_resource(Dashboard, '/dashboard')
 api.add_resource(Request,'/api/tracesRequest/')
-api.add_resource(ProjectChatService, '/api/projectchat')
-api.add_resource(ChatHistoryService, '/api/chathistory/<string:unique_id_chat>')
-api.add_resource(Exception, '/api/tracesExceptions/', '/api/traceExceptions/<string:appName>')
-api.add_resource(AppCatalogue, "/appcatalogue")
-app.register_blueprint(apiKeys, url_prefix='/apiKeys')
-app.register_blueprint(vault, url_prefix='/vault')
-AuthApp(app)
-PricingAPI(app)
+# api.add_resource(ProjectChatService, '/api/projectchat')
+# api.add_resource(ChatHistoryService, '/api/chathistory/<string:unique_id_chat>')
+# api.add_resource(Exception, '/api/tracesExceptions/', '/api/traceExceptions/<string:appName>')
+# api.add_resource(AppCatalogue, "/appcatalogue")
+# app.register_blueprint(apiKeys, url_prefix='/apiKeys')
+# app.register_blueprint(vault, url_prefix='/vault')
+# AuthApp(app)
+# PricingAPI(app)
 
 
 if __name__ == '__main__':
