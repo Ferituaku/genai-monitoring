@@ -26,20 +26,6 @@ compress = Compress()
 compress.init_app(app)
 debug = True
 CORS(app, resources={r"*": {"origins": "*"}})
-<<<<<<< HEAD
-
-api = Api(app)
-
-
-api.add_resource(Dashboard, '/dashboard')
-api.add_resource(Request,'/api/tracesRequest/','/api/tracesRequest/<string:appName>')
-api.add_resource(ProjectChatService, '/api/projectchat')
-api.add_resource(ChatHistoryService, '/api/chathistory/<string:unique_id_chat>')
-api.add_resource(Exception, '/api/tracesExceptions/', '/api/tracesRequest/<string:appName>')
-api.add_resource(AppCatalogue, "/appcatalogue")
-app.register_blueprint(apiKeys, url_prefix='/apiKeys')
-app.register_blueprint(vault, url_prefix='/vault')
-=======
 # CORS(app, 
 #      resources={r"*": {
 #          "origins": ["http://localhost:3000", "http://127.0.0.1:3000"],  
@@ -65,5 +51,5 @@ PricingAPI(app)
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8000))  # Default to 5101
+    port = int(os.environ.get("PORT", 5101))  # Default to 5101
     app.run(host="0.0.0.0", port=port, debug=True)
