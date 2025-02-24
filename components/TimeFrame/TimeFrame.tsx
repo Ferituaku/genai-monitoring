@@ -15,9 +15,9 @@ import { endOfDay, format, parseISO, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 import {
-  createTimeFrameQueryString,
+  create_time_frame_query_string,
   get_time_frame_params,
-  getDateRangeFromDays,
+  get_date_range_from_days,
 } from "@/hooks/TimeFrame/api";
 import { TimeFrameParams } from "@/types/timeframe";
 
@@ -62,8 +62,8 @@ const TimeFrame: React.FC<TimeFrameProps> = ({ onTimeFrameChange }) => {
       const days = TIME_RANGES[range];
 
       if (days !== null) {
-        const timeParams = getDateRangeFromDays(days);
-        const queryString = createTimeFrameQueryString(timeParams);
+        const timeParams = get_date_range_from_days(days);
+        const queryString = create_time_frame_query_string(timeParams);
         router.replace(`?${queryString}`, { scroll: false });
 
         if (onTimeFrameChange) {
@@ -97,7 +97,7 @@ const TimeFrame: React.FC<TimeFrameProps> = ({ onTimeFrameChange }) => {
           to: endOfDay(tempDate.to).toISOString(),
         };
 
-        const queryString = createTimeFrameQueryString(timeParams);
+        const queryString = create_time_frame_query_string(timeParams);
         router.replace(`?${queryString}`, { scroll: false });
 
         if (onTimeFrameChange) {
