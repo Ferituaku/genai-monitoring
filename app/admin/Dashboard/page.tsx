@@ -21,8 +21,8 @@ import {
 } from "recharts";
 import { DashboardApiService } from "@/lib/DashboardService/api";
 import { Loader2 } from "lucide-react";
-import { get_time_frame_params } from "@/lib/TimeFrame/api";
 import METRIC_CARD from "@/components/DashboardComponent/MetricCard";
+import { get_time_frame_params } from "@/hooks/TimeFrame/api";
 
 const DASHBOARD: React.FC = () => {
   const [DASHBOARD_DATA, SET_DASHBOARD_DATA] = useState<any>(null);

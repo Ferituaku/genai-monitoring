@@ -5,7 +5,7 @@ const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || "/openai/ai-monitor";
 export const MENU_ITEMS = [
   {
     label: "Dashboard",
-    href: `${BASE_PATH}/admin/Dashboard`,
+    href: `${BASE_PATH}/admin/dashboard`,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -29,7 +29,7 @@ export const MENU_ITEMS = [
   },
   {
     label: "Request",
-    href: `${BASE_PATH}/admin/Request`,
+    href: `${BASE_PATH}/admin/request`,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -52,7 +52,7 @@ export const MENU_ITEMS = [
   },
   {
     label: "Apps Catalogue",
-    href: `${BASE_PATH}/admin/AppsCatalogue`,
+    href: `${BASE_PATH}/admin/apps-catalogue`,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -75,7 +75,7 @@ export const MENU_ITEMS = [
   },
   {
     label: "Chat Services",
-    href: `${BASE_PATH}/admin/AppServices`,
+    href: `${BASE_PATH}/admin/app-services`,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -97,7 +97,7 @@ export const MENU_ITEMS = [
   },
   {
     label: "Exceptions",
-    href: `${BASE_PATH}/admin/Exceptions`,
+    href: `${BASE_PATH}/admin/exceptions`,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -119,7 +119,7 @@ export const MENU_ITEMS = [
   },
   {
     label: "Vault",
-    href: `${BASE_PATH}/admin/Vault`,
+    href: `${BASE_PATH}/admin/vault`,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -143,7 +143,7 @@ export const MENU_ITEMS = [
   },
   {
     label: "Api-Keys",
-    href: `${BASE_PATH}/admin/ApiKeys`,
+    href: `${BASE_PATH}/admin/api-keys`,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -165,7 +165,7 @@ export const MENU_ITEMS = [
   },
   {
     label: "Price Edit",
-    href: `${BASE_PATH}/admin/PriceEdit`,
+    href: `${BASE_PATH}/admin/price-edit`,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"

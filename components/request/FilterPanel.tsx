@@ -10,222 +10,203 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
+import { Filtering } from "./RequestFilter";
+import { TokenRange } from "@/types/requests";
 
 interface FilterPanelProps {
+  selectedModels: string[];
+  setSelectedModels: (value: string[]) => void;
+  selectedEnvironments: string[];
+  setSelectedEnvironments: (value: string[]) => void;
   modelSearchTerm: string;
   setModelSearchTerm: (value: string) => void;
   environmentSearchTerm: string;
   setEnvironmentSearchTerm: (value: string) => void;
-  selectedModels: string[];
-  setSelectedModels: (models: string[]) => void;
-  selectedEnvironments: string[];
-  setSelectedEnvironments: (environments: string[]) => void;
-  filteredUniqueModels: string[];
-  filteredUniqueEnvironments: string[];
   tokenRange: {
-    input: { min?: number; max?: number };
-    output: { min?: number; max?: number };
-    total: { min?: number; max?: number };
+    input: TokenRange;
+    output: TokenRange;
+    total: TokenRange;
   };
-  setTokenRange: (range: any) => void;
-  duration: { min?: number; max?: number };
-  setDuration: (duration: any) => void;
+  setTokenRange: (value: {
+    input: TokenRange;
+    output: TokenRange;
+    total: TokenRange;
+  }) => void;
+  duration: { min: number; max: number };
+  setDuration: (value: { min: number; max: number }) => void;
   isStream: boolean;
   setIsStream: (value: boolean) => void;
+  onApply: () => void;
   resetFilters: () => void;
+  filteredUniqueModels: string[];
+  filteredUniqueEnvironments: string[];
 }
 
 export const FilterPanel = ({
-  modelSearchTerm,
-  setModelSearchTerm,
-  environmentSearchTerm,
-  setEnvironmentSearchTerm,
   selectedModels,
   setSelectedModels,
   selectedEnvironments,
   setSelectedEnvironments,
-  filteredUniqueModels,
-  filteredUniqueEnvironments,
+  modelSearchTerm,
+  setModelSearchTerm,
+  environmentSearchTerm,
+  setEnvironmentSearchTerm,
   tokenRange,
   setTokenRange,
   duration,
   setDuration,
   isStream,
   setIsStream,
+  onApply,
   resetFilters,
+  filteredUniqueModels,
+  filteredUniqueEnvironments,
 }: FilterPanelProps) => {
-  const handleModelFilter = (model: string, checked: boolean) => {
-    setSelectedModels(
-      checked
-        ? [...selectedModels, model]
-        : selectedModels.filter((m) => m !== model)
-    );
-  };
-
-  const handleEnvironmentFilter = (env: string, checked: boolean) => {
-    setSelectedEnvironments(
-      checked
-        ? [...selectedEnvironments, env]
-        : selectedEnvironments.filter((e) => e !== env)
-    );
-  };
   return (
-    <div className="space-y-4">
-      <Accordion type="single" collapsible className="w-full">
-        {/* Model Filter Section */}
-        <AccordionItem value="models">
-          <AccordionTrigger>Token Usage</AccordionTrigger>
-          <AccordionContent>
-            <div className="relative mb-2">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="Search models"
-                className="pl-8 w-full"
-                value={modelSearchTerm}
-                onChange={(e) => setModelSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="max-h-40 overflow-y-auto">
-              {filteredUniqueModels
-                .filter((model) =>
-                  model?.toLowerCase().includes(modelSearchTerm.toLowerCase())
-                )
-                .map((model) => (
-                  <div key={model} className="flex items-center space-x-2 mb-2">
-                    <Checkbox
-                      id={`model-${model}`}
-                      checked={selectedModels.includes(model)}
-                      onCheckedChange={(checked) =>
-                        handleModelFilter(model, checked as boolean)
-                      }
-                    />
-                    <Label htmlFor={`model-${model}`}>{model}</Label>
-                  </div>
-                ))}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        {/* Environment Filter Section */}
-        <AccordionItem value="models">
-          <AccordionTrigger>Flter By Environment</AccordionTrigger>
-          <AccordionContent>
-            <div className="relative mb-2">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="Search environments"
-                className="pl-8 w-full"
-                value={environmentSearchTerm}
-                onChange={(e) => setEnvironmentSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="max-h-40 overflow-y-auto">
-              {filteredUniqueEnvironments
-                .filter((env) =>
-                  env
-                    ?.toLowerCase()
-                    .includes(environmentSearchTerm.toLowerCase())
-                )
-                .map((env) => (
-                  <div key={env} className="flex items-center space-x-2 mb-2">
-                    <Checkbox
-                      id={`env-${env}`}
-                      checked={selectedEnvironments.includes(env)}
-                      onCheckedChange={(checked) =>
-                        handleEnvironmentFilter(env, checked as boolean)
-                      }
-                    />
-                    <Label htmlFor={`env-${env}`}>{env}</Label>
-                  </div>
-                ))}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-        {/* filter tokens range */}
-        <AccordionItem value="tokens">
-          <AccordionTrigger>Token Usage</AccordionTrigger>
-          <AccordionContent>
-            <div className="space-y-4">
-              <div>
-                <Label>Input Tokens</Label>
-                <Slider
-                  min={0}
-                  max={4000}
-                  step={100}
-                  value={[
-                    tokenRange.input.min || 0,
-                    tokenRange.input.max || 4000,
-                  ]}
-                  onValueChange={(value) =>
-                    setTokenRange({
-                      ...tokenRange,
-                      input: { min: value[0], max: value[1] },
-                    })
-                  }
-                />
-              </div>
-
-              <div>
-                <Label>Output Tokens</Label>
-                <Slider
-                  min={0}
-                  max={4000}
-                  step={100}
-                  value={[
-                    tokenRange.output.min || 0,
-                    tokenRange.output.max || 4000,
-                  ]}
-                  onValueChange={(value) =>
-                    setTokenRange({
-                      ...tokenRange,
-                      output: { min: value[0], max: value[1] },
-                    })
-                  }
-                />
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="duration">
-          <AccordionTrigger>Duration</AccordionTrigger>
-          <AccordionContent>
-            <div>
-              <Label>Request Duration (ms)</Label>
-              <Slider
-                min={0}
-                max={10000}
-                step={100}
-                value={[duration.min || 0, duration.max || 10000]}
-                onValueChange={(value) =>
-                  setDuration({ min: value[0], max: value[1] })
-                }
-              />
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="stream">
-          <AccordionTrigger>Stream Options</AccordionTrigger>
-          <AccordionContent>
-            <div className="flex items-center space-x-2">
+    <div className="p-4 space-y-4">
+      <div>
+        <Label>Models</Label>
+        <Input
+          placeholder="Search models..."
+          value={modelSearchTerm}
+          onChange={(e) => setModelSearchTerm(e.target.value)}
+          className="mb-2"
+        />
+        <div className="space-y-2 max-h-40 overflow-y-auto">
+          {filteredUniqueModels.map((model) => (
+            <div key={model} className="flex items-center space-x-2">
               <Checkbox
-                id="stream"
-                checked={isStream}
-                onCheckedChange={(checked) => setIsStream(checked as boolean)}
+                checked={selectedModels.includes(model)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSelectedModels([...selectedModels, model]);
+                  } else {
+                    setSelectedModels(
+                      selectedModels.filter((m) => m !== model)
+                    );
+                  }
+                }}
               />
-              <Label htmlFor="stream">Stream Requests Only</Label>
+              <Label>{model}</Label>
             </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-      <div className="flex justify-between">
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <Label>Environments</Label>
+        <Input
+          placeholder="Search environments..."
+          value={environmentSearchTerm}
+          onChange={(e) => setEnvironmentSearchTerm(e.target.value)}
+          className="mb-2"
+        />
+        <div className="space-y-2 max-h-40 overflow-y-auto">
+          {filteredUniqueEnvironments.map((env) => (
+            <div key={env} className="flex items-center space-x-2">
+              <Checkbox
+                checked={selectedEnvironments.includes(env)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSelectedEnvironments([...selectedEnvironments, env]);
+                  } else {
+                    setSelectedEnvironments(
+                      selectedEnvironments.filter((e) => e !== env)
+                    );
+                  }
+                }}
+              />
+              <Label>{env}</Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <Label>Token Range</Label>
+        <div className="space-y-4">
+          <div>
+            <Label className="text-sm">Input Tokens</Label>
+            <Slider
+              min={0}
+              max={4000}
+              step={100}
+              value={[tokenRange.input.min, tokenRange.input.max]}
+              onValueChange={([min, max]) =>
+                setTokenRange({
+                  ...tokenRange,
+                  input: { min, max },
+                })
+              }
+              className="mt-2"
+            />
+          </div>
+          <div>
+            <Label className="text-sm">Output Tokens</Label>
+            <Slider
+              min={0}
+              max={4000}
+              step={100}
+              value={[tokenRange.output.min, tokenRange.output.max]}
+              onValueChange={([min, max]) =>
+                setTokenRange({
+                  ...tokenRange,
+                  output: { min, max },
+                })
+              }
+              className="mt-2"
+            />
+          </div>
+          <div>
+            <Label className="text-sm">Total Tokens</Label>
+            <Slider
+              min={0}
+              max={8000}
+              step={100}
+              value={[tokenRange.total.min, tokenRange.total.max]}
+              onValueChange={([min, max]) =>
+                setTokenRange({
+                  ...tokenRange,
+                  total: { min, max },
+                })
+              }
+              className="mt-2"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <Label>Duration (ms)</Label>
+        <Slider
+          min={0}
+          max={10000}
+          step={100}
+          value={[duration.min, duration.max]}
+          onValueChange={([min, max]) => setDuration({ min, max })}
+          className="mt-2"
+        />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          checked={isStream}
+          onCheckedChange={(checked) => setIsStream(checked as boolean)}
+        />
+        <Label>Stream</Label>
+      </div>
+
+      <div className="flex gap-2 pt-4">
+        <Button variant="outline" onClick={resetFilters} className="flex-1">
+          Reset
+        </Button>
         <Button
-          variant="outline"
-          onClick={resetFilters}
-          className="flex items-center gap-2"
+          onClick={() => {
+            onApply();
+          }}
+          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
         >
-          <X className="h-4 w-4" /> Reset Filters
+          Apply Filters
         </Button>
       </div>
     </div>

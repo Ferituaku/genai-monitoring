@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiClient } from "@/lib/ApiKeysService/api";
+import { API_CLIENT } from "@/lib/ApiKeysService/api";
 
 interface GenerateApiKeyDialogProps {
   onKeyCreated: () => void;
@@ -31,7 +31,7 @@ export function GenerateApiKeyDialog({
     setIsLoading(true);
 
     try {
-      const result = await apiClient.generateApiKey(name, project);
+      const result = await API_CLIENT.generate_api_key(name, project);
       toast({
         title: "Success",
         description: `API key generated: ${result.api_key.substring(0, 20)}...`,

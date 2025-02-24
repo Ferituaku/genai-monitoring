@@ -17,16 +17,17 @@ import Link from "next/link";
 import { Button } from "../ui/button";
 import { logout } from "@/lib/auth";
 import { MENU_ITEMS } from "./SidebarItems";
+import { UserRole } from "../Profile/types";
 
 interface SidebarProps {
-  userRole?: "admin" | "user" | "user1";
+  userRole: UserRole;
   onSignOut?: () => void;
   onSidebarToggle?: (isOpen: boolean) => void;
   defaultOpen?: boolean;
 }
 
 export const AppSidebar = ({
-  userRole = "admin",
+  userRole = "user1",
   onSignOut,
   onSidebarToggle,
   defaultOpen = true,
@@ -50,14 +51,18 @@ export const AppSidebar = ({
     }
   }, []);
 
+  const filteredMenuItems = MENU_ITEMS.filter((item) =>
+    item.roles?.includes(userRole)
+  );
+
   const getProfilePath = () => {
     switch (userRole) {
       case "admin":
-        return "/admin/Profile";
-      case "user1":
-        return "/user1/Profile";
+        return "/admin/profile";
+      case "user2":
+        return "/user2/profile";
       default:
-        return "/admin/Profile";
+        return "/user1/profile";
     }
   };
   const handleSignOut = () => {
@@ -160,6 +165,16 @@ export const AppSidebar = ({
               />
             );
           })}
+          {/* {filteredMenuItems.map((item) => (
+          <SideButton
+            key={item.label}
+            label={isOpen ? item.label : ""}
+            href={item.href}
+            icon={item.icon}
+            isActive={PATHNAME === item.href}
+            isCollapsed={!isOpen}
+          />
+        ))} */}
         </nav>
       </aside>
     </>

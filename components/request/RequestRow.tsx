@@ -4,7 +4,6 @@ import {
   MessageSquare,
   Clock,
   Coins,
-  Tags,
   Braces,
   AlarmClock,
   Ticket,
@@ -22,76 +21,36 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { TraceData } from "@/types/trace";
 
-interface TraceData {
-  Timestamp: string;
-  TraceId: string;
-  SpanId: string;
-  ParentSpanId: string;
-  TraceState: string;
-  ServiceName: string;
-  SpanName: string;
-  SpanKind: string;
-  ScopeName: string;
-  ScopeVersion: string;
-  StatusCode: string;
-  StatusMessage: string;
-  SpanAttributes: {
-    "gen_ai.request.model": string;
-    "gen_ai.usage.output_tokens": string;
-    "gen_ai.usage.input_tokens": string;
-    "gen_ai.usage.total_tokens": string;
-    "gen_ai.usage.cost": string;
-    "gen_ai.operation.name": string;
-    "gen_ai.endpoint": string;
-    [key: string]: string;
-  };
-  ResourceAttributes: {
-    "deployment.environment": string;
-    "telemetry.sdk.version": string;
-    "service.name": string;
-    "telemetry.sdk.language": string;
-    "telemetry.sdk.name": string;
-  };
-  Duration: string;
-  "Events.Attributes": Array<{
-    "gen_ai.prompt"?: string;
-    "gen_ai.completion"?: string;
-  }>;
-  "Events.Name": string[];
-  "Events.Timestamp": string[];
-  "Links.TraceId": string[];
-  "Links.SpanId": string[];
-  "Links.TraceState": string[];
-  "Links.Attributes": any[];
+interface RequestRowProps {
+  data: TraceData;
 }
 
-export const RequestRow = ({ data }: { data: TraceData }) => {
+export const RequestRow = ({ data }: RequestRowProps) => {
   const formatDate = (timestamp: string) => {
     return new Date(timestamp).toLocaleString();
   };
 
-  const modelName = data.SpanAttributes?.["gen_ai.request.model"] || "";
+  const modelName = data.SpanAttributes["gen_ai.request.model"] || "";
   const completionTokens = parseInt(
-    data.SpanAttributes?.["gen_ai.usage.output_tokens"] || "0"
+    data.SpanAttributes["gen_ai.usage.output_tokens"] || "0"
   );
   const promptTokens = parseInt(
-    data.SpanAttributes?.["gen_ai.usage.input_tokens"] || "0"
+    data.SpanAttributes["gen_ai.usage.input_tokens"] || "0"
   );
   const totalTokens = parseInt(
-    data.SpanAttributes?.["gen_ai.usage.total_tokens"] || "0"
+    data.SpanAttributes["gen_ai.usage.total_tokens"] || "0"
   );
   const costUsage = `$${parseFloat(
-    data.SpanAttributes?.["gen_ai.usage.cost"] || "0"
+    data.SpanAttributes["gen_ai.usage.cost"] || "0"
   ).toFixed(10)}`;
-  const duration = `${(parseInt(data.Duration || "0") / 1_000_000_000).toFixed(
-    2
-  )}s`; // Convert nanoseconds to seconds
+  const duration = `${(data.Duration / 1_000_000_000).toFixed(2)}s`;
   const environment = data.ResourceAttributes["deployment.environment"] || "";
   const type = data.SpanAttributes["gen_ai.operation.name"] || "";
   const endpoint = data.SpanAttributes["gen_ai.endpoint"] || "";
 
-  // Find prompt and completion from Events.Attributes (masih tidak kebaca sebagai output, prompt dan response stringnya)
+  // Find prompt and completion from Events.Attributes
   const prompt =
     data["Events.Attributes"]?.find((attr) => "gen_ai.prompt" in attr)?.[
       "gen_ai.prompt"
@@ -100,6 +59,7 @@ export const RequestRow = ({ data }: { data: TraceData }) => {
     data["Events.Attributes"]?.find((attr) => "gen_ai.completion" in attr)?.[
       "gen_ai.completion"
     ] || "";
+
   const formatTraceData = () => {
     const root = {
       root: {
@@ -108,19 +68,19 @@ export const RequestRow = ({ data }: { data: TraceData }) => {
         SpanId: data.SpanId,
         ParentSpanId: data.ParentSpanId,
         TraceState: data.TraceState,
+        ServiceName: data.ServiceName,
         SpanName: data.SpanName,
         SpanKind: data.SpanKind,
-        ServiceName: data.ServiceName,
-        ResourceAttributes: data.ResourceAttributes,
         ScopeName: data.ScopeName,
         ScopeVersion: data.ScopeVersion,
-        SpanAttributes: data.SpanAttributes,
-        Duration: data.Duration,
         StatusCode: data.StatusCode,
         StatusMessage: data.StatusMessage,
-        "Events.Timestamp": data["Events.Timestamp"],
-        "Events.Name": data["Events.Name"],
+        SpanAttributes: data.SpanAttributes,
+        ResourceAttributes: data.ResourceAttributes,
+        Duration: data.Duration,
         "Events.Attributes": data["Events.Attributes"],
+        "Events.Name": data["Events.Name"],
+        "Events.Timestamp": data["Events.Timestamp"],
         "Links.TraceId": data["Links.TraceId"],
         "Links.SpanId": data["Links.SpanId"],
         "Links.TraceState": data["Links.TraceState"],
@@ -144,7 +104,10 @@ export const RequestRow = ({ data }: { data: TraceData }) => {
           <td className="px-6 py-4 whitespace-nowrap text-sm w-[180px]">
             {modelName}
           </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-right w-[150px]">
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-left w-[150px]">
+            {environment}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-right w-[120px]">
             {completionTokens}
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-right w-[120px]">
@@ -169,95 +132,80 @@ export const RequestRow = ({ data }: { data: TraceData }) => {
         </SheetHeader>
 
         <div className="flex items-start flex-wrap gap-3 mb-4">
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <Clock className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Created:</span>
-            <span className="text-sm text-white sm:text-xs">
-              {formatDate(data.Timestamp)}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <Coins className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Cost:</span>
-            <span className="text-sm text-white sm:text-xs">{costUsage}</span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <Boxes className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Model:</span>
-            <span className="text-sm text-white sm:text-xs">{modelName}</span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <AlarmClock className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">
-              Request Duration:
-            </span>
-            <span className="text-sm text-white sm:text-xs">{duration}</span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <Braces className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Promt Token:</span>
-            <span className="text-sm text-white sm:text-xs">
-              {promptTokens}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <Ticket className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Total Token:</span>
-            <span className="text-sm text-white sm:text-xs">{totalTokens}</span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <MessageSquare className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Completion:</span>
-            <span className="text-sm text-white sm:text-xs">
-              {completionTokens}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <Container className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Environment:</span>
-            <span className="text-sm text-white sm:text-xs">{environment}</span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <ClipboardType className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Type:</span>
-            <span className="text-sm text-white sm:text-xs">{type}</span>
-          </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <DoorClosed className="h-4 w-4 text-white sm:text-xs" />
-            <span className="text-sm text-white sm:text-xs">Endpoint:</span>
-            <span className="text-sm text-white sm:text-xs">{endpoint}</span>
-          </div>
+          <InfoBadge
+            icon={Clock}
+            label="Created"
+            value={formatDate(data.Timestamp)}
+          />
+          <InfoBadge icon={Coins} label="Cost" value={costUsage} />
+          <InfoBadge icon={Boxes} label="Model" value={modelName} />
+          <InfoBadge
+            icon={AlarmClock}
+            label="Request Duration"
+            value={duration}
+          />
+          <InfoBadge
+            icon={Braces}
+            label="Prompt Token"
+            value={promptTokens.toString()}
+          />
+          <InfoBadge
+            icon={Ticket}
+            label="Total Token"
+            value={totalTokens.toString()}
+          />
+          <InfoBadge
+            icon={MessageSquare}
+            label="Completion"
+            value={completionTokens.toString()}
+          />
+          <InfoBadge icon={Container} label="Environment" value={environment} />
+          <InfoBadge icon={ClipboardType} label="Type" value={type} />
+          <InfoBadge icon={DoorClosed} label="Endpoint" value={endpoint} />
         </div>
 
         <div className="space-y-4">
-          <div>
-            <h3 className="text-sm font-medium mb-2">Prompt</h3>
-            <div className="bg-black p-3 rounded-md">
-              <pre className="text-sm text-white whitespace-pre-wrap">
-                {prompt || "No prompt available"}
-              </pre>
-            </div>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium mb-2">Response</h3>
-            <div className="bg-black p-3 rounded-lg">
-              <pre className="text-sm text-white whitespace-pre-wrap">
-                {completion || "No response available"}
-              </pre>
-            </div>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium mb-2">Trace</h3>
-            <div className="bg-black p-3 max-h-screen rounded-lg overflow-y-scroll">
-              <pre className="text-sm text-white whitespace-pre-wrap">
-                {formatTraceData()}
-              </pre>
-            </div>
-          </div>
+          <DetailSection title="Prompt" content={prompt} />
+          <DetailSection title="Response" content={completion} />
+          <DetailSection title="Trace" content={formatTraceData()} />
         </div>
       </SheetContent>
     </Sheet>
   );
 };
+
+// Helper Components
+const InfoBadge = ({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: any;
+  label: string;
+  value: string;
+}) => (
+  <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+    <Icon className="h-4 w-4 text-white sm:text-xs" />
+    <span className="text-sm text-white sm:text-xs">{label}:</span>
+    <span className="text-sm text-white sm:text-xs">{value}</span>
+  </div>
+);
+
+const DetailSection = ({
+  title,
+  content,
+}: {
+  title: string;
+  content: string;
+}) => (
+  <div>
+    <h3 className="text-sm font-medium mb-2">{title}</h3>
+    <div className="bg-black p-3 rounded-lg">
+      <pre className="text-sm text-white whitespace-pre-wrap">
+        {content || `No ${title.toLowerCase()} available`}
+      </pre>
+    </div>
+  </div>
+);
 
 export default RequestRow;

@@ -7,7 +7,7 @@ import os
 from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
-from flask_compress import Compress
+# from flask_compress import Compress
 
 from endpoints.general.dashboard import Dashboard
 from endpoints.general.request import Request
@@ -22,10 +22,10 @@ from endpoints.admin.vault import vault
 
 app = Flask(__name__)
 
-compress = Compress()
-compress.init_app(app)
+# compress = Compress()
+# compress.init_app(app)
 debug = True
-CORS(app, resources={r"*": {"origins": "*"}})
+# CORS(app, resources={r"*": {"origins": "*"}})
 # CORS(app, 
 #      resources={r"*": {
 #          "origins": ["http://localhost:3000", "http://127.0.0.1:3000"],  
@@ -35,6 +35,14 @@ CORS(app, resources={r"*": {"origins": "*"}})
 #          "allow_credentials": True  
 #      }},
 #      expose_headers=["Content-Type", "Authorization"])
+
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["http://localhost:3000"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization", "Accept"],
+    }
+})
 api = Api(app)
 
 

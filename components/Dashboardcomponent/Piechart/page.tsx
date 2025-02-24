@@ -9,7 +9,7 @@ import Costbyapp from "./Costbyapp";
 import {
   create_time_frame_query_string,
   get_time_frame_params,
-} from "@/lib/TimeFrame/api";
+} from "@/hooks/TimeFrame/api";
 import { DashboardApiService } from "@/lib/DashboardService/api";
 
 export default function DashboardCharts() {
