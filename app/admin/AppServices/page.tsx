@@ -16,7 +16,7 @@ import TimeFrame from "@/components/TimeFrame/TimeFrame";
 import { useToast } from "@/hooks/use-toast";
 import { ApiService } from "@/lib/ChatService/api";
 import DynamicBreadcrumb from "@/components/Breadcrum";
-import { get_time_frame_params } from "@/lib/TimeFrame/api";
+import { get_time_frame_params } from "@/hooks/TimeFrame/api";
 
 interface ChatSession {
   UniqueIDChat: string;

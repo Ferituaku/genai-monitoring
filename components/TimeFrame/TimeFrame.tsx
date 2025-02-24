@@ -1,3 +1,4 @@
+// components/TimeFrame/TimeFrame.tsx
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
@@ -10,18 +11,24 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { endOfDay, format, parseISO, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 import {
-  create_time_frame_query_string,
+  createTimeFrameQueryString,
   get_time_frame_params,
-} from "@/lib/TimeFrame/api";
+  getDateRangeFromDays,
+} from "@/hooks/TimeFrame/api";
+import { TimeFrameParams } from "@/types/timeframe";
 
-const TimeFrame = () => {
+interface TimeFrameProps {
+  onTimeFrameChange?: (timeFrame: TimeFrameParams) => void;
+}
+
+const TimeFrame: React.FC<TimeFrameProps> = ({ onTimeFrameChange }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState("7D"); // Default to 7D
+  const [activeTab, setActiveTab] = useState("7D");
   const [date, setDate] = useState<DateRange | undefined>();
   const [tempDate, setTempDate] = useState<DateRange | undefined>();
   const [isOpen, setIsOpen] = useState(false);
@@ -35,29 +42,19 @@ const TimeFrame = () => {
   } as const;
 
   useEffect(() => {
-    try {
-      const TIME_PARAMS = get_time_frame_params(searchParams);
+    const timeParams = get_time_frame_params(searchParams);
+    const dateRange = {
+      from: parseISO(timeParams.from),
+      to: parseISO(timeParams.to),
+    };
 
-      if (TIME_PARAMS.from && TIME_PARAMS.to) {
-        const dateRange = {
-          from: new Date(TIME_PARAMS.from),
-          to: new Date(TIME_PARAMS.to),
-        };
-        setDate(dateRange);
-        setTempDate(dateRange);
-        setActiveTab("CUSTOM");
-      } else if (TIME_PARAMS.days) {
-        const matchedKey = Object.entries(TIME_RANGES).find(
-          ([_, value]) => value?.toString() === TIME_PARAMS.days
-        )?.[0];
-        if (matchedKey) {
-          setActiveTab(matchedKey);
-        }
-      }
-    } catch (error) {
-      console.error("Error parsing time parameters:", error);
+    setDate(dateRange);
+    setTempDate(dateRange);
+
+    if (onTimeFrameChange) {
+      onTimeFrameChange(timeParams);
     }
-  }, [searchParams]);
+  }, [searchParams, onTimeFrameChange]);
 
   const handleTimeframeChange = (range: keyof typeof TIME_RANGES) => {
     try {
@@ -65,10 +62,19 @@ const TimeFrame = () => {
       const days = TIME_RANGES[range];
 
       if (days !== null) {
-        const QUERY_STRING = create_time_frame_query_string({
-          days: days.toString(),
+        const timeParams = getDateRangeFromDays(days);
+        const queryString = createTimeFrameQueryString(timeParams);
+        router.replace(`?${queryString}`, { scroll: false });
+
+        if (onTimeFrameChange) {
+          onTimeFrameChange(timeParams);
+        }
+
+        setDate({
+          from: parseISO(timeParams.from),
+          to: parseISO(timeParams.to),
         });
-        router.replace(`?${QUERY_STRING}`, { scroll: false });
+
         setIsOpen(false);
       } else {
         setIsOpen(true);
@@ -86,11 +92,18 @@ const TimeFrame = () => {
     try {
       if (tempDate?.from && tempDate?.to) {
         setDate(tempDate);
-        const queryString = create_time_frame_query_string({
-          from: tempDate.from.toISOString(),
-          to: tempDate.to.toISOString(),
-        });
+        const timeParams: TimeFrameParams = {
+          from: startOfDay(tempDate.from).toISOString(),
+          to: endOfDay(tempDate.to).toISOString(),
+        };
+
+        const queryString = createTimeFrameQueryString(timeParams);
         router.replace(`?${queryString}`, { scroll: false });
+
+        if (onTimeFrameChange) {
+          onTimeFrameChange(timeParams);
+        }
+
         setIsOpen(false);
       }
     } catch (error) {

@@ -12,14 +12,14 @@ import {
 import { Input } from "@/components/ui/input";
 
 import { Card } from "@/components/ui/card";
-import TimeFrame from "@/components/TimeFrame";
 import ExceptionRow from "../../../components/Exceptions/ExceptionRow";
 import { useSearchParams } from "next/navigation";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 import { ErrorTraceData } from "@/types/exceptions";
 import { SortDirection, SortField } from "@/types/trace";
-import { getTimeFrameParams } from "@/lib/TimeFrame/api";
-import { fetchExceptionTraces } from "@/lib/ExceptionService/api";
+import { get_time_frame_params } from "@/hooks/TimeFrame/api";
+import { ExceptionApiService } from "@/lib/ExceptionService/api";
+import TimeFrame from "@/components/TimeFrame/TimeFrame";
 
 const Exceptions = () => {
   const [traces, setTraces] = useState<ErrorTraceData[]>([]);
@@ -28,18 +28,17 @@ const Exceptions = () => {
   const [pageSize, setPageSize] = useState("10");
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
-  const timeFrameParams = getTimeFrameParams(searchParams);
-  const days = searchParams?.get("days") || "7"; //buat handle time frame show data
+  const timeFrameParams = get_time_frame_params(searchParams);
   const [sortField, setSortField] = useState<SortField>("Timestamp");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5101";
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await fetchExceptionTraces(timeFrameParams);
+        const data = await ExceptionApiService.get_exception_trace(
+          timeFrameParams
+        );
         setTraces(data);
         setError(null);
       } catch (err) {

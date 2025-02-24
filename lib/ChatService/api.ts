@@ -1,7 +1,7 @@
 // services/api.ts
 
 import { TimeFrameParams } from "@/types/timeframe";
-import { create_time_frame_query_string } from "../TimeFrame/api";
+import { create_time_frame_query_string } from "../../hooks/TimeFrame/api";
 
 interface ChatSession {
   UniqueIDChat: string;

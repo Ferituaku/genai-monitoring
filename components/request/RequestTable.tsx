@@ -1,11 +1,11 @@
-// src/components/request/RequestTable.tsx
 import { Card } from "@/components/ui/card";
 import { TraceData } from "@/types/trace";
-import RequestRow from "./RequestRow";
+import { RequestRow } from "./RequestRow";
 
 interface RequestTableProps {
   displayedTraces: TraceData[];
 }
+
 export const RequestTable = ({ displayedTraces }: RequestTableProps) => {
   return (
     <Card className="rounded-md">
@@ -14,13 +14,16 @@ export const RequestTable = ({ displayedTraces }: RequestTableProps) => {
           <thead className="sticky top-0 bg-gray-200 z-10">
             <tr className="border-b border-gray-700">
               <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">
-                Waktu Dibuat
+                Timestamp
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">
-                Nama Proyek
+                Service Name
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">
-                Nama Model
+                Model
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">
+                Environment
               </th>
               <th className="px-6 py-3 text-right text-sm font-medium text-slate-700">
                 Token Completion
