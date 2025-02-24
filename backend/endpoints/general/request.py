@@ -14,19 +14,7 @@ class Request(Resource):
             
             # Date Range Filtering
             from_date = params.get('from') 
-            # or params.get('fromDate') or params.get('from_date')
             to_date = params.get('to') 
-            # or params.get('toDate') or params.get('to_date')
-
-            # if from_date and to_date:
-            #     try:
-            #         start_date = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
-            #         end_date = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
-            #     except ValueError:
-            #         abort(400, "Invalid date format. Use ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)")
-            # else:
-            #     end_date = datetime.now(timezone.utc)
-            #     start_date = end_date - timedelta(days=7)
 
             try:
                 if from_date and to_date:
@@ -37,8 +25,6 @@ class Request(Resource):
                     end_date = datetime.now(timezone.utc)
                     start_date = end_date - timedelta(days=7)
                 
-
-
                 # Format datetime for query
                 start_date_str = start_date.strftime('%Y-%m-%d %H:%M:%S')
                 end_date_str = end_date.strftime('%Y-%m-%d %H:%M:%S')
