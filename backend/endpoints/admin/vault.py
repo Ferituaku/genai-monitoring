@@ -4,13 +4,11 @@ import pytz
 import sqlite3
 import re
 import os
-from endpoints.general.login import JWTManager
 from data.configuration.db import Database
 
 vault = Blueprint('vault', __name__)
 wib = pytz.timezone('Asia/Jakarta')
 db = Database()
-jwt_manager = JWTManager(os.getenv('SECRET_KEY', 'your-secret-key'))
 
 class Vault:
     def __init__(self, db):
@@ -40,7 +38,7 @@ class Vault:
         result = self.db.fetch_one(query, (api_key, project))
         return result and result['count'] > 0
 
-    def add_value(self, api_key, user_email, project, value):
+    def add_value(self, api_key, project, value):
         if not self.validate_project(project):
             raise ValueError("Project tidak valid")
         if not value:
@@ -59,7 +57,7 @@ class Vault:
         current_time = datetime.now(wib)
         self.db.execute_query(query, (
             api_key, 
-            user_email, 
+            "admin", 
             project, 
             value, 
             current_time.strftime('%Y-%m-%d %H:%M:%S'),
@@ -67,18 +65,18 @@ class Vault:
         ))
 
 @vault.route('/get_values', methods=['GET'])
-@jwt_manager.token_required
-def get_values(token_data):
+def get_values():
     try:
-        query = '''SELECT api_key, value, created_by, last_updated 
+        query = '''SELECT api_key, value, project, created_by, last_updated 
                   FROM vault'''
         rows = db.fetch_all(query)
 
         vaults = [
             {
                 "key": row["api_key"],
-                "value": row["value"],
+                "project": row["project"],
                 "createdBy": row["created_by"],
+                "value": row["value"],
                 "lastUpdatedOn": row["last_updated"]
             }
             for row in rows
@@ -89,8 +87,7 @@ def get_values(token_data):
         return jsonify({'error': str(e)}), 500
 
 @vault.route('/add_vault', methods=['POST'])
-@jwt_manager.token_required
-def add_vault(token_data):
+def add_vault():
     try:
         data = request.get_json()
         if not data:
@@ -104,18 +101,15 @@ def add_vault(token_data):
             return jsonify({'error': 'api_key, value, dan project wajib diisi'}), 400
 
         vault_instance = Vault(db)
-        user_email = token_data.get('email')
-        if not user_email:
-            return jsonify({'error': 'Email tidak ditemukan dalam token'}), 401
 
         try:
-            vault_instance.add_value(api_key, user_email, project, value)
+            vault_instance.add_value(api_key, project, value)
         except sqlite3.IntegrityError:
             return jsonify({'error': 'Vault dengan API Key dan Project ini sudah ada'}), 400
 
         return jsonify({
             'api_key': api_key,
-            'created_by': user_email,
+            'created_by': "admin",
             'value': value,
             'project': project,
             'created_at': datetime.now(wib).isoformat()
@@ -127,10 +121,12 @@ def add_vault(token_data):
         return jsonify({'error': str(e)}), 500
 
 @vault.route('/update_value', methods=['PUT'])
-@jwt_manager.token_required
-def update_value(token_data):
+def update_value():
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Data tidak ditemukan'}), 400
+        
         api_key = data.get('api_key')
         new_value = data.get('value')
 
@@ -156,10 +152,15 @@ def update_value(token_data):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@vault.route('/delete_value/<api_key>', methods=['DELETE'])
-@jwt_manager.token_required
-def delete_value(token_data, api_key):
+@vault.route('/delete_value', methods=['DELETE'])
+def delete_value():
     try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Data tidak ditemukan'}), 400
+        
+        api_key = data.get('api_key')
+
         query = 'DELETE FROM vault WHERE api_key = ?'
         db.execute_query(query, (api_key,))
 
