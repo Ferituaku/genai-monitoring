@@ -5,10 +5,10 @@ import React, { useState, useEffect } from "react";
 import TimeFrame from "@/components/TimeFrame/TimeFrame";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 import { useSearchParams } from "next/navigation";
-import Topmodel from "@/components/DashboardComponent/Piechart/Topmodel";
-import Genbycategory from "../../../components/DashboardComponent/Piechart/Genbycategory";
-import Costbyapp from "../../../components/DashboardComponent/Piechart/Costbyapp";
-import Costbyenv from "../../../components/DashboardComponent/Piechart/Costbyenv";
+import Topmodel from "@/components/Dashboardcomponent/Piechart/TopModel";
+import Genbycategory from "../../../components/Dashboardcomponent/Piechart/Genbycategory";
+import Costbyapp from "../../../components/Dashboardcomponent/Piechart/Costbyapp";
+import Costbyenv from "../../../components/Dashboardcomponent/Piechart/Costbyenv";
 import {
   LineChart,
   Line,
@@ -21,7 +21,8 @@ import {
 } from "recharts";
 import { DashboardApiService } from "@/lib/DashboardService/api";
 import { Loader2 } from "lucide-react";
-import METRIC_CARD from "@/components/DashboardComponent/MetricCard";
+// import METRIC_CARD from "@/components/DashboardComponent/MetricCard";
+import METRIC_CARD from "@/components/Dashboardcomponent/MetricCard";
 import { get_time_frame_params } from "@/hooks/TimeFrame/api";
 
 const DASHBOARD: React.FC = () => {

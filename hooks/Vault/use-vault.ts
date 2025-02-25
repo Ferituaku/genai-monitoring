@@ -1,24 +1,25 @@
 import { useState, useCallback } from "react";
 import { VaultData, VaultFormData, ApiResponse } from "@/types/vault";
+// import { getToken } from "@/lib/auth";
 
-import { getToken } from "@/lib/auth";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// const API_BASE_URL = "http://127.0.0.1:5000/vault";
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
-
-const getAuthHeaders = () => {
-  const token = getToken();
-  return {
-    "Content-Type": "application/json",
-    Authorization: token ? `Bearer ${token}` : "",
-  };
-};
+// const getAuthHeaders = () => {
+//   const token = getToken();
+//   return {
+//     "Content-Type": "application/json",
+//     Authorization: token ? `Bearer ${token}` : "",
+//   };
+// };
 
 export const vaultClient = {
   async getVaultData(): Promise<VaultData[]> {
-    const response = await fetch(`${API_BASE_URL}/get_values`, {
+    const response = await fetch(`${API_BASE_URL}/vault/get_values`, {
       method: "GET",
-      headers: getAuthHeaders(),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      // headers: getAuthHeaders(),
     });
 
     const data = await response.json();
@@ -26,9 +27,12 @@ export const vaultClient = {
   },
 
   async addVaultEntry(formData: VaultFormData): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/add_vault`, {
+    const response = await fetch(`${API_BASE_URL}/vault/add_vault`, {
       method: "POST",
-      headers: getAuthHeaders(),
+      headers: {
+        'Content-Type': 'application/json', 
+      },
+      // headers: getAuthHeaders(),
       body: JSON.stringify(formData),
     });
 
@@ -39,9 +43,12 @@ export const vaultClient = {
   },
 
   async updateVaultEntry(key: string, value: string): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/update_value`, {
+    const response = await fetch(`${API_BASE_URL}/vault/update_value`, {
       method: "PUT",
-      headers: getAuthHeaders(),
+      headers: {
+        'Content-Type': 'application/json', 
+      },
+      // headers: getAuthHeaders(),
       body: JSON.stringify({ api_key: key, value }),
     });
 
@@ -52,9 +59,13 @@ export const vaultClient = {
   },
 
   async deleteVaultEntry(key: string): Promise<ApiResponse> {
-    const response = await fetch(`${API_BASE_URL}/delete_value/${key}`, {
+    const response = await fetch(`${API_BASE_URL}/vault/delete_value`, {
       method: "DELETE",
-      headers: getAuthHeaders(),
+      // headers: getAuthHeaders(),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ api_key: key }),
     });
 
     const data = await response.json();
