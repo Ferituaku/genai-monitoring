@@ -326,6 +326,7 @@ class Dashboard(Resource):
 
             top_model = {
                 service: [ 
+                    service.capitalize(), 
                     f"{(total_model / total_requests_ok_result) * 100:.2f}%" if total_requests_ok_result > 0 else "0.00%"
                 ]
                 for service, total_model in cost_data_model.items() if service

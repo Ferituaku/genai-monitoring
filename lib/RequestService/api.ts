@@ -11,7 +11,6 @@ interface UseTraceDataParams {
   sortField?: string;
   sortDirection?: string;
   searchTerm?: string;
-  pageSize?: string;
 }
 
 export const fetchTraces = async ({
@@ -20,19 +19,31 @@ export const fetchTraces = async ({
   sortField,
   sortDirection,
   searchTerm,
-  pageSize = "50",
 }: UseTraceDataParams): Promise<TraceData[]> => {
   try {
     const queryParams = new URLSearchParams();
 
     if (timeFrame?.from) {
-      const fromDate = new Date(timeFrame.from).toISOString();
-      queryParams.append("from", fromDate);
+      const fromDate = new Date(timeFrame.from);
+      // Pastikan timezone
+      fromDate.setUTCHours(0, 0, 0, 0);
+      queryParams.append("from", fromDate.toISOString());
     }
     if (timeFrame?.to) {
-      const toDate = new Date(timeFrame.to).toISOString();
-      queryParams.append("to", toDate);
+      const toDate = new Date(timeFrame.to);
+      // Pastikan timezone
+      toDate.setUTCHours(23, 59, 59, 999);
+      queryParams.append("to", toDate.toISOString());
     }
+
+    // if (timeFrame?.from) {
+    //   const fromDate = new Date(timeFrame.from).toISOString();
+    //   queryParams.append("from", fromDate);
+    // }
+    // if (timeFrame?.to) {
+    //   const toDate = new Date(timeFrame.to).toISOString();
+    //   queryParams.append("to", toDate);
+    // }
 
     // if (timeFrame?.from) queryParams.append("from", timeFrame.from);
     // if (timeFrame?.to) queryParams.append("to", timeFrame.to);
@@ -41,18 +52,17 @@ export const fetchTraces = async ({
       queryParams.append("appName", searchTerm);
     }
 
-    if (filters.models?.length) {
-      filters.models.forEach((model) => {
-        queryParams.append("model", model);
+    if (filters.models && filters.models.length > 0) {
+      filters.models.forEach((model: string) => {
+        queryParams.append("model", model); // Ubah dari models ke model
       });
     }
 
-    if (filters.environments?.length) {
-      filters.environments.forEach((env) => {
+    if (filters.environments && filters.environments.length > 0) {
+      filters.environments.forEach((env: string) => {
         queryParams.append("deploymentEnvironment", env);
       });
     }
-
     if (filters.tokenRange?.input) {
       queryParams.append(
         "minInputTokens",
@@ -99,10 +109,6 @@ export const fetchTraces = async ({
     if (sortField) queryParams.append("sortBy", sortField);
     if (sortDirection) queryParams.append("sortOrder", sortDirection);
 
-    if (pageSize) {
-      queryParams.append("pageSize", pageSize);
-    }
-
     console.log(
       "Fetching with URL:",
       `${BASE_URL}/api/tracesRequest/?${queryParams}`
@@ -114,6 +120,8 @@ export const fetchTraces = async ({
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          // Tambahkan header untuk menangani CORS jika diperlukan
+          Accept: "application/json",
         },
       }
     );

@@ -48,7 +48,9 @@ export const get_time_frame_params = (
   }
 };
 
-export const createTimeFrameQueryString = (params: TimeFrameParams): string => {
+export const create_time_frame_query_string = (
+  params: TimeFrameParams
+): string => {
   const searchParams = new URLSearchParams();
   searchParams.set("from", params.from);
   searchParams.set("to", params.to);
@@ -56,7 +58,7 @@ export const createTimeFrameQueryString = (params: TimeFrameParams): string => {
 };
 
 // Helper function to get date range based on days back
-export const getDateRangeFromDays = (daysBack: number): TimeFrameParams => {
+export const get_date_range_from_days = (daysBack: number): TimeFrameParams => {
   const now = new Date();
   const jakartaOffset = 7 * 60;
   const localOffset = now.getTimezoneOffset();

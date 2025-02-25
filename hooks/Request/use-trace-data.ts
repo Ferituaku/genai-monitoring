@@ -11,7 +11,6 @@ interface UseTraceDataParams {
   sortDirection?: string;
   filters: Filters;
   searchTerm?: string;
-  pageSize?: string;
 }
 
 export const useTraceData = ({
@@ -20,7 +19,6 @@ export const useTraceData = ({
   sortDirection,
   filters,
   searchTerm = "",
-  pageSize = "50",
 }: UseTraceDataParams) => {
   const [traces, setTraces] = useState<TraceData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +34,6 @@ export const useTraceData = ({
         sortField,
         sortDirection,
         searchTerm,
-        pageSize,
       });
       setTraces(data);
       setError(null);
@@ -51,19 +48,8 @@ export const useTraceData = ({
     timeFrame.to,
     sortField,
     sortDirection,
-    filters.models?.toString(),
-    filters.environments?.toString(),
-    filters.tokenRange?.input.min,
-    filters.tokenRange?.input.max,
-    filters.tokenRange?.output.min,
-    filters.tokenRange?.output.max,
-    filters.tokenRange?.total.min,
-    filters.tokenRange?.total.max,
-    filters.duration?.min,
-    filters.duration?.max,
-    filters.isStream,
+    JSON.stringify(filters),
     searchTerm,
-    pageSize,
   ]);
 
   useEffect(() => {

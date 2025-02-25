@@ -84,7 +84,7 @@ const Request = () => {
   };
 
   const NAVIGATE_TO_CHAT_SESSION = (uniqueIdChat: string) => {
-    ROUTER.push(`/admin/AppServices/ChatHistory/${uniqueIdChat}`);
+    ROUTER.push(`/admin/app-aervices/chat-history/${uniqueIdChat}`);
   };
 
   if (LOADING) {

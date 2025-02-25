@@ -1,4 +1,4 @@
 export interface TimeFrameParams {
-  from?: string;
-  to?: string;
+  from: string;
+  to: string;
 }

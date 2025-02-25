@@ -63,7 +63,6 @@ export default function Request() {
       isStream,
     },
     searchTerm,
-    pageSize,
   });
 
   // Apply filters
@@ -130,13 +129,14 @@ export default function Request() {
   );
 
   // Limit traces based on page size
-  const displayedTraces = useMemo(
-    () => traces.slice(0, parseInt(pageSize, 10)),
-    [traces, pageSize]
-  );
+  const displayedTraces = useMemo(() => {
+    const startIndex = 0;
+    const endIndex = parseInt(pageSize, 10);
+    return traces.slice(startIndex, endIndex);
+  }, [traces, pageSize]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" suppressHydrationWarning>
       <div className="fixed top-[70px] p-2 items-center gap-4">
         <DynamicBreadcrumb />
       </div>
