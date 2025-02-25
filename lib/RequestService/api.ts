@@ -23,27 +23,27 @@ export const fetchTraces = async ({
   try {
     const queryParams = new URLSearchParams();
 
-    if (timeFrame?.from) {
-      const fromDate = new Date(timeFrame.from);
-      // Pastikan timezone
-      fromDate.setUTCHours(0, 0, 0, 0);
-      queryParams.append("from", fromDate.toISOString());
-    }
-    if (timeFrame?.to) {
-      const toDate = new Date(timeFrame.to);
-      // Pastikan timezone
-      toDate.setUTCHours(23, 59, 59, 999);
-      queryParams.append("to", toDate.toISOString());
-    }
-
     // if (timeFrame?.from) {
-    //   const fromDate = new Date(timeFrame.from).toISOString();
-    //   queryParams.append("from", fromDate);
+    //   const fromDate = new Date(timeFrame.from);
+    //   // Pastikan timezone
+    //   fromDate.setUTCHours(0, 0, 0, 0);
+    //   queryParams.append("from", fromDate.toISOString());
     // }
     // if (timeFrame?.to) {
-    //   const toDate = new Date(timeFrame.to).toISOString();
-    //   queryParams.append("to", toDate);
+    //   const toDate = new Date(timeFrame.to);
+    //   // Pastikan timezone
+    //   toDate.setUTCHours(23, 59, 59, 999);
+    //   queryParams.append("to", toDate.toISOString());
     // }
+
+    if (timeFrame?.from) {
+      const fromDate = new Date(timeFrame.from).toISOString();
+      queryParams.append("from", fromDate);
+    }
+    if (timeFrame?.to) {
+      const toDate = new Date(timeFrame.to).toISOString();
+      queryParams.append("to", toDate);
+    }
 
     // if (timeFrame?.from) queryParams.append("from", timeFrame.from);
     // if (timeFrame?.to) queryParams.append("to", timeFrame.to);

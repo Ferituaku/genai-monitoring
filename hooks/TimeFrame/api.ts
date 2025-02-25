@@ -10,40 +10,61 @@ export const get_time_frame_params = (
   searchParams: URLSearchParams
 ): TimeFrameParams => {
   try {
+    // Gunakan UTC untuk konsistensi server-client
     const now = new Date();
-    const jakartaOffset = 7 * 60; // WIB offset in minutes
-    const localOffset = now.getTimezoneOffset();
-    const totalOffset = jakartaOffset + localOffset;
+    const utcDate = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        now.getUTCHours(),
+        now.getUTCMinutes(),
+        now.getUTCSeconds()
+      )
+    );
 
-    const jakartaNow = new Date(now.getTime() + totalOffset * 60000);
+    const defaultEndDate = endOfDay(utcDate);
+    const defaultStartDate = startOfDay(subDays(utcDate, 7));
 
-    const defaultEndDate = endOfDay(jakartaNow);
-    const defaultStartDate = startOfDay(subDays(jakartaNow, 7));
     const from = searchParams.get("from");
     const to = searchParams.get("to");
 
     if (from && to) {
+      // Parse dates in UTC
       const fromDate = new Date(from);
       const toDate = new Date(to);
 
       if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
         throw new Error("invalid date");
       }
+
+      return {
+        from: fromDate.toISOString(),
+        to: toDate.toISOString(),
+      };
     }
-    return {
-      from: from || defaultStartDate.toISOString(),
-      to: to || defaultEndDate.toISOString(),
-    };
-  } catch (error) {
-    const now = new Date();
-    const jakartaOffset = 7 * 60;
-    const localOffset = now.getTimezoneOffset();
-    const totalOffset = jakartaOffset + localOffset;
-    const jakartaNow = new Date(now.getTime() + totalOffset * 60000);
 
     return {
-      from: startOfDay(subDays(jakartaNow, 7)).toISOString(),
-      to: endOfDay(jakartaNow).toISOString(),
+      from: defaultStartDate.toISOString(),
+      to: defaultEndDate.toISOString(),
+    };
+  } catch (error) {
+    // Fallback dengan UTC dates
+    const now = new Date();
+    const utcNow = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        now.getUTCHours(),
+        now.getUTCMinutes(),
+        now.getUTCSeconds()
+      )
+    );
+
+    return {
+      from: startOfDay(subDays(utcNow, 7)).toISOString(),
+      to: endOfDay(utcNow).toISOString(),
     };
   }
 };

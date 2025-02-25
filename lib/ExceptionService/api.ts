@@ -1,9 +1,4 @@
-// Types
-interface TimeFrameParams {
-  days?: string;
-  from?: string;
-  to?: string;
-}
+import { TimeFrameParams } from "@/types/timeframe";
 
 export class ExceptionApiService {
   private static readonly API_BASE_URL =
@@ -11,16 +6,28 @@ export class ExceptionApiService {
 
   static async get_exception_trace(params: TimeFrameParams) {
     try {
-      let url = `${this.API_BASE_URL}/api/tracesExceptions`;
+      const queryParams = new URLSearchParams();
 
-      // Handle both days and custom date range
-      if (params.from && params.to) {
-        url += `?from=${params.from}&to=${params.to}`;
-      } else if (params.days) {
-        url += `?days=${params.days}`;
+      if (params?.from) {
+        queryParams.append("from", params.from);
       }
 
-      const response = await fetch(url);
+      if (params?.to) {
+        queryParams.append("to", params.to);
+      }
+
+      const url = `${this.API_BASE_URL}/api/tracesExceptions${
+        queryParams.toString() ? `?${queryParams.toString()}` : ""
+      }`;
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+        mode: "cors", // Explicitly set CORS mode
+        credentials: "same-origin",
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

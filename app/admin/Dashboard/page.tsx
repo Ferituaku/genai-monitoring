@@ -5,7 +5,6 @@ import React, { useState, useEffect } from "react";
 import TimeFrame from "@/components/TimeFrame/TimeFrame";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 import { useSearchParams } from "next/navigation";
-import Topmodel from "@/components/DashboardComponent/Piechart/Topmodel";
 import Genbycategory from "../../../components/DashboardComponent/Piechart/Genbycategory";
 import Costbyapp from "../../../components/DashboardComponent/Piechart/Costbyapp";
 import Costbyenv from "../../../components/DashboardComponent/Piechart/Costbyenv";
@@ -23,6 +22,7 @@ import { DashboardApiService } from "@/lib/DashboardService/api";
 import { Loader2 } from "lucide-react";
 import METRIC_CARD from "@/components/DashboardComponent/MetricCard";
 import { get_time_frame_params } from "@/hooks/TimeFrame/api";
+import Topmodel from "@/components/DashboardComponent/Piechart/TopModel";
 
 const DASHBOARD: React.FC = () => {
   const [DASHBOARD_DATA, SET_DASHBOARD_DATA] = useState<any>(null);

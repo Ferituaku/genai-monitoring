@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import ExceptionRow from "@/components/exceptions/ExceptionRow";
 import { useSearchParams } from "next/navigation";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 import { ErrorTraceData } from "@/types/exceptions";
@@ -19,6 +18,7 @@ import { SortDirection, SortField } from "@/types/trace";
 import { get_time_frame_params } from "@/hooks/TimeFrame/api";
 import { ExceptionApiService } from "@/lib/ExceptionService/api";
 import TimeFrame from "@/components/TimeFrame/TimeFrame";
+import ExceptionRow from "@/components/Exceptions/ExceptionRow";
 
 const Exceptions = () => {
   const [traces, setTraces] = useState<ErrorTraceData[]>([]);
@@ -27,7 +27,6 @@ const Exceptions = () => {
   const [pageSize, setPageSize] = useState("10");
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
-  const timeFrameParams = get_time_frame_params(searchParams);
   const [sortField, setSortField] = useState<SortField>("Timestamp");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
@@ -35,6 +34,7 @@ const Exceptions = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        const timeFrameParams = get_time_frame_params(searchParams);
         const data = await ExceptionApiService.get_exception_trace(
           timeFrameParams
         );
@@ -48,7 +48,7 @@ const Exceptions = () => {
     };
 
     fetchData();
-  }, [timeFrameParams]);
+  }, [searchParams]);
 
   const filteredTraces = useMemo(() => {
     return traces.filter((trace) =>
