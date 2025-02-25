@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { VaultFormData } from "@/types/vault";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 interface AddKeyModalProps {
   isOpen: boolean;
@@ -22,33 +24,76 @@ export const AddKeyModal = ({
   onSubmit,
 }: AddKeyModalProps) => {
   const [formData, setFormData] = useState<VaultFormData>({
-    key: "",
+    api_key: "",
+    project: "",
     value: "",
-    createdBy: "",
   });
+  const [error, setError] = useState<string>("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!isOpen) {
+      setError("");
+    }
+  }, [isOpen]);
+
+  const handleClose = () => {
+    setError("");
+    onClose();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-    setFormData({ key: "", value: "", createdBy: "" });
+    try {
+      await onSubmit(formData);
+      setFormData({ api_key: "", project: "", value: "" });
+      setError("");
+    } catch (err: any) {
+      // Menggunakan error message dari API response
+      if (err.response && err.response.data && err.response.data.error) {
+        setError(err.response.data.error);
+      } else if (err.error) {
+        setError(err.error);
+      } else {
+        setError(err.message || "Terjadi kesalahan saat menambahkan vault key");
+      }
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add New Vault Key</DialogTitle>
         </DialogHeader>
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="key">Key</Label>
+            <Label htmlFor="api_key">API Key</Label>
             <Input
-              id="key"
-              value={formData.key}
+              id="api_key"
+              value={formData.api_key}
               onChange={(e) =>
-                setFormData({ ...formData, key: e.target.value })
+                setFormData({ ...formData, api_key: e.target.value })
               }
-              placeholder="Enter key"
+              placeholder="Enter API key"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="project">Project</Label>
+            <Input
+              id="project"
+              value={formData.project}
+              onChange={(e) =>
+                setFormData({ ...formData, project: e.target.value })
+              }
+              placeholder="Enter project name"
               required
             />
           </div>
@@ -64,23 +109,11 @@ export const AddKeyModal = ({
               required
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="createdBy">Created By</Label>
-            <Input
-              id="createdBy"
-              value={formData.createdBy}
-              onChange={(e) =>
-                setFormData({ ...formData, createdBy: e.target.value })
-              }
-              placeholder="Enter creator name"
-              required
-            />
-          </div>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>
-            <Button type="submit">Add Key</Button>
+            <Button type="submit">Add Vault</Button>
           </div>
         </form>
       </DialogContent>

@@ -8,11 +8,15 @@ import { VaultFormData } from "@/types/vault";
 import { useToast } from "@/hooks/use-toast";
 import { useVault } from "@/hooks/Vault/use-vault";
 import DynamicBreadcrumb from "@/components/Breadcrum";
-import { VaultTable } from "@/components/Vault/VaultTable";
-import { AddKeyModal } from "@/components/Vault/AddKeyVault";
+import { VaultTable } from "@/components/vault/VaultTable";
+import { AddKeyModal } from "@/components/vault/AddKeyVault";
+import { EditKeyModal } from "@/components/vault/EditKeyModal";
 
 export default function VaultPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingKey, setEditingKey] = useState("");
+  const [editingValue, setEditingValue] = useState("");
   const { toast } = useToast();
 
   const {
@@ -43,43 +47,55 @@ export default function VaultPage() {
         title: "Success",
         description: result.message,
       });
+      // Refresh data
+      fetchVaultData();
     }
   };
 
-  const handleEdit = async (key: string) => {
-    const newValue = prompt("Enter new value:");
-    if (newValue) {
-      const result = await updateVaultEntry(key, newValue);
-      if (result.error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: result.error,
-        });
-      } else {
-        toast({
-          title: "Success",
-          description: result.message,
-        });
-      }
+  const handleEdit = (key: string) => {
+    // Find the current value of the key
+    const item = vaultData.find(item => item.key === key);
+    if (item) {
+      setEditingKey(key);
+      setEditingValue(item.value);
+      setIsEditModalOpen(true);
+    }
+  };
+
+  const handleEditSubmit = async (newValue: string) => {
+    const result = await updateVaultEntry(editingKey, newValue);
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: result.error,
+      });
+    } else {
+      setIsEditModalOpen(false);
+      toast({
+        title: "Success",
+        description: result.message,
+      });
+      // Refresh data
+      fetchVaultData();
     }
   };
 
   const handleDelete = async (key: string) => {
-    if (confirm("Are you sure you want to delete this entry?")) {
-      const result = await deleteVaultEntry(key);
-      if (result.error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: result.error,
-        });
-      } else {
-        toast({
-          title: "Success",
-          description: result.message,
-        });
-      }
+    const result = await deleteVaultEntry(key);
+    if (result.error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: result.error,
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: result.message,
+      });
+      // Refresh data
+      fetchVaultData();
     }
   };
 
@@ -100,7 +116,7 @@ export default function VaultPage() {
             variant="default"
           >
             <Plus className="h-4 w-4" />
-            Add New Key
+            Add New Vault
           </Button>
         </div>
         <Card>
@@ -113,10 +129,21 @@ export default function VaultPage() {
             />
           </CardContent>
         </Card>
+        
+        {/* Add Modal */}
         <AddKeyModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={handleAddKey}
+        />
+        
+        {/* Edit Modal */}
+        <EditKeyModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSubmit={handleEditSubmit}
+          currentKey={editingKey}
+          currentValue={editingValue}
         />
       </div>
     </div>
