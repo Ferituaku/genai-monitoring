@@ -5,16 +5,6 @@ import React, { useState, useEffect } from "react";
 import TimeFrame from "@/components/TimeFrame/TimeFrame";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 import { useSearchParams } from "next/navigation";
-<<<<<<< HEAD
-import Genbycategory from "../../../components/DashboardComponent/Piechart/Genbycategory";
-import Costbyapp from "../../../components/DashboardComponent/Piechart/Costbyapp";
-import Costbyenv from "../../../components/DashboardComponent/Piechart/Costbyenv";
-=======
-import Topmodel from "@/components/Dashboardcomponent/Piechart/TopModel";
-import Genbycategory from "../../../components/Dashboardcomponent/Piechart/Genbycategory";
-import Costbyapp from "../../../components/Dashboardcomponent/Piechart/Costbyapp";
-import Costbyenv from "../../../components/Dashboardcomponent/Piechart/Costbyenv";
->>>>>>> ead4d3ab29e42fb615615ffad28df02a7ddef08d
 import {
   LineChart,
   Line,
@@ -27,10 +17,12 @@ import {
 } from "recharts";
 import { DashboardApiService } from "@/lib/DashboardService/api";
 import { Loader2 } from "lucide-react";
-// import METRIC_CARD from "@/components/DashboardComponent/MetricCard";
-import METRIC_CARD from "@/components/Dashboardcomponent/MetricCard";
 import { get_time_frame_params } from "@/hooks/TimeFrame/api";
 import Topmodel from "@/components/DashboardComponent/Piechart/TopModel";
+import Costbyapp from "@/components/DashboardComponent/Piechart/Costbyapp";
+import Genbycategory from "@/components/DashboardComponent/Piechart/Genbycategory";
+import Costbyenv from "@/components/DashboardComponent/Piechart/Costbyenv";
+import METRIC_CARD from "@/components/DashboardComponent/MetricCard";
 
 const DASHBOARD: React.FC = () => {
   const [DASHBOARD_DATA, SET_DASHBOARD_DATA] = useState<any>(null);
@@ -77,13 +69,12 @@ const DASHBOARD: React.FC = () => {
     });
   };
 
-
   const processTokenData = (data: Record<string, string[]>) => {
     return Object.keys(data).map((date) => {
       const statusArray = data[date]; // Sekarang TypeScript tahu ini adalah string[]
       const total_prompt = parseInt(statusArray[0].split(": ")[1]);
       const total_completion = parseInt(statusArray[1].split(": ")[1]);
-  
+
       return {
         date: date,
         total: total_prompt + total_completion,
@@ -92,8 +83,6 @@ const DASHBOARD: React.FC = () => {
       };
     });
   };
-  
-
 
   if (IS_LOADING) {
     return (
@@ -117,7 +106,6 @@ const DASHBOARD: React.FC = () => {
   const TOKEN_USAGE = DASHBOARD_DATA?.token_usage
     ? processTokenData(DASHBOARD_DATA.token_usage)
     : [];
-
 
   return (
     <div className="min-h-screen">
@@ -235,14 +223,20 @@ const DASHBOARD: React.FC = () => {
                       <div className="bg-white p-2 shadow-md rounded border border-gray-300">
                         <p className="text-sm font-bold">{DATA.date}</p>
                         <p className="text-xs">Total Requests: {DATA.total}</p>
-                        <p className="text-xs text-green-600">OK: {DATA.total_ok}</p>
-                        <p className="text-xs text-red-600">Error: {DATA.total_error}</p>
-                        <p className="text-xs text-yellow-600">Unset: {DATA.total_unset}</p>
+                        <p className="text-xs text-green-600">
+                          OK: {DATA.total_ok}
+                        </p>
+                        <p className="text-xs text-red-600">
+                          Error: {DATA.total_error}
+                        </p>
+                        <p className="text-xs text-yellow-600">
+                          Unset: {DATA.total_unset}
+                        </p>
                       </div>
                     );
                   }}
                 />
-<Legend />
+                <Legend />
                 <Line
                   type="monotone"
                   dataKey="total_ok"
@@ -281,7 +275,7 @@ const DASHBOARD: React.FC = () => {
               <h2 className="text-md font-light text-slate-700 mb-4">
                 Generate by category
               </h2>
-              <Genbycategory data={DASHBOARD_DATA?.["gen_by_category"] || {}} /> 
+              <Genbycategory data={DASHBOARD_DATA?.["gen_by_category"] || {}} />
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg">
               <h2 className="text-md font-light text-slate-700 mb-4">
@@ -295,7 +289,7 @@ const DASHBOARD: React.FC = () => {
               </h2>
               <Topmodel data={DASHBOARD_DATA?.["top_model"] || {}} />
             </div>
-          </div> 
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-6 mb-6">
             <METRIC_CARD
@@ -362,32 +356,38 @@ const DASHBOARD: React.FC = () => {
                       if (!payload || payload.length === 0) return null;
                       const DATA = payload[0].payload;
                       return (
-                         <div className="bg-white p-2 shadow-md rounded border border-gray-300">
-                            <p className="text-sm font-bold">{DATA.date}</p>
-                            <p className="text-xs">Total Requests: {DATA.total}</p>
-                            <p className="text-xs text-green-600">total prompt: {DATA.total_prompt}</p>
-                            <p className="text-xs text-red-600">total completion: {DATA.total_completion}</p>
-                          </div>
-                        );
-                      }}
-                    />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="total_prompt"
-                      stroke="#10b981"
-                      name="Total Prompt"
-                      strokeWidth={2}
-                      dot={{ strokeWidth: 2 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="total_completion"
-                      stroke="#ef4444"
-                      name="Total Completion"
-                      strokeWidth={2}
-                      dot={{ strokeWidth: 2 }}
-                    />
+                        <div className="bg-white p-2 shadow-md rounded border border-gray-300">
+                          <p className="text-sm font-bold">{DATA.date}</p>
+                          <p className="text-xs">
+                            Total Requests: {DATA.total}
+                          </p>
+                          <p className="text-xs text-green-600">
+                            total prompt: {DATA.total_prompt}
+                          </p>
+                          <p className="text-xs text-red-600">
+                            total completion: {DATA.total_completion}
+                          </p>
+                        </div>
+                      );
+                    }}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="total_prompt"
+                    stroke="#10b981"
+                    name="Total Prompt"
+                    strokeWidth={2}
+                    dot={{ strokeWidth: 2 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="total_completion"
+                    stroke="#ef4444"
+                    name="Total Completion"
+                    strokeWidth={2}
+                    dot={{ strokeWidth: 2 }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>

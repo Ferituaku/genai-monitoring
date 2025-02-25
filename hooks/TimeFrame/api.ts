@@ -88,6 +88,6 @@ export const get_date_range_from_days = (daysBack: number): TimeFrameParams => {
 
   return {
     from: startOfDay(subDays(jakartaNow, daysBack)).toISOString(),
-    to: endOfDay(now).toISOString(),
+    to: endOfDay(jakartaNow).toISOString(),
   };
 };

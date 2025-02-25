@@ -11,13 +11,12 @@ export class DashboardApiService {
     params: TimeFrameParams
   ): Promise<DashboardData> {
     try {
-      let url = `${this.API_BASE_URL}/dashboard`;
+      const url = new URL(`${this.API_BASE_URL}/dashboard`);
 
       // Handle both days and custom date range
       if (params.from && params.to) {
-        url += `?from=${params.from}&to=${params.to}`;
-      } else if (params.days) {
-        url += `?days=${params.days}`;
+        url.searchParams.append("from", params.from);
+        url.searchParams.append("to", params.to);
       }
 
       const RESPONSE = await fetch(url);
