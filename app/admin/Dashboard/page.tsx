@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import TimeFrame from "@/components/TimeFrame/TimeFrame";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 import { useSearchParams } from "next/navigation";
-import TopModel from "../../../components/DashboardComponent/Piechart/TopModel";
+import Topmodel from "@/components/DashboardComponent/Piechart/Topmodel";
 import Genbycategory from "../../../components/DashboardComponent/Piechart/Genbycategory";
 import Costbyapp from "../../../components/DashboardComponent/Piechart/Costbyapp";
 import Costbyenv from "../../../components/DashboardComponent/Piechart/Costbyenv";
@@ -283,9 +283,9 @@ const DASHBOARD: React.FC = () => {
             </div>
             <div className="bg-white p-4 rounded-lg shadow-lg">
               <h2 className="text-md font-light text-slate-700 mb-4">
-                Top Models
+                Top Model
               </h2>
-              {/* <TopModel data={DASHBOARD_DATA?.["top_model"] || {}} /> */}
+              <Topmodel data={DASHBOARD_DATA?.["top_model"] || {}} />
             </div>
           </div> 
 
