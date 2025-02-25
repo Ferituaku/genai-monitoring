@@ -61,7 +61,7 @@ export default function ApiKeysPage() {
   const HANDLE_COPY_APIKEY = (apiKey: string) => {
     navigator.clipboard.writeText(apiKey);
     toast({
-      variant: "success",
+      variant: "default",
       title: "Berhasil Disalin",
       description: "API key telah disalin ke clipboard",
     });
