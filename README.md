@@ -1,1 +1,1 @@
-WEB GENAI Monitoring
+WEB GEN AI Monitoring

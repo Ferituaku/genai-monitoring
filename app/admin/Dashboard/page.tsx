@@ -74,7 +74,6 @@ const DASHBOARD: React.FC = () => {
       const statusArray = data[date]; // Sekarang TypeScript tahu ini adalah string[]
       const total_prompt = parseInt(statusArray[0].split(": ")[1]);
       const total_completion = parseInt(statusArray[1].split(": ")[1]);
-
       return {
         date: date,
         total: total_prompt + total_completion,

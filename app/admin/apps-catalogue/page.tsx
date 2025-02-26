@@ -30,11 +30,8 @@ const Catalogue = () => {
 
     FETCH_APPLICATIONS();
   }, []);
-  const FILTERED_APPLICATION = APPLICATIONS.filter(
-    (app) =>
-      app &&
-      app.ProjectName &&
-      app.ProjectName.toLowerCase().includes(SEARCH_QUERY.toLowerCase())
+  const FILTERED_APPLICATION = APPLICATIONS.filter((app) =>
+    app.ProjectName.toLowerCase().includes(SEARCH_QUERY.toLowerCase())
   );
 
   return (

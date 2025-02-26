@@ -7,50 +7,65 @@ class ProjectChatService(Resource):
     def get(self):
         try:
             query = """
-            WITH chat_counts AS (
-                SELECT 
-                    SpanAttributes['UniqueIDChat'] AS UniqueIDChat,
-                    COUNT(DISTINCT SpanAttributes['ChatID']) AS MessageCount
-                FROM openlit.otel_traces
-                WHERE SpanAttributes['UniqueIDChat'] IS NOT NULL
-                    AND SpanAttributes['UniqueIDChat'] != ''  -- Exclude empty strings
-                GROUP BY UniqueIDChat
-            ),
-            chat_sessions AS (
-                SELECT 
-                    ServiceName,
-                    ResourceAttributes['deployment.environment'] AS Environment,
-                    SpanAttributes['UniqueIDChat'] AS UniqueIDChat,
-                    MIN(Timestamp) AS Timestamp,
-                    chat_counts.MessageCount AS TotalMessages
-                FROM openlit.otel_traces
-                JOIN chat_counts ON chat_counts.UniqueIDChat = SpanAttributes['UniqueIDChat']
-                WHERE 
-                    ServiceName IS NOT NULL 
-                    AND ResourceAttributes['deployment.environment'] IS NOT NULL
-                    AND SpanAttributes['UniqueIDChat'] IS NOT NULL
-                    AND SpanAttributes['UniqueIDChat'] != ''  -- Exclude empty strings
-                GROUP BY 
-                    ServiceName,
-                    Environment,
-                    UniqueIDChat,
-                    chat_counts.MessageCount
-            )
             SELECT 
                 ServiceName,
-                Environment,
-                UniqueIDChat,
-                toString(Timestamp) AS Timestamp,
-                TotalMessages
-            FROM chat_sessions
-            ORDER BY Timestamp DESC
+                ResourceAttributes,
+                SpanAttributes,
+                Timestamp
+            FROM openlit.otel_traces
+            WHERE ServiceName IS NOT NULL 
+                AND ResourceAttributes['deployment.environment'] IS NOT NULL
+                AND SpanAttributes['UniqueIDChat'] IS NOT NULL
+                AND SpanAttributes['UniqueIDChat'] != ''
             """
             
-            result = client.query(query).result_rows
+            rows = client.query(query).result_rows
+            # Step 2: Process data in Python
+            sessions = {}
+            for row in rows:
+                unique_id = row[2]['UniqueIDChat']
+                chat_id = row[2].get('ChatID')
+                timestamp = row[3]
+                service_name = row[0]
+                environment = row[1]['deployment.environment']
+                
+                if unique_id not in sessions:
+                    sessions[unique_id] = {
+                        'ServiceName': service_name,
+                        'Environment': environment,
+                        'UniqueIDChat': unique_id,
+                        'Timestamp': timestamp,
+                        'TotalMessages': set()  # Using set to count distinct ChatIDs
+                    }
+                else:
+                    # Update the earliest timestamp
+                    if timestamp < sessions[unique_id]['Timestamp']:
+                        sessions[unique_id]['Timestamp'] = timestamp
+
+                # Add ChatID to the set
+                if chat_id:
+                    sessions[unique_id]['TotalMessages'].add(chat_id)
+                    
             
+            result = []
+            for session in sessions.values():
+                result.append({
+                    'ServiceName': session['ServiceName'],
+                    'Environment': session['Environment'],
+                    'UniqueIDChat': session['UniqueIDChat'],
+                    'Timestamp': str(session['Timestamp']),
+                    'TotalMessages': len(session['TotalMessages'])
+                })
+
+            # Sort by Timestamp DESC
+            result = sorted(result, key=lambda x: x['Timestamp'], reverse=True)
             projects = {}
             for row in result:
-                service_name, environment, unique_id_chat, timestamp, total_messages = row
+                service_name = row['ServiceName']
+                environment = row['Environment']
+                unique_id_chat = row['UniqueIDChat']
+                timestamp = row['Timestamp']
+                total_messages = row['TotalMessages']
                 project_key = f"{service_name}-{environment}"
                 
                 if project_key not in projects:

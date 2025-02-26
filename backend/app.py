@@ -22,27 +22,8 @@ from endpoints.admin.vault import vault
 
 app = Flask(__name__)
 
-# compress = Compress()
-# compress.init_app(app)
 debug = True
-# CORS(app, resources={r"*": {"origins": "*"}})
-# CORS(app, 
-#      resources={r"*": {
-#          "origins": ["http://localhost:3000", "http://127.0.0.1:3000"],  
-#          "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-#          "allow_headers": ["Content-Type", "Authorization", "Accept"],
-#          "supports_credentials": True,
-#          "allow_credentials": True  
-#      }},
-#      expose_headers=["Content-Type", "Authorization"])
-
-CORS(app, resources={
-    r"/api/*": {
-        "origins": ["http://localhost:3000"],
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization", "Accept"],
-    }
-})
+CORS(app, resources={r"*": {"origins": "*"}})
 api = Api(app)
 
 

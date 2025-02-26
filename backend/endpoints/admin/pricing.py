@@ -162,13 +162,7 @@ class PricingAPI:
         self.pricing_manager = PricingManager(json_path)
         self.app = app
 
-        CORS(self.app, resources={
-            r"/data/*": {
-                "origins": ["http://localhost:3000"],
-                "methods": ["GET", "POST", "PUT", "DELETE"],
-                "allow_headers": ["Content-Type"]
-            }
-        })
+        CORS(app, resources={r"*": {"origins": "*"}})
         self.setup_routes()
 
     def setup_routes(self):
