@@ -75,7 +75,7 @@ export const MENU_ITEMS = [
   },
   {
     label: "Chat Services",
-    href: `${BASE_PATH}/admin/app-services`,
+    href: `${BASE_PATH}/admin/chat-services`,
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"

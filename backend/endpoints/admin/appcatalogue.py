@@ -30,10 +30,10 @@ class AppCatalogue(Resource):
             app_catalogue_result = []
             for row in app_catalogue:
                 app_catalogue_result.append({
-                    "Project name" : row[0],
-                    "Jumlah Request" :row[1],
-                    "Created at" : row[2],
-                    "Last update" :row[3]
+                    "ProjectName" : row[0],
+                    "JumlahRequest" :row[1],
+                    "CreatedAt" : row[2],
+                    "LastUpdate" :row[3]
                 })
 
             return jsonify(app_catalogue_result)

@@ -13,6 +13,12 @@ import {
 
 const DynamicBreadcrumb: React.FC = () => {
   const pathname = usePathname();
+  const basePath = "/openai/ai-monitor";
+  const isAdminPage = pathname.includes(`/admin/`);
+
+  const dashboardPath = isAdminPage
+    ? `${basePath}/admin/dashboard`
+    : `${basePath}/dashboard`;
 
   // Generate breadcrumb items based on current path
   const generateBreadcrumbs = () => {
@@ -22,7 +28,7 @@ const DynamicBreadcrumb: React.FC = () => {
     // Generate array of breadcrumb items with paths
     return paths.map((path, index) => {
       // Build the href for this breadcrumb
-      const href = "/" + paths.slice(0, index + 1).join("/");
+      const href = `${basePath}/` + paths.slice(0, index + 1).join("/");
 
       // Format the label (capitalize first letter, replace hyphens with spaces)
       const label = path
@@ -48,7 +54,7 @@ const DynamicBreadcrumb: React.FC = () => {
       <BreadcrumbList>
         {/* Home link is always first */}
         <BreadcrumbItem>
-          <BreadcrumbLink href="/">Home</BreadcrumbLink>
+          <BreadcrumbLink href={dashboardPath}>Dashboard</BreadcrumbLink>
         </BreadcrumbItem>
 
         {breadcrumbs.map((breadcrumb, index) => (

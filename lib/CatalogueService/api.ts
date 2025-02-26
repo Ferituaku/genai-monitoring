@@ -4,7 +4,7 @@ export class ApplicationService {
   private API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5101";
 
-  async getApplications(): Promise<Application[]> {
+  async get_applications(): Promise<Application[]> {
     try {
       const response = await fetch(`${this.API_BASE_URL}/appcatalogue`);
       if (!response.ok) {

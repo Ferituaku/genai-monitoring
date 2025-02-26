@@ -19,11 +19,12 @@ const Catalogue = () => {
     const FETCH_APPLICATIONS = async () => {
       try {
         const SERVICE = new ApplicationService();
-        const DATA = await SERVICE.getApplications();
+        const DATA = await SERVICE.get_applications();
         SET_APPLICATIONS(DATA);
         SET_LOADING(false);
       } catch (err) {
         SET_ERROR("Failed to fetch applications");
+      } finally {
         SET_LOADING(false);
       }
     };
@@ -31,7 +32,7 @@ const Catalogue = () => {
     FETCH_APPLICATIONS();
   }, []);
   const FILTERED_APPLICATION = APPLICATIONS.filter((app) =>
-    app.ProjectName.toLowerCase().includes(SEARCH_QUERY.toLowerCase())
+    app.ProjectName?.toLowerCase().includes(SEARCH_QUERY.toLowerCase())
   );
 
   return (

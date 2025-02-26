@@ -51,9 +51,9 @@ export const AppSidebar = ({
     }
   }, []);
 
-  const filteredMenuItems = MENU_ITEMS.filter((item) =>
-    item.roles?.includes(userRole)
-  );
+  // const filteredMenuItems = MENU_ITEMS.filter((item) =>
+  //   item.roles?.includes(userRole)
+  // );
 
   const getProfilePath = () => {
     switch (userRole) {
