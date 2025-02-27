@@ -5,16 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DynamicBreadcrumb from "@/components/Breadcrum";
-import { PriceEditApiService, Models } from "@/lib/PriceEdit/api";
+import { PriceEditApiService, Models, ChatModelData } from "@/lib/PriceEdit/api";
 import CREATE_MODEL_FORM from "@/components/PriceEdit/CreateModelForm";
 import EDIT_MODEL_FORM from "@/components/PriceEdit/EditModelForm";
+
+type CurrentPriceType = number | ChatModelData | null;
+type NewPriceType = string | { promptPrice: string; completionPrice: string };
 
 const ModelPriceManager = () => {
   const [modelName, setModelName] = useState("");
   const [models, setModels] = useState<Models>({});
   const [selectedDetail, setSelectedDetail] = useState("");
-  const [currentPrice, setCurrentPrice] = useState<number | null>(null);
-  const [newPrice, setNewPrice] = useState("");
+  const [currentPrice, setCurrentPrice] = useState<CurrentPriceType>(null);
+  const [newPrice, setNewPrice] = useState<NewPriceType>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<"view" | "edit" | "create">("view");
@@ -44,13 +47,25 @@ const ModelPriceManager = () => {
     setModelName(value);
     setSelectedDetail("");
     setCurrentPrice(null);
-    setNewPrice("");
+    setNewPrice(value === "chat" ? { promptPrice: "", completionPrice: "" } : "");
   };
 
   const HANDLE_DETAIL_SELECT = (value: string) => {
     setSelectedDetail(value);
     if (models[modelName]?.[value] !== undefined) {
-      setCurrentPrice(models[modelName][value]);
+      const priceData = models[modelName][value];
+      
+      // Set current price by model
+      if (modelName === "chat" && typeof priceData === 'object') {
+        setCurrentPrice(priceData as ChatModelData);
+        setNewPrice({
+          promptPrice: priceData.promptPrice.toString(),
+          completionPrice: priceData.completionPrice.toString()
+        });
+      } else if (typeof priceData === 'number') {
+        setCurrentPrice(priceData);
+        setNewPrice(priceData.toString());
+      }
     }
   };
 
@@ -59,14 +74,36 @@ const ModelPriceManager = () => {
 
     setLoading(true);
     try {
-      await PriceEditApiService.updatePrice(
-        modelName,
-        selectedDetail,
-        parseFloat(newPrice)
-      );
+      // Update price by model
+      if (modelName === "chat" && typeof newPrice === 'object') {
+        const chatData: ChatModelData = {
+          promptPrice: parseFloat(newPrice.promptPrice),
+          completionPrice: parseFloat(newPrice.completionPrice)
+        };
+        
+        await PriceEditApiService.updatePrice(
+          modelName,
+          selectedDetail,
+          chatData
+        );
+        
+        // Update current price when success
+        setCurrentPrice(chatData);
+      } else if (typeof newPrice === 'string') {
+        const numericPrice = parseFloat(newPrice);
+        
+        await PriceEditApiService.updatePrice(
+          modelName,
+          selectedDetail,
+          numericPrice
+        );
+        
+        setCurrentPrice(numericPrice);
+      }
+      
       await FETCH_MODEL();
-      setCurrentPrice(parseFloat(newPrice));
-      setNewPrice("");
+      // Reset new price
+      setNewPrice(modelName === "chat" ? { promptPrice: "", completionPrice: "" } : "");
       setError(null);
       setMode("view");
     } catch (error) {
@@ -82,11 +119,25 @@ const ModelPriceManager = () => {
 
     setLoading(true);
     try {
-      await PriceEditApiService.createModel(
-        newModelName,
-        newDetailName,
-        parseFloat(newDetailPrice)
-      );
+      if (newModelName === "chat") {
+        const chatData: ChatModelData = {
+          promptPrice: parseFloat(newDetailPrice),
+          completionPrice: parseFloat(newDetailPrice)
+        };
+        
+        await PriceEditApiService.createModel(
+          newModelName,
+          newDetailName,
+          chatData
+        );
+      } else {
+        await PriceEditApiService.createModel(
+          newModelName,
+          newDetailName,
+          parseFloat(newDetailPrice)
+        );
+      }
+      
       await FETCH_MODEL();
       setNewModelName("");
       setNewDetailName("");

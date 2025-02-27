@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
-import { Models } from "@/lib/PriceEdit/api";
+import { Models, ChatModelData } from "@/lib/PriceEdit/api";
 
 interface CreateModelFormProps {
   loading: boolean;
@@ -21,7 +21,7 @@ interface CreateModelFormProps {
   onDetailNameChange: (value: string) => void;
   onDetailPriceChange: (value: string) => void;
   onCancel: () => void;
-  onSubmit: () => void;
+  onSubmit: (modelName: string, detailName: string, price: number | ChatModelData) => void;
 }
 
 const CREATE_MODEL_FORM: React.FC<CreateModelFormProps> = ({
@@ -36,6 +36,32 @@ const CREATE_MODEL_FORM: React.FC<CreateModelFormProps> = ({
   onCancel,
   onSubmit,
 }) => {
+  // state model chat
+  const [promptPrice, setPromptPrice] = useState("");
+  const [completionPrice, setCompletionPrice] = useState("");
+  const isChatModel = newModelName === "chat";
+  
+  // Reset prompt while model selected
+  useEffect(() => {
+    if (isChatModel) {
+      setPromptPrice(newDetailPrice);
+      setCompletionPrice(newDetailPrice);
+    }
+  }, [isChatModel, newDetailPrice]);
+  
+  // Handler submit
+  const handleSubmit = () => {
+    if (isChatModel) {
+      // Chat model
+      onSubmit(newModelName, newDetailName, {
+        promptPrice: parseFloat(promptPrice || "0"),
+        completionPrice: parseFloat(completionPrice || "0")
+      });
+    } else {
+      onSubmit(newModelName, newDetailName, parseFloat(newDetailPrice));
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -49,11 +75,10 @@ const CREATE_MODEL_FORM: React.FC<CreateModelFormProps> = ({
             <SelectValue placeholder="Select Model Name" />
           </SelectTrigger>
           <SelectContent>
-            {Object.keys(models).map((model) => (
-              <SelectItem key={model} value={model}>
-                {model}
-              </SelectItem>
-            ))}
+            <SelectItem value="chat">chat</SelectItem>
+            <SelectItem value="audio">audio</SelectItem>
+            <SelectItem value="embeddings">embeddings</SelectItem>
+            <SelectItem value="images">images</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -69,25 +94,57 @@ const CREATE_MODEL_FORM: React.FC<CreateModelFormProps> = ({
         />
       </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Price</label>
-        <Input
-          type="number"
-          step="0.000001"
-          value={newDetailPrice}
-          onChange={(e) => onDetailPriceChange(e.target.value)}
-          placeholder="Enter price"
-          disabled={loading}
-        />
-      </div>
+      {!isChatModel ? (
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Price</label>
+          <Input
+            type="number"
+            step="0.000001"
+            value={newDetailPrice}
+            onChange={(e) => onDetailPriceChange(e.target.value)}
+            placeholder="Enter price"
+            disabled={loading}
+          />
+        </div>
+      ) : (
+        <>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Prompt Price</label>
+            <Input
+              type="number"
+              step="0.000001"
+              value={promptPrice}
+              onChange={(e) => setPromptPrice(e.target.value)}
+              placeholder="Enter prompt price"
+              disabled={loading}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Completion Price</label>
+            <Input
+              type="number"
+              step="0.000001"
+              value={completionPrice}
+              onChange={(e) => setCompletionPrice(e.target.value)}
+              placeholder="Enter completion price"
+              disabled={loading}
+            />
+          </div>
+        </>
+      )}
 
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={onCancel} disabled={loading}>
           Cancel
         </Button>
         <Button
-          onClick={onSubmit}
-          disabled={!newModelName || !newDetailName || !newDetailPrice || loading}
+          onClick={handleSubmit}
+          disabled={
+            !newModelName || 
+            !newDetailName || 
+            (isChatModel ? (!promptPrice || !completionPrice) : !newDetailPrice) || 
+            loading
+          }
         >
           {loading ? (
             <>

@@ -9,7 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert"; 
+import { Plus, Loader2, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API_CLIENT } from "@/lib/ApiKeysService/api";
 
@@ -24,11 +25,13 @@ export function GenerateApiKeyDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [name, setName] = useState("");
   const [project, setProject] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null); 
 
     try {
       const result = await API_CLIENT.generate_api_key(name, project);
@@ -41,19 +44,26 @@ export function GenerateApiKeyDialog({
       setName("");
       setProject("");
     } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to generate API key",
-        variant: "destructive",
-      });
+      const errorMessage = error instanceof Error ? error.message : "Failed to generate API key";
+      setError(errorMessage);
+      
+      if (!errorMessage.includes("sudah tersedia")) {
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      setIsOpen(open);
+      if (!open) setError(null);
+    }}>
       <DialogTrigger asChild>
         <Button className="w-fit">
           <Plus className="mr-2 h-4 w-4" />
@@ -65,6 +75,12 @@ export function GenerateApiKeyDialog({
           <DialogTitle>Generate New API Key</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input
