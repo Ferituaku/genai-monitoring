@@ -86,16 +86,24 @@ class Exception(Resource):
             formatted_traces = []
             for row in traces:
                 trace_data = {
-                    "scopeVersion": row[10],
-                    "spanAttributes": row[11] if isinstance(row[11], dict) else {},
-                    "duration": row[12],
-                    "statusCode": row[13],
-                    "statusMessage": row[14],
-                    "events": {
-                        "timestamp": row[15] if isinstance(row[15], list) else [],
-                        "name": row[16] if isinstance(row[16], list) else [],
-                        "attributes": row[17] if isinstance(row[17], list) else []
-                    }
+                    "Timestamp": row[1].isoformat() if row[1] else None,
+                    "TraceId": row[2],
+                    "SpanId": row[3],
+                    "ParentSpanId": row[4],
+                    "TraceState": row[5],
+                    "SpanName": row[6],
+                    "SpanKind": row[7],
+                    "ServiceName": row[0], 
+                    "ResourceAttributes": row[8] if isinstance(row[8], dict) else {},
+                    "ScopeName": row[9],
+                    "ScopeVersion": row[10],
+                    "SpanAttributes": row[11] if isinstance(row[11], dict) else {},
+                    "Duration": str(row[12]) if row[12] else "0",
+                    "StatusCode": row[13],
+                    "StatusMessage": row[14],
+                    "Events.Timestamp": row[15] if isinstance(row[15], list) else [],
+                    "Events.Name": row[16] if isinstance(row[16], list) else [],
+                    "Events.Attributes": row[17] if isinstance(row[17], list) else []
                 }
                 formatted_traces.append(trace_data)
 
