@@ -4,7 +4,10 @@ export class ExceptionApiService {
   private static readonly API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5101";
 
-  static async get_exception_trace(params: TimeFrameParams) {
+  static async get_exception_trace(
+    params: TimeFrameParams,
+    searchQuery?: string
+  ) {
     try {
       const queryParams = new URLSearchParams();
 
@@ -14,6 +17,10 @@ export class ExceptionApiService {
 
       if (params?.to) {
         queryParams.append("to", params.to);
+      }
+
+      if (searchQuery) {
+        queryParams.append("appName", searchQuery);
       }
 
       const url = `${this.API_BASE_URL}/api/tracesExceptions${

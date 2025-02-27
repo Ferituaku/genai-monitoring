@@ -108,26 +108,24 @@ class Request(Resource):
                 formatted_traces = []
                 for row in traces:
                     trace_data = {
-                        "serviceName": row[0],
-                        "timestamp": row[1].isoformat() if isinstance(row[1], datetime) else str(row[1]),
-                        "traceId": row[2],
-                        "spanId": row[3],
-                        "parentSpanId": row[4],
-                        "traceState": row[5],
-                        "spanName": row[6],
-                        "spanKind": row[7],
-                        "resourceAttributes": row[8] if isinstance(row[8], dict) else {},
-                        "scopeName": row[9],
-                        "scopeVersion": row[10],
-                        "spanAttributes": row[11] if isinstance(row[11], dict) else {},
-                        "duration": row[12],
-                        "statusCode": row[13],
-                        "statusMessage": row[14],
-                        "events": {
-                            "timestamp": row[15] if isinstance(row[15], list) else [],
-                            "name": row[16] if isinstance(row[16], list) else [],
-                            "attributes": row[17] if isinstance(row[17], list) else []
-                        }
+                        "ServiceName": row[0],
+                        "Timestamp": row[1].isoformat() if isinstance(row[1], datetime) else str(row[1]),
+                        "TraceId": row[2],
+                        "SpanId": row[3],
+                        "ParentSpanId": row[4],
+                        "TraceState": row[5],
+                        "SpanName": row[6],
+                        "SpanKind": row[7],
+                        "ResourceAttributes": row[8] if isinstance(row[8], dict) else {},
+                        "ScopeName": row[9],
+                        "ScopeVersion": row[10],
+                        "SpanAttributes": row[11] if isinstance(row[11], dict) else {},
+                        "Duration": row[12],
+                        "StatusCode": row[13],
+                        "StatusMessage": row[14],
+                        "Events.Timestamp": row[15] if isinstance(row[15], list) else [],
+                        "Events.Name": row[16] if isinstance(row[16], list) else [],
+                        "Events.Attributes": row[17] if isinstance(row[17], list) else []
                     }
                     formatted_traces.append(trace_data)
 
