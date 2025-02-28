@@ -49,7 +49,7 @@ export const fetchTraces = async ({
     // if (timeFrame?.to) queryParams.append("to", timeFrame.to);
 
     if (searchTerm) {
-      queryParams.append("appName", searchTerm);
+      queryParams.append("app_name", searchTerm);
     }
 
     if (filters.models && filters.models.length > 0) {
@@ -60,7 +60,7 @@ export const fetchTraces = async ({
 
     if (filters.environments && filters.environments.length > 0) {
       filters.environments.forEach((env: string) => {
-        queryParams.append("deploymentEnvironment", env);
+        queryParams.append("deployment_environment", env);
       });
     }
     if (filters.tokenRange?.input) {
@@ -97,8 +97,8 @@ export const fetchTraces = async ({
     }
 
     if (filters.duration) {
-      queryParams.append("minDuration", filters.duration.min.toString());
-      queryParams.append("maxDuration", filters.duration.max.toString());
+      queryParams.append("min_duration", filters.duration.min.toString());
+      queryParams.append("min_duration", filters.duration.max.toString());
     }
 
     if (filters.isStream !== undefined) {

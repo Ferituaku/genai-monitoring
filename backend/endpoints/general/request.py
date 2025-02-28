@@ -35,6 +35,12 @@ class Request(Resource):
                 'operation_name': "SpanAttributes['gen_ai.operation.name']",
                 'endpoint': "SpanAttributes['gen_ai.endpoint']",
                 'is_stream': "SpanAttributes['gen_ai.request.is_stream']",
+                # 'minInputTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.input_tokens'])",
+                # 'maxInputTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.input_tokens'])",
+                # 'minOutputTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.output_tokens'])",
+                # 'maxOutputTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.output_tokens'])",
+                # 'minTotalTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.total_tokens'])",
+                # 'maxTotalTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.total_tokens'])",
                 'min_duration': 'Duration',
                 'max_duration': 'Duration',
                 'status_code': 'StatusCode'
