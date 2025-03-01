@@ -1,5 +1,5 @@
-// hooks/Request/use-request-filters.ts
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useSearchParams } from "next/navigation"; // Pastikan import ini sesuai
 import { TokenRange, Filters } from "@/types/requests";
 
 interface UseRequestFiltersReturn {
@@ -29,12 +29,19 @@ interface UseRequestFiltersReturn {
 }
 
 export const useRequestFilters = (): UseRequestFiltersReturn => {
+  const searchParams = useSearchParams(); // Ambil query params dari URL
+
+  // Helper function to convert query param to array
+  const getArrayFromParam = (param: string | string[] | null): string[] => {
+    if (!param) return [];
+    if (Array.isArray(param)) return param; // Jika sudah array, kembalikan langsung
+    return param.split(","); // Jika string, pecah berdasarkan koma
+  };
+
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
-  const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>(
-    []
-  );
+  const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>([]);
   const [tokenRange, setTokenRange] = useState({
     input: { min: 0, max: 4000 },
     output: { min: 0, max: 4000 },
@@ -42,6 +49,15 @@ export const useRequestFilters = (): UseRequestFiltersReturn => {
   });
   const [duration, setDuration] = useState({ min: 0, max: 10000 });
   const [isStream, setIsStream] = useState(false);
+
+  // Update state dari URL params saat halaman dimuat atau berubah
+  useEffect(() => {
+    const models = getArrayFromParam(searchParams.getAll("model"));
+    const environments = getArrayFromParam(searchParams.getAll("environment"));
+
+    setSelectedModels(models);
+    setSelectedEnvironments(environments);
+  }, [searchParams]);
 
   const resetFilters = useCallback(() => {
     setSearchTerm("");

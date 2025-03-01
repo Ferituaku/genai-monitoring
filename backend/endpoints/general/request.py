@@ -34,15 +34,15 @@ class Request(Resource):
                 'model': "SpanAttributes['gen_ai.request.model']",
                 'operation_name': "SpanAttributes['gen_ai.operation.name']",
                 'endpoint': "SpanAttributes['gen_ai.endpoint']",
-                'is_stream': "SpanAttributes['gen_ai.request.is_stream']",
+                # 'is_stream': "SpanAttributes['gen_ai.request.is_stream']",
                 # 'minInputTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.input_tokens'])",
                 # 'maxInputTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.input_tokens'])",
                 # 'minOutputTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.output_tokens'])",
                 # 'maxOutputTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.output_tokens'])",
                 # 'minTotalTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.total_tokens'])",
                 # 'maxTotalTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.total_tokens'])",
-                'min_duration': 'Duration',
-                'max_duration': 'Duration',
+                # 'min_duration': 'Duration',
+                # 'max_duration': 'Duration',
                 'status_code': 'StatusCode'
             }
             
@@ -59,19 +59,23 @@ class Request(Resource):
             
             for key, column in filter_mappings.items():
                 snake_key = self.camel_to_snake(key)
-                value = params.get(key) or params.get(snake_key)
+                value = request.args.getlist(key) or request.args.getlist(snake_key)
                 
                 if key == 'status_code' and not value:
                     query += " AND StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET')"
                 elif value:
-                    if key == 'status_code' and value not in ['STATUS_CODE_OK', 'STATUS_CODE_UNSET']:
-                        abort(400, "Invalid status_code. Use 'STATUS_CODE_OK' or 'STATUS_CODE_UNSET'")
-                    operator = '>=' if 'min' in key else '<=' if 'max' in key else '='
-                    query += f" AND {column} {operator} %({key})s"
-                    params_query[key] = value
-            
+                    if isinstance(value, list) and len(value) > 1:
+                        placeholders = ', '.join([f"%({key}_{i})s" for i in range(len(value))])
+                        query += f" AND {column} IN ({placeholders})"
+                        for i, v in enumerate(value):
+                            params_query[f"{key}_{i}"] = v
+                    else:
+                        operator = '>=' if 'min' in key else '<=' if 'max' in key else '='
+                        query += f" AND {column} {operator} %({key})s"
+                        params_query[key] = value[0] if isinstance(value, list) else value
+
             query += " ORDER BY Timestamp DESC LIMIT 50"
-            
+                            
             result = self.client.query(query, params_query)
             traces = result.result_rows if hasattr(result, 'result_rows') else []
             
@@ -80,7 +84,7 @@ class Request(Resource):
             
             formatted_traces = [
                 {
-                    "serviceName": row[0],
+                    "ServiceName": row[0],
                     "Timestamp": row[1].isoformat() if row[1] else None,
                     "TraceId": row[2],
                     "SpanId": row[3],

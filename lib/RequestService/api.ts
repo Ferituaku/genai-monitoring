@@ -63,47 +63,47 @@ export const fetchTraces = async ({
         queryParams.append("deployment_environment", env);
       });
     }
-    if (filters.tokenRange?.input) {
-      queryParams.append(
-        "minInputTokens",
-        filters.tokenRange.input.min.toString()
-      );
-      queryParams.append(
-        "maxInputTokens",
-        filters.tokenRange.input.max.toString()
-      );
-    }
+    // if (filters.tokenRange?.input) {
+    //   queryParams.append(
+    //     "minInputTokens",
+    //     filters.tokenRange.input.min.toString()
+    //   );
+    //   queryParams.append(
+    //     "maxInputTokens",
+    //     filters.tokenRange.input.max.toString()
+    //   );
+    // }
 
-    if (filters.tokenRange?.output) {
-      queryParams.append(
-        "minOutputTokens",
-        filters.tokenRange.output.min.toString()
-      );
-      queryParams.append(
-        "maxOutputTokens",
-        filters.tokenRange.output.max.toString()
-      );
-    }
+    // if (filters.tokenRange?.output) {
+    //   queryParams.append(
+    //     "minOutputTokens",
+    //     filters.tokenRange.output.min.toString()
+    //   );
+    //   queryParams.append(
+    //     "maxOutputTokens",
+    //     filters.tokenRange.output.max.toString()
+    //   );
+    // }
 
-    if (filters.tokenRange?.total) {
-      queryParams.append(
-        "minTotalTokens",
-        filters.tokenRange.total.min.toString()
-      );
-      queryParams.append(
-        "maxTotalTokens",
-        filters.tokenRange.total.max.toString()
-      );
-    }
+    // if (filters.tokenRange?.total) {
+    //   queryParams.append(
+    //     "minTotalTokens",
+    //     filters.tokenRange.total.min.toString()
+    //   );
+    //   queryParams.append(
+    //     "maxTotalTokens",
+    //     filters.tokenRange.total.max.toString()
+    //   );
+    // }
 
-    if (filters.duration) {
-      queryParams.append("min_duration", filters.duration.min.toString());
-      queryParams.append("min_duration", filters.duration.max.toString());
-    }
+    // if (filters.duration) {
+    //   queryParams.append("min_duration", filters.duration.min.toString());
+    //   queryParams.append("min_duration", filters.duration.max.toString());
+    // }
 
-    if (filters.isStream !== undefined) {
-      queryParams.append("isStream", filters.isStream.toString());
-    }
+    // if (filters.isStream !== undefined) {
+    //   queryParams.append("isStream", filters.isStream.toString());
+    // }
 
     // Add sorting
     if (sortField) queryParams.append("sortBy", sortField);
