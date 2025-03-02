@@ -8,7 +8,7 @@ interface RequestTableProps {
 
 export const RequestTable = ({ displayedTraces }: RequestTableProps) => {
   return (
-    <Card className="rounded-md">
+    <Card className="rounded-md h-full flex flex-col">
       <div className="max-h-[calc(100vh-180px)] overflow-y-auto">
         <table className="w-full">
           <thead className="sticky top-0 bg-gray-200 z-10">

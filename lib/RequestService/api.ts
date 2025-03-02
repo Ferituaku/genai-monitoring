@@ -54,7 +54,7 @@ export const fetchTraces = async ({
 
     if (filters.models && filters.models.length > 0) {
       filters.models.forEach((model: string) => {
-        queryParams.append("model", model); // Ubah dari models ke model
+        queryParams.append("model", model); 
       });
     }
 

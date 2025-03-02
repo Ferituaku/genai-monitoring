@@ -6,16 +6,16 @@ export interface TokenRange {
 export interface Filters {
   models?: string[];
   environments?: string[];
-  tokenRange?: {
-    input: TokenRange;
-    output: TokenRange;
-    total: TokenRange;
-  };
-  duration?: {
-    min: number;
-    max: number;
-  };
-  isStream?: boolean;
+  // tokenRange?: {
+  //   input: TokenRange;
+  //   output: TokenRange;
+  //   total: TokenRange;
+  // };
+  // duration?: {
+  //   min: number;
+  //   max: number;
+  // };
+  // isStream?: boolean;
   appName?: string;
   statusCode?: string;
 }

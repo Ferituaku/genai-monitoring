@@ -22,20 +22,20 @@ interface FilterPanelProps {
   setModelSearchTerm: (value: string) => void;
   environmentSearchTerm: string;
   setEnvironmentSearchTerm: (value: string) => void;
-  tokenRange: {
-    input: TokenRange;
-    output: TokenRange;
-    total: TokenRange;
-  };
-  setTokenRange: (value: {
-    input: TokenRange;
-    output: TokenRange;
-    total: TokenRange;
-  }) => void;
-  duration: { min: number; max: number };
-  setDuration: (value: { min: number; max: number }) => void;
-  isStream: boolean;
-  setIsStream: (value: boolean) => void;
+  // tokenRange: {
+  //   input: TokenRange;
+  //   output: TokenRange;
+  //   total: TokenRange;
+  // };
+  // setTokenRange: (value: {
+  //   input: TokenRange;
+  //   output: TokenRange;
+  //   total: TokenRange;
+  // }) => void;
+  // duration: { min: number; max: number };
+  // setDuration: (value: { min: number; max: number }) => void;
+  // isStream: boolean;
+  // setIsStream: (value: boolean) => void;
   onApply: () => void;
   resetFilters: () => void;
   filteredUniqueModels: string[];
@@ -51,12 +51,12 @@ export const FilterPanel = ({
   setModelSearchTerm,
   environmentSearchTerm,
   setEnvironmentSearchTerm,
-  tokenRange,
-  setTokenRange,
-  duration,
-  setDuration,
-  isStream,
-  setIsStream,
+  // tokenRange,
+  // setTokenRange,
+  // duration,
+  // setDuration,
+  // isStream,
+  // setIsStream,
   onApply,
   resetFilters,
   filteredUniqueModels,
@@ -122,7 +122,7 @@ export const FilterPanel = ({
         </div>
       </div>
 
-      <div>
+      {/* <div>
         <Label>Token Range</Label>
         <div className="space-y-4">
           <div>
@@ -194,7 +194,7 @@ export const FilterPanel = ({
           onCheckedChange={(checked) => setIsStream(checked as boolean)}
         />
         <Label>Stream</Label>
-      </div>
+      </div> */}
 
       <div className="flex gap-2 pt-4">
         <Button variant="outline" onClick={resetFilters} className="flex-1">

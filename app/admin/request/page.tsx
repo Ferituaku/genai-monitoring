@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Search, SlidersHorizontal, Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import {
@@ -19,6 +19,8 @@ import { RequestControls } from "@/components/Request/RequestControl";
 export default function Request() {
   // Basic states
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeSearchTerm, setActiveSearchTerm] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   const [pageSize, setPageSize] = useState("10");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isFiltersApplied, setIsFiltersApplied] = useState(false);
@@ -34,21 +36,38 @@ export default function Request() {
   );
   const [modelSearchTerm, setModelSearchTerm] = useState("");
   const [environmentSearchTerm, setEnvironmentSearchTerm] = useState("");
-  const [tokenRange, setTokenRange] = useState<{
-    input: TokenRange;
-    output: TokenRange;
-    total: TokenRange;
-  }>({
-    input: { min: 0, max: 4000 },
-    output: { min: 0, max: 4000 },
-    total: { min: 0, max: 8000 },
-  });
-  const [duration, setDuration] = useState({ min: 0, max: 10000 });
-  const [isStream, setIsStream] = useState(false);
+  // const [tokenRange, setTokenRange] = useState<{
+  //   input: TokenRange;
+  //   output: TokenRange;
+  //   total: TokenRange;
+  // }>({
+  //   input: { min: 0, max: 4000 },
+  //   output: { min: 0, max: 4000 },
+  //   total: { min: 0, max: 8000 },
+  // });
+  // const [duration, setDuration] = useState({ min: 0, max: 10000 });
+  // const [isStream, setIsStream] = useState(false);
 
   // Get time frame from URL params
   const searchParams = useSearchParams();
   const timeFrame = get_time_frame_params(searchParams);
+
+  const handleSearch = useCallback(() => {
+    setIsSearching(true);
+    setActiveSearchTerm(searchTerm);
+    setTimeout(() => {
+      setIsSearching(false);
+    }, 500);
+  }, [searchTerm]);
+
+  const handleKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        handleSearch();
+      }
+    },
+    [handleSearch]
+  );
 
   // Fetch data
   const { traces, loading, error } = useTraceData({
@@ -58,11 +77,11 @@ export default function Request() {
     filters: {
       models: selectedModels,
       environments: selectedEnvironments,
-      tokenRange,
-      duration,
-      isStream,
+      // tokenRange,
+      // duration,
+      // isStream,
     },
-    searchTerm,
+    searchTerm: activeSearchTerm,
   });
 
   // Apply filters
@@ -77,55 +96,113 @@ export default function Request() {
     setSearchTerm("");
     setSortField("Timestamp");
     setSortDirection("desc");
-    setTokenRange({
-      input: { min: 0, max: 4000 },
-      output: { min: 0, max: 4000 },
-      total: { min: 0, max: 8000 },
-    });
-    setDuration({ min: 0, max: 10000 });
-    setIsStream(false);
-    setIsFiltersApplied(true); // Trigger refetch after reset
+    // setTokenRange({
+    //   input: { min: 0, max: 4000 },
+    //   output: { min: 0, max: 4000 },
+    //   total: { min: 0, max: 8000 },
+    // });
+    // setDuration({ min: 0, max: 10000 });
+    // setIsStream(false);
+    setIsFiltersApplied(true);
     setIsFilterOpen(false);
   }, []);
 
   // Get unique models and environments for filters
-  const uniqueModels = useMemo(
-    () => [
-      ...new Set(
-        traces
-          .map((trace) => trace.SpanAttributes["gen_ai.request.model"])
-          .filter(Boolean)
-      ),
-    ],
-    [traces]
-  );
+  // const uniqueModels = useMemo(
+  //   () => [
+  //     ...new Set(
+  //       traces
+  //         .map((trace) => trace.SpanAttributes["gen_ai.request.model"])
+  //         .filter(Boolean)
+  //     ),
+  //   ],
+  //   [traces]
+  // );
 
-  const uniqueEnvironments = useMemo(
-    () => [
-      ...new Set(
-        traces
-          .map((trace) => trace.ResourceAttributes["deployment.environment"])
-          .filter(Boolean)
-      ),
-    ],
-    [traces]
-  );
+  // const uniqueEnvironments = useMemo(
+  //   () => [
+  //     ...new Set(
+  //       traces
+  //         .map((trace) => trace.ResourceAttributes["deployment.environment"])
+  //         .filter(Boolean)
+  //     ),
+  //   ],
+  //   [traces]
+  // );
 
-  // Filter models and environments based on search
+  // // Filter models and environments based on search
+  // const filteredUniqueModels = useMemo(
+  //   () =>
+  //     uniqueModels.filter((model) =>
+  //       model.toLowerCase().includes(modelSearchTerm.toLowerCase())
+  //     ),
+  //   [uniqueModels, modelSearchTerm]
+  // );
+
+  // const filteredUniqueEnvironments = useMemo(
+  //   () =>
+  //     uniqueEnvironments.filter((env) =>
+  //       env.toLowerCase().includes(environmentSearchTerm.toLowerCase())
+  //     ),
+  //   [uniqueEnvironments, environmentSearchTerm]
+  // );
+
+  // Get multiple models dan environments (select more than satu)
+  const [allAvailableModels, setAllAvailableModels] = useState<string[]>([]);
+  const [allAvailableEnvironments, setAllAvailableEnvironments] = useState<
+    string[]
+  >([]);
+
+  useEffect(() => {
+    if (traces.length > 0) {
+      // Extract all unique models and environments
+      const models = [
+        ...new Set(
+          traces
+            .map((trace) => trace.SpanAttributes["gen_ai.request.model"])
+            .filter(Boolean)
+        ),
+      ];
+
+      const environments = [
+        ...new Set(
+          traces
+            .map((trace) => trace.ResourceAttributes["deployment.environment"])
+            .filter(Boolean)
+        ),
+      ];
+
+      if (
+        models.length > 0 &&
+        JSON.stringify(models) !== JSON.stringify(allAvailableModels)
+      ) {
+        setAllAvailableModels(models);
+      }
+
+      if (
+        environments.length > 0 &&
+        JSON.stringify(environments) !==
+          JSON.stringify(allAvailableEnvironments)
+      ) {
+        setAllAvailableEnvironments(environments);
+      }
+    }
+  }, [traces, allAvailableModels, allAvailableEnvironments]);
+
   const filteredUniqueModels = useMemo(
     () =>
-      uniqueModels.filter((model) =>
+      allAvailableModels.filter((model) =>
         model.toLowerCase().includes(modelSearchTerm.toLowerCase())
       ),
-    [uniqueModels, modelSearchTerm]
+    [allAvailableModels, modelSearchTerm]
   );
 
   const filteredUniqueEnvironments = useMemo(
     () =>
-      uniqueEnvironments.filter((env) =>
+      allAvailableEnvironments.filter((env) =>
         env.toLowerCase().includes(environmentSearchTerm.toLowerCase())
       ),
-    [uniqueEnvironments, environmentSearchTerm]
+    [allAvailableEnvironments, environmentSearchTerm]
   );
 
   // Limit traces based on page size
@@ -136,7 +213,7 @@ export default function Request() {
   }, [traces, pageSize]);
 
   return (
-    <div className="min-h-screen" suppressHydrationWarning>
+    <div className="h-full overflow-y-clip">
       <div className="fixed top-[70px] p-2 items-center gap-4">
         <DynamicBreadcrumb />
       </div>
@@ -158,18 +235,21 @@ export default function Request() {
           setModelSearchTerm={setModelSearchTerm}
           environmentSearchTerm={environmentSearchTerm}
           setEnvironmentSearchTerm={setEnvironmentSearchTerm}
-          tokenRange={tokenRange}
-          setTokenRange={setTokenRange}
-          duration={duration}
-          setDuration={setDuration}
-          isStream={isStream}
-          setIsStream={setIsStream}
+          // tokenRange={tokenRange}
+          // setTokenRange={setTokenRange}
+          // duration={duration}
+          // setDuration={setDuration}
+          // isStream={isStream}
+          // setIsStream={setIsStream}
           isFilterOpen={isFilterOpen}
           setIsFilterOpen={setIsFilterOpen}
           onApplyFilters={handleApplyFilters}
           resetFilters={handleResetFilters}
           filteredUniqueModels={filteredUniqueModels}
           filteredUniqueEnvironments={filteredUniqueEnvironments}
+          handleSearch={handleSearch}
+          handleKeyPress={handleKeyPress}
+          isSearching={isSearching}
         />
       </div>
 
@@ -183,7 +263,7 @@ export default function Request() {
             {error}
           </div>
         ) : displayedTraces.length === 0 ? (
-          <div className="flex h-screen items-center justify-center text-gray-500">
+          <div className="flex bg-white bg-opacity-0 h-screen items-center justify-center text-gray-500">
             No data found
           </div>
         ) : (

@@ -1,5 +1,5 @@
 // components/Request/RequestControl.tsx
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Loader2, Search, SlidersHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SortField, SortDirection } from "@/types/trace";
 import { SortSelector } from "./SortSelector";
@@ -31,31 +31,37 @@ interface RequestControlsProps {
   setModelSearchTerm: (term: string) => void;
   environmentSearchTerm: string;
   setEnvironmentSearchTerm: (term: string) => void;
-  tokenRange: {
-    input: TokenRange;
-    output: TokenRange;
-    total: TokenRange;
-  };
-  setTokenRange: (range: {
-    input: TokenRange;
-    output: TokenRange;
-    total: TokenRange;
-  }) => void;
-  duration: { min: number; max: number };
-  setDuration: (duration: { min: number; max: number }) => void;
-  isStream: boolean;
-  setIsStream: (isStream: boolean) => void;
+  // tokenRange: {
+  //   input: TokenRange;
+  //   output: TokenRange;
+  //   total: TokenRange;
+  // };
+  // setTokenRange: (range: {
+  //   input: TokenRange;
+  //   output: TokenRange;
+  //   total: TokenRange;
+  // }) => void;
+  // duration: { min: number; max: number };
+  // setDuration: (duration: { min: number; max: number }) => void;
+  // isStream: boolean;
+  // setIsStream: (isStream: boolean) => void;
   isFilterOpen: boolean;
   setIsFilterOpen: (open: boolean) => void;
   onApplyFilters: () => void;
   resetFilters: () => void;
   filteredUniqueModels: string[];
   filteredUniqueEnvironments: string[];
+  handleSearch: () => void;
+  handleKeyPress: (e: React.KeyboardEvent) => void;
+  isSearching: boolean;
 }
 
 export const RequestControls: React.FC<RequestControlsProps> = ({
   searchTerm,
   setSearchTerm,
+  handleSearch,
+  handleKeyPress,
+  isSearching,
   pageSize,
   setPageSize,
   sortField,
@@ -70,12 +76,12 @@ export const RequestControls: React.FC<RequestControlsProps> = ({
   setModelSearchTerm,
   environmentSearchTerm,
   setEnvironmentSearchTerm,
-  tokenRange,
-  setTokenRange,
-  duration,
-  setDuration,
-  isStream,
-  setIsStream,
+  // tokenRange,
+  // setTokenRange,
+  // duration,
+  // setDuration,
+  // isStream,
+  // setIsStream,
   isFilterOpen,
   setIsFilterOpen,
   onApplyFilters,
@@ -93,11 +99,23 @@ export const RequestControls: React.FC<RequestControlsProps> = ({
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
           <Input
             type="text"
-            placeholder="Search project"
+            placeholder="Search service"
             className="pl-10 bg-white/5 border-gray-700 hover:bg-slate-400/10 transition-colors focus:border-blue-600"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyUp={handleKeyPress}
           />
+          <Button
+            onClick={handleSearch}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+            disabled={isSearching}
+          >
+            {isSearching ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              "Search"
+            )}
+          </Button>
         </div>
       </div>
       <div className="flex gap-2 justify-end items-center">
@@ -127,12 +145,12 @@ export const RequestControls: React.FC<RequestControlsProps> = ({
               setModelSearchTerm={setModelSearchTerm}
               environmentSearchTerm={environmentSearchTerm}
               setEnvironmentSearchTerm={setEnvironmentSearchTerm}
-              tokenRange={tokenRange}
-              setTokenRange={setTokenRange}
-              duration={duration}
-              setDuration={setDuration}
-              isStream={isStream}
-              setIsStream={setIsStream}
+              // tokenRange={tokenRange}
+              // setTokenRange={setTokenRange}
+              // duration={duration}
+              // setDuration={setDuration}
+              // isStream={isStream}
+              // setIsStream={setIsStream}
               resetFilters={resetFilters}
               onApply={onApplyFilters}
               filteredUniqueModels={filteredUniqueModels}

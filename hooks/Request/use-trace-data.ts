@@ -56,5 +56,5 @@ export const useTraceData = ({
     loadTraces();
   }, [loadTraces]);
 
-  return { traces, loading, error };
+  return { traces, loading, error, refetch: loadTraces };
 };
