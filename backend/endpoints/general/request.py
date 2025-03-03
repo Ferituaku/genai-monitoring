@@ -10,10 +10,11 @@ class Request(Resource):
     
     def get(self):
         try:
-            params = request.args.to_dict()
-            from_date = params.get('from')
-            to_date = params.get('to')
-            
+            params = request.args.to_dict(flat=False)  # Mendukung multiple values untuk filter
+            from_date = request.args.get('from')
+            to_date = request.args.get('to')
+
+            # Konversi tanggal
             try:
                 if from_date and to_date:
                     start_date = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
@@ -23,10 +24,11 @@ class Request(Resource):
                     start_date = end_date - timedelta(days=7)
             except ValueError:
                 return {"message": "Invalid date format. Use ISO 8601 format."}, 400
-            
+
             start_date_str = start_date.strftime('%Y-%m-%d %H:%M:%S')
             end_date_str = end_date.strftime('%Y-%m-%d %H:%M:%S')
-            
+
+            # Pemetaan filter ke dalam database
             filter_mappings = {
                 'app_name': "ResourceAttributes['service.name']",
                 'deployment_environment': "ResourceAttributes['deployment.environment']",
@@ -34,18 +36,9 @@ class Request(Resource):
                 'model': "SpanAttributes['gen_ai.request.model']",
                 'operation_name': "SpanAttributes['gen_ai.operation.name']",
                 'endpoint': "SpanAttributes['gen_ai.endpoint']",
-                # 'is_stream': "SpanAttributes['gen_ai.request.is_stream']",
-                # 'minInputTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.input_tokens'])",
-                # 'maxInputTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.input_tokens'])",
-                # 'minOutputTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.output_tokens'])",
-                # 'maxOutputTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.output_tokens'])",
-                # 'minTotalTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.total_tokens'])",
-                # 'maxTotalTokens': "toInt32OrZero(SpanAttributes['gen_ai.usage.total_tokens'])",
-                # 'min_duration': 'Duration',
-                # 'max_duration': 'Duration',
                 'status_code': 'StatusCode'
             }
-            
+
             query = f"""
             SELECT 
                 ServiceName, Timestamp, TraceId, SpanId, ParentSpanId, TraceState, SpanName, SpanKind,
@@ -54,34 +47,29 @@ class Request(Resource):
             FROM otel_traces
             WHERE Timestamp BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
             """
-            
+
             params_query = {'start_date': start_date_str, 'end_date': end_date_str}
-            
+
             for key, column in filter_mappings.items():
                 snake_key = self.camel_to_snake(key)
-                value = request.args.getlist(key) or request.args.getlist(snake_key)
-                
-                if key == 'status_code' and not value:
+                values = params.get(key) or params.get(snake_key)  # Mendukung camelCase dan snake_case
+
+                if key == 'status_code' and not values:
                     query += " AND StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET')"
-                elif value:
-                    if isinstance(value, list) and len(value) > 1:
-                        placeholders = ', '.join([f"%({key}_{i})s" for i in range(len(value))])
-                        query += f" AND {column} IN ({placeholders})"
-                        for i, v in enumerate(value):
-                            params_query[f"{key}_{i}"] = v
-                    else:
-                        operator = '>=' if 'min' in key else '<=' if 'max' in key else '='
-                        query += f" AND {column} {operator} %({key})s"
-                        params_query[key] = value[0] if isinstance(value, list) else value
+                elif values:
+                    placeholders = ', '.join([f"%({key}_{i})s" for i in range(len(values))])
+                    query += f" AND {column} IN ({placeholders})"
+                    for i, v in enumerate(values):
+                        params_query[f"{key}_{i}"] = v
 
             query += " ORDER BY Timestamp DESC LIMIT 50"
-                            
+
             result = self.client.query(query, params_query)
             traces = result.result_rows if hasattr(result, 'result_rows') else []
-            
+
             if not traces:
                 return jsonify([])
-            
+
             formatted_traces = [
                 {
                     "ServiceName": row[0],
@@ -107,11 +95,11 @@ class Request(Resource):
                 }
                 for row in traces
             ]
-            
+
             return jsonify(formatted_traces)
         except Exception as e:
             abort(500, f"Internal server error: {str(e)}")
-    
+
     @staticmethod
     def camel_to_snake(name):
         return re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower()
