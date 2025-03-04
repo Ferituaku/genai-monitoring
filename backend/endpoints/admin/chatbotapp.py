@@ -4,6 +4,7 @@ from data.configuration.databaseopenlit import client
 
 class ProjectChatService(Resource):
 
+
     def get(self):
         try:
             query = """
@@ -20,7 +21,6 @@ class ProjectChatService(Resource):
             """
             
             rows = client.query(query).result_rows
-            # Step 2: Process data in Python
             sessions = {}
             for row in rows:
                 unique_id = row[2]['UniqueIDChat']
@@ -29,8 +29,11 @@ class ProjectChatService(Resource):
                 service_name = row[0]
                 environment = row[1]['deployment.environment']
                 
-                if unique_id not in sessions:
-                    sessions[unique_id] = {
+                # Buat unique key berdasarkan UniqueIDChat, ServiceName, dan Environment
+                session_key = f"{unique_id}-{service_name}-{environment}"
+
+                if session_key not in sessions:
+                    sessions[session_key] = {
                         'ServiceName': service_name,
                         'Environment': environment,
                         'UniqueIDChat': unique_id,
@@ -38,15 +41,15 @@ class ProjectChatService(Resource):
                         'TotalMessages': set()  # Using set to count distinct ChatIDs
                     }
                 else:
-                    # Update the earliest timestamp
-                    if timestamp < sessions[unique_id]['Timestamp']:
-                        sessions[unique_id]['Timestamp'] = timestamp
+                    # Update timestamp jika ada yang lebih lama
+                    if timestamp < sessions[session_key]['Timestamp']:
+                        sessions[session_key]['Timestamp'] = timestamp
 
-                # Add ChatID to the set
+                # Tambahkan ChatID jika ada
                 if chat_id:
-                    sessions[unique_id]['TotalMessages'].add(chat_id)
-                    
-            
+                    sessions[session_key]['TotalMessages'].add(chat_id)
+
+            # Format hasil
             result = []
             for session in sessions.values():
                 result.append({
@@ -57,8 +60,9 @@ class ProjectChatService(Resource):
                     'TotalMessages': len(session['TotalMessages'])
                 })
 
-            # Sort by Timestamp DESC
+            # Urutkan berdasarkan Timestamp DESC
             result = sorted(result, key=lambda x: x['Timestamp'], reverse=True)
+
             projects = {}
             for row in result:
                 service_name = row['ServiceName']
@@ -67,7 +71,7 @@ class ProjectChatService(Resource):
                 timestamp = row['Timestamp']
                 total_messages = row['TotalMessages']
                 project_key = f"{service_name}-{environment}"
-                
+
                 if project_key not in projects:
                     projects[project_key] = {
                         "serviceName": service_name,
@@ -76,7 +80,7 @@ class ProjectChatService(Resource):
                         "chatSessions": []
                     }
                 
-                # Only add sessions with non-empty UniqueIDChat
+                # Tambahkan sesi ke proyek
                 if unique_id_chat and unique_id_chat.strip():
                     chat_session = {
                         "UniqueIDChat": unique_id_chat,
@@ -88,10 +92,10 @@ class ProjectChatService(Resource):
                     projects[project_key]["totalRequests"] += 1
 
             return jsonify(list(projects.values()))
-        
+
         except Exception as e:
             print(f"Error occurred: {str(e)}")
-            return jsonify({"error": str(e)}), 500
+            return jsonify({"error":str(e)}),500
 
 class ChatHistoryService(Resource):
     def get(self, unique_id_chat):
