@@ -292,7 +292,7 @@ export const ApplicationCard = ({ application }: ApplicationCardProps) => {
           <div className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             <span>
-              Environment:{" "}
+              Last Update Environment:{" "}
               {application.Environment?.toLocaleString() || "0"}
             </span>
           </div>
