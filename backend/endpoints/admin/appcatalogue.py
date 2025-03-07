@@ -8,14 +8,15 @@ class AppCatalogue(Resource):
         try:
             app_catalogue_query = """
                 SELECT 
-                ServiceName,
-                COUNT(*) AS TotalRequests, 
-                MIN(Timestamp) AS FirstRequest,
-                MAX(Timestamp) AS LastRequest
-            FROM openlit.otel_traces
-            WHERE ServiceName IS NOT NULL
-            GROUP BY ServiceName
-            ORDER BY LastRequest DESC, FirstRequest DESC
+                    ServiceName,
+                    COUNT(*) AS TotalRequests,
+                    min(Timestamp) AS FirstRequest,
+                    max(Timestamp) AS LastRequest,
+                    argMax(ResourceAttributes['deployment.environment'], Timestamp) AS Environment
+                FROM openlit.otel_traces
+                WHERE ServiceName IS NOT NULL
+                GROUP BY ServiceName
+                ORDER BY LastRequest DESC, FirstRequest DESC
             """
             
             app_catalogue = client.query(app_catalogue_query).result_rows
@@ -33,7 +34,8 @@ class AppCatalogue(Resource):
                     "ProjectName" : row[0],
                     "JumlahRequest" :row[1],
                     "CreatedAt" : row[2],
-                    "LastUpdate" :row[3]
+                    "LastUpdate" :row[3],
+                    "Environment" : row[4]
                 })
 
             return jsonify(app_catalogue_result)
