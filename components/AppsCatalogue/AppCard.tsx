@@ -289,6 +289,13 @@ export const ApplicationCard = ({ application }: ApplicationCardProps) => {
             <Clock className="h-4 w-4" />
             <span>Last Update: {formatDate(application.LastUpdate || "")}</span>
           </div>
+          <div className="flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            <span>
+              Environment:{" "}
+              {application.Environment?.toLocaleString() || "0"}
+            </span>
+          </div>
         </div>
       </CardContent>
     </Card>

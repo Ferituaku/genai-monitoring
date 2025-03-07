@@ -3,4 +3,5 @@ export interface Application {
   JumlahRequest: number;
   CreatedAt: string;
   LastUpdate: string;
+  Environment: string;
 }
