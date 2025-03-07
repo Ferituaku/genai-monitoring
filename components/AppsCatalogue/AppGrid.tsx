@@ -18,4 +18,4 @@ export class ApplicationGrid extends React.Component<ApplicationGridProps> {
       </div>
     );
   }
-}
+
