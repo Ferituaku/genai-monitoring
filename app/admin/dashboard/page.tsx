@@ -1,6 +1,5 @@
 "use client";
 
-// import { div } from "framer-motion/client";
 import React, { useState, useEffect } from "react";
 import TimeFrame from "@/components/TimeFrame/TimeFrame";
 import DynamicBreadcrumb from "@/components/Breadcrum";
@@ -71,7 +70,7 @@ const DASHBOARD: React.FC = () => {
 
   const processTokenData = (data: Record<string, string[]>) => {
     return Object.keys(data).map((date) => {
-      const statusArray = data[date]; // Sekarang TypeScript tahu ini adalah string[]
+      const statusArray = data[date]; 
       const total_prompt = parseInt(statusArray[0].split(": ")[1]);
       const total_completion = parseInt(statusArray[1].split(": ")[1]);
       return {
@@ -122,8 +121,7 @@ const DASHBOARD: React.FC = () => {
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-slate-600
-            "
+                className="h-6 w-6 text-slate-600"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -144,8 +142,7 @@ const DASHBOARD: React.FC = () => {
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-slate-600
-            "
+                className="h-6 w-6 text-slate-600"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -166,8 +163,7 @@ const DASHBOARD: React.FC = () => {
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-slate-600
-            "
+                className="h-6 w-6 text-slate-600"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -188,8 +184,7 @@ const DASHBOARD: React.FC = () => {
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-slate-600
-            "
+                className="h-6 w-6 text-slate-600"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -206,8 +201,9 @@ const DASHBOARD: React.FC = () => {
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          <div className="col-span-2 mb-4 bg-white p-4 rounded-lg shadow-lg h-auto">
+        {/* BAGIAN YANG DIUBAH - Request Chart Full Width */}
+        <div className="grid grid-cols-1 gap-4 mb-6">
+          <div className="col-span-1 mb-4 bg-white p-4 rounded-lg shadow-lg h-auto">
             <h2 className="text-lg font-bold mb-2">Request Per Time</h2>
             <ResponsiveContainer width="100%" height={420}>
               <LineChart data={REQUEST_DATA}>
@@ -263,26 +259,28 @@ const DASHBOARD: React.FC = () => {
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 mb-2 gap-4">
-            <div className="bg-white p-4 rounded-lg shadow-lg">
+        
+          {/* BAGIAN YANG DIUBAH - Pie Charts dalam 4 kolom */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div className="bg-white p-4 rounded-lg shadow-lg h-[280px]">
               <h2 className="text-md font-light text-slate-700 mb-4">
                 Cost by application
               </h2>
               <Costbyapp data={DASHBOARD_DATA?.["cost_by_app"] || {}} />
             </div>
-            <div className="bg-white p-4 rounded-lg shadow-lg">
+            <div className="bg-white p-4 rounded-lg shadow-lg h-[280px]">
               <h2 className="text-md font-light text-slate-700 mb-4">
                 Generate by category
               </h2>
               <Genbycategory data={DASHBOARD_DATA?.["gen_by_category"] || {}} />
             </div>
-            <div className="bg-white p-4 rounded-lg shadow-lg">
+            <div className="bg-white p-4 rounded-lg shadow-lg h-[280px]">
               <h2 className="text-md font-light text-slate-700 mb-4">
                 Cost by environment
               </h2>
               <Costbyenv data={DASHBOARD_DATA?.["cost_by_env"] || {}} />
             </div>
-            <div className="bg-white p-4 rounded-lg shadow-lg">
+            <div className="bg-white p-4 rounded-lg shadow-lg h-[280px]">
               <h2 className="text-md font-light text-slate-700 mb-4">
                 Top Model
               </h2>
@@ -290,105 +288,109 @@ const DASHBOARD: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-6 mb-6">
-            <METRIC_CARD
-              title="Avg prompt tokens / request"
-              value={DASHBOARD_DATA?.avg_prompt_tokens?.toString()}
-              icon={
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="lucide lucide-terminal"
-                >
-                  <polyline points="4 17 10 11 4 5" />
-                  <line x1="12" x2="20" y1="19" y2="19" />
-                </svg>
-              }
-              subValue=""
-            />
-            <METRIC_CARD
-              title="Avg completion tokens / request"
-              value={DASHBOARD_DATA?.avg_completion_tokens?.toString()}
-              icon={
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="lucide lucide-list-check"
-                >
-                  <path d="M11 18H3" />
-                  <path d="m15 18 2 2 4-4" />
-                  <path d="M16 12H3" />
-                  <path d="M16 6H3" />
-                </svg>
-              }
-              subValue=""
-            />
-          </div>
-          <div className="col-span-2 mb-4 bg-white p-4 rounded-2xl shadow-lg h-auto">
-            <h2 className="text-lg font-bold mb-2">Token Usage</h2>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height={280}>
-                <LineChart data={TOKEN_USAGE}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis
-                    className="text-xs"
-                    dataKey="date"
-                    tick={{ fill: "#6b7280" }}
-                  />
-                  <YAxis className="text-xs" tick={{ fill: "#6b7280" }} />
-                  <Tooltip
-                    content={({ payload }) => {
-                      if (!payload || payload.length === 0) return null;
-                      const DATA = payload[0].payload;
-                      return (
-                        <div className="bg-white p-2 shadow-md rounded border border-gray-300">
-                          <p className="text-sm font-bold">{DATA.date}</p>
-                          <p className="text-xs">
-                            Total Requests: {DATA.total}
-                          </p>
-                          <p className="text-xs text-green-600">
-                            total prompt: {DATA.total_prompt}
-                          </p>
-                          <p className="text-xs text-red-600">
-                            total completion: {DATA.total_completion}
-                          </p>
-                        </div>
-                      );
-                    }}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="total_prompt"
-                    stroke="#10b981"
-                    name="Total Prompt"
-                    strokeWidth={2}
-                    dot={{ strokeWidth: 2 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="total_completion"
-                    stroke="#ef4444"
-                    name="Total Completion"
-                    strokeWidth={2}
-                    dot={{ strokeWidth: 2 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+          {/* Token metrics dan chart */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+            <div className="lg:col-span-1 grid grid-cols-1 gap-4">
+              <METRIC_CARD
+                title="Avg prompt tokens / request"
+                value={DASHBOARD_DATA?.avg_prompt_tokens?.toString()}
+                icon={
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="lucide lucide-terminal"
+                  >
+                    <polyline points="4 17 10 11 4 5" />
+                    <line x1="12" x2="20" y1="19" y2="19" />
+                  </svg>
+                }
+                subValue=""
+              />
+              <METRIC_CARD
+                title="Avg completion tokens / request"
+                value={DASHBOARD_DATA?.avg_completion_tokens?.toString()}
+                icon={
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="lucide lucide-list-check"
+                  >
+                    <path d="M11 18H3" />
+                    <path d="m15 18 2 2 4-4" />
+                    <path d="M16 12H3" />
+                    <path d="M16 6H3" />
+                  </svg>
+                }
+                subValue=""
+              />
+            </div>
+            
+            <div className="lg:col-span-2 bg-white p-4 rounded-2xl shadow-lg h-auto">
+              <h2 className="text-lg font-bold mb-2">Token Usage</h2>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height={280}>
+                  <LineChart data={TOKEN_USAGE}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis
+                      className="text-xs"
+                      dataKey="date"
+                      tick={{ fill: "#6b7280" }}
+                    />
+                    <YAxis className="text-xs" tick={{ fill: "#6b7280" }} />
+                    <Tooltip
+                      content={({ payload }) => {
+                        if (!payload || payload.length === 0) return null;
+                        const DATA = payload[0].payload;
+                        return (
+                          <div className="bg-white p-2 shadow-md rounded border border-gray-300">
+                            <p className="text-sm font-bold">{DATA.date}</p>
+                            <p className="text-xs">
+                              Total Requests: {DATA.total}
+                            </p>
+                            <p className="text-xs text-green-600">
+                              total prompt: {DATA.total_prompt}
+                            </p>
+                            <p className="text-xs text-red-600">
+                              total completion: {DATA.total_completion}
+                            </p>
+                          </div>
+                        );
+                      }}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="total_prompt"
+                      stroke="#10b981"
+                      name="Total Prompt"
+                      strokeWidth={2}
+                      dot={{ strokeWidth: 2 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="total_completion"
+                      stroke="#ef4444"
+                      name="Total Completion"
+                      strokeWidth={2}
+                      dot={{ strokeWidth: 2 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         </div>

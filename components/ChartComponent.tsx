@@ -31,7 +31,7 @@ const ChartComponent = ({ title, data }: { title: string; data: any }) => {
   };
 
   return (
-    <div className="h-[15=80px] w-full">
+    <div className="h-full w-full">
       <h2 className="text-sm text-slate-700 font-light mb-2">{title}</h2>
       <div className="h-[150px]">
         <ResponsiveContainer width="100%" height="100%">
@@ -41,35 +41,9 @@ const ChartComponent = ({ title, data }: { title: string; data: any }) => {
               cx="50%"
               cy="50%"
               innerRadius={40}
-              outerRadius="100%"
+              outerRadius={70}
               paddingAngle={2}
               dataKey="value"
-              label={({
-                cx,
-                cy,
-                midAngle,
-                innerRadius,
-                outerRadius,
-                value,
-                name,
-              }) => {
-                const RADIAN = Math.PI / 180;
-                const radius = innerRadius + (outerRadius - innerRadius) * 1.2;
-                const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                return (
-                  <text
-                    x={x}
-                    y={y}
-                    fill="#374151"
-                    textAnchor={x > cx ? "start" : "end"}
-                    dominantBaseline="central"
-                    className="text-[10px] font-medium"
-                  >
-                    {`${name} (${value.toFixed(1)}%)`}
-                  </text>
-                );
-              }}
             >
               {FORMATTED_DATA.map((entry, index) => (
                 <Cell
