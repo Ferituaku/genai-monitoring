@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Search, ArrowUpDown, Loader2 } from "lucide-react";
 import {
   Select,
@@ -10,78 +10,128 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 import { ErrorTraceData } from "@/types/exceptions";
 import { SortDirection, SortField } from "@/types/trace";
 import { get_time_frame_params } from "@/hooks/TimeFrame/api";
 import { ExceptionApiService } from "@/lib/ExceptionService/api";
 import TimeFrame from "@/components/TimeFrame/TimeFrame";
-import ExceptionRow from "@/components/Exceptions/ExceptionRow";
+import ExceptionTable from "@/components/Exceptions/ExceptionTable";
 import { Button } from "@/components/ui/button";
+
+interface PaginationData {
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+interface ExceptionResponse {
+  data: ErrorTraceData[];
+  pagination: PaginationData;
+}
 
 const Exceptions = () => {
   const [traces, setTraces] = useState<ErrorTraceData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [pageSize, setPageSize] = useState("10");
+  const [pageSize, setPageSize] = useState<string>("10");
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [sortField, setSortField] = useState<SortField>("Timestamp");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [isSearching, setIsSearching] = useState(false);
+  const [pagination, setPagination] = useState<PaginationData>({
+    total: 0,
+    page: 1,
+    pageSize: 10,
+    totalPages: 1
+  });
 
-  const fetchData = async (searchValue = "") => {
+  const fetchData = async (searchValue = "", page = 1, size = parseInt(pageSize) || 10) => {
     try {
       setIsSearching(true);
       const timeFrameParams = get_time_frame_params(searchParams);
       const data = await ExceptionApiService.get_exception_trace(
         timeFrameParams,
-        searchValue
+        searchValue,
+        page,
+        size
       );
-      setTraces(data);
+      if (data && data.data) {
+        setTraces(data.data);
+        setPagination(data.pagination);
+      } else {
+        // Handle older API response format
+        setTraces(data || []);
+      }
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
+      setTraces([]);
+      setPagination({
+        total: 0,
+        page: 1,
+        pageSize: parseInt(pageSize),
+        totalPages: 1
+      });
     } finally {
       setIsSearching(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     setLoading(true);
-    fetchData();
-    setLoading(false);
+    // Get current page from URL or default to 1
+    const currentPage = parseInt(searchParams.get('page') || '1');
+    const currentPageSize = parseInt(searchParams.get('page_size') || pageSize);
+    setPageSize(currentPageSize.toString());
+    
+    const currentSearch = searchParams.get('app_name') || '';
+    setSearchTerm(currentSearch);
+    
+    fetchData(currentSearch, currentPage, currentPageSize);
   }, [searchParams]);
 
   const handleSearch = () => {
-    fetchData(searchTerm);
+    // Reset to page 1 when searching
+    updateUrlParams(1, parseInt(pageSize));
   };
+
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSearch();
     }
   };
 
-  // const filteredTraces = useMemo(() => {
-  //   return traces.filter((trace) =>
-  //     trace.ServiceName?.toLowerCase().includes(searchTerm.toLowerCase())
-  //   );
-  // }, [traces, searchTerm]);
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      updateUrlParams(newPage, pagination.pageSize);
+    }
+  };
 
-  const sortedTraces = useMemo(() => {
-    return [...traces].sort((a, b) => {
-      const timestampA = new Date(a.Timestamp).getTime();
-      const timestampB = new Date(b.Timestamp).getTime();
+  const handlePageSizeChange = (value: string) => {
+    setPageSize(value);
+    // Reset to page 1 when changing page size
+    updateUrlParams(1, parseInt(value));
+  };
 
-      return sortDirection === "asc"
-        ? timestampA - timestampB
-        : timestampB - timestampA;
-    });
-  }, [traces, sortDirection]);
-
-  const displayedTraces = sortedTraces.slice(0, parseInt(pageSize));
+  const updateUrlParams = (page: number, pageSize: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', page.toString());
+    params.set('page_size', pageSize.toString());
+    
+    if (searchTerm) {
+      params.set('app_name', searchTerm);
+    } else {
+      params.delete('app_name');
+    }
+    
+    router.push(`?${params.toString()}`);
+  };
 
   if (loading) {
     return (
@@ -101,7 +151,7 @@ const Exceptions = () => {
 
   return (
     <div className="h-full overflow-y-clip">
-      <div className="sticky top-1 p-2">
+      <div className="sticky top-1 p-2 bg-white z-10">
         <DynamicBreadcrumb />
         <div className="pt-4">
           <div className="flex flex-col lg:flex-row gap-4 mb-4 justify-between">
@@ -121,7 +171,7 @@ const Exceptions = () => {
                 />
                 <Button
                   onClick={handleSearch}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="ml-2 bg-blue-600 hover:bg-blue-700 text-white"
                   disabled={isSearching}
                 >
                   {isSearching ? (
@@ -134,7 +184,7 @@ const Exceptions = () => {
             </div>
             <div className="flex gap-2 justify-end items-center">
               {/* Page Size Button */}
-              <Select value={pageSize} onValueChange={setPageSize}>
+              <Select value={pageSize} onValueChange={handlePageSizeChange}>
                 <SelectTrigger className="w-32 bg-blue-600 hover:bg-blue-700 text-white border-0">
                   <span className="flex items-center gap-2">
                     Ukuran: <SelectValue />
@@ -174,39 +224,14 @@ const Exceptions = () => {
       </div>
 
       <div className="sticky top-20 bg-white rounded-lg shadow-sm">
-        <Card className="rounded-md h-full flex flex-col">
-          <div className="max-h-[calc(100vh-180px)] overflow-y-scroll">
-            <table className="w-full">
-              <thead className="sticky top-0 bg-gray-200 z-10">
-                <tr className="border-b border-gray-700">
-                  <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">
-                    Timestamp
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">
-                    Service
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">
-                    Operation
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">
-                    Exception Type
-                  </th>
-                  <th className="px-6 py-3 text-right text-sm font-medium text-slate-700">
-                    Duration
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {displayedTraces.map((trace, index) => (
-                  <ExceptionRow
-                    key={`${trace.TraceId}-${index}`}
-                    data={trace}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+        <ExceptionTable
+          displayedTraces={traces}
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.total}
+          pageSize={pagination.pageSize}
+          onPageChange={handlePageChange}
+        />
       </div>
     </div>
   );

@@ -6,7 +6,9 @@ export class ExceptionApiService {
 
   static async get_exception_trace(
     params: TimeFrameParams,
-    searchQuery?: string
+    searchQuery?: string,
+    page: number = 1,
+    pageSize: number = 10
   ) {
     try {
       const queryParams = new URLSearchParams();
@@ -20,8 +22,12 @@ export class ExceptionApiService {
       }
 
       if (searchQuery) {
-        queryParams.append("appName", searchQuery);
+        queryParams.append("app_name", searchQuery);
       }
+
+      // Add pagination parameters
+      queryParams.append("page", page.toString());
+      queryParams.append("page_size", pageSize.toString());
 
       const url = `${this.API_BASE_URL}/api/tracesExceptions${
         queryParams.toString() ? `?${queryParams.toString()}` : ""
