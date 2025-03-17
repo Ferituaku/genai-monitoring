@@ -25,12 +25,15 @@ class Exception(Resource):
             if page_size < 1 or page_size > 100:  # Limit page size 100
                 page_size = 10
 
+            from_zone = timezone.utc
+            to_zone = timezone(timedelta(hours=7))
+
             try:
                 if from_date and to_date:
-                    start_date = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
-                    end_date = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
+                    start_date = datetime.fromisoformat(from_date.replace('Z', '+00:00')).astimezone(to_zone)
+                    end_date = datetime.fromisoformat(to_date.replace('Z', '+00:00')).astimezone(to_zone)
                 else:
-                    end_date = datetime.now(timezone.utc)
+                    end_date = datetime.now(from_zone).astimezone(to_zone)
                     start_date = end_date - timedelta(days=7)
             except ValueError:
                 return {"message": "Invalid date format. Use ISO 8601 format."}, 400
@@ -117,7 +120,7 @@ class Exception(Resource):
             formatted_traces = [
                 {
                     "ServiceName": row[0],
-                    "Timestamp": row[1].isoformat() if row[1] else None,
+                    "Timestamp": row[1].astimezone(to_zone).isoformat() if row[1] else None,
                     "TraceId": row[2],
                     "SpanId": row[3],
                     "ParentSpanId": row[4],
