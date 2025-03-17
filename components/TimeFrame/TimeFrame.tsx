@@ -28,7 +28,7 @@ interface TimeFrameProps {
 const TimeFrame: React.FC<TimeFrameProps> = ({ onTimeFrameChange }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState("7D");
+  const [activeTab, setActiveTab] = useState("24H");
   const [date, setDate] = useState<DateRange | undefined>();
   const [tempDate, setTempDate] = useState<DateRange | undefined>();
   const [isOpen, setIsOpen] = useState(false);
