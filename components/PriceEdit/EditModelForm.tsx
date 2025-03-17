@@ -16,8 +16,8 @@ interface EditModelFormProps {
   models: Models;
   modelName: string;
   selectedDetail: string;
-  currentPrice: any; // Menggunakan any untuk mendukung format chat dan non-chat
-  newPrice: any; // Menggunakan any untuk mendukung format chat dan non-chat
+  currentPrice: any;
+  newPrice: any; 
   onModelSelect: (value: string) => void;
   onDetailSelect: (value: string) => void;
   onNewPriceChange: (value: any) => void;
@@ -40,10 +40,11 @@ const EDIT_MODEL_FORM: React.FC<EditModelFormProps> = ({
   onDelete,
   onUpdate,
 }) => {
-  // chat model
   const isChatModel = modelName === "chat";
   const [promptPrice, setPromptPrice] = useState("");
   const [completionPrice, setCompletionPrice] = useState("");
+  
+  const disabledModels = ["images"];
   
   useEffect(() => {
     if (isChatModel && selectedDetail && currentPrice) {
@@ -54,21 +55,19 @@ const EDIT_MODEL_FORM: React.FC<EditModelFormProps> = ({
     }
   }, [isChatModel, selectedDetail, currentPrice]);
 
-  // Handler promptPrice
   const handlePromptPriceChange = (value: string) => {
     setPromptPrice(value);
     onNewPriceChange({
-      promptPrice: parseFloat(value),
-      completionPrice: parseFloat(completionPrice || "0")
+      promptPrice: value,
+      completionPrice: completionPrice || "0"
     });
   };
 
-  // Handler completionPrice
   const handleCompletionPriceChange = (value: string) => {
     setCompletionPrice(value);
     onNewPriceChange({
-      promptPrice: parseFloat(promptPrice || "0"),
-      completionPrice: parseFloat(value)
+      promptPrice: promptPrice || "0",
+      completionPrice: value
     });
   };
 
@@ -86,8 +85,12 @@ const EDIT_MODEL_FORM: React.FC<EditModelFormProps> = ({
           </SelectTrigger>
           <SelectContent>
             {Object.keys(models).map((model) => (
-              <SelectItem key={model} value={model}>
-                {model}
+              <SelectItem 
+                key={model} 
+                value={model}
+                disabled={disabledModels.includes(model)}
+              >
+                {disabledModels.includes(model) ? `${model} (coming soon)` : model}
               </SelectItem>
             ))}
           </SelectContent>
@@ -116,7 +119,6 @@ const EDIT_MODEL_FORM: React.FC<EditModelFormProps> = ({
         </div>
       )}
 
-      {/* Audio & embedding model */}
       {selectedDetail && !isChatModel && (
         <>
           <div className="space-y-2">
@@ -143,7 +145,6 @@ const EDIT_MODEL_FORM: React.FC<EditModelFormProps> = ({
         </>
       )}
 
-      {/* Chat model */}
       {selectedDetail && isChatModel && (
         <>
           <div className="space-y-2">

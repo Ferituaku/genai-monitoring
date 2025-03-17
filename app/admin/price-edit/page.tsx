@@ -37,7 +37,6 @@ const ModelPriceManager = () => {
       setError(null);
     } catch (error) {
       setError("Failed to fetch models data");
-      console.error("Fetch error:", error);
     } finally {
       setLoading(false);
     }
@@ -55,7 +54,6 @@ const ModelPriceManager = () => {
     if (models[modelName]?.[value] !== undefined) {
       const priceData = models[modelName][value];
       
-      // Set current price by model
       if (modelName === "chat" && typeof priceData === 'object') {
         setCurrentPrice(priceData as ChatModelData);
         setNewPrice({
@@ -74,7 +72,6 @@ const ModelPriceManager = () => {
 
     setLoading(true);
     try {
-      // Update price by model
       if (modelName === "chat" && typeof newPrice === 'object') {
         const chatData: ChatModelData = {
           promptPrice: parseFloat(newPrice.promptPrice),
@@ -87,7 +84,6 @@ const ModelPriceManager = () => {
           chatData
         );
         
-        // Update current price when success
         setCurrentPrice(chatData);
       } else if (typeof newPrice === 'string') {
         const numericPrice = parseFloat(newPrice);
@@ -102,23 +98,23 @@ const ModelPriceManager = () => {
       }
       
       await FETCH_MODEL();
-      // Reset new price
       setNewPrice(modelName === "chat" ? { promptPrice: "", completionPrice: "" } : "");
       setError(null);
       setMode("view");
     } catch (error) {
       setError("Failed to update price");
-      console.error("Update error:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const HANDLE_CRATE_MODEL = async () => {
-    if (!newModelName || !newDetailName || !newDetailPrice) return;
+  const HANDLE_CREATE_MODEL = async () => {
+    if (!newModelName || !newDetailName || !newDetailPrice) {
+      return;
+    }
 
     setLoading(true);
-    try {
+    try {      
       if (newModelName === "chat") {
         const chatData: ChatModelData = {
           promptPrice: parseFloat(newDetailPrice),
@@ -131,10 +127,11 @@ const ModelPriceManager = () => {
           chatData
         );
       } else {
+        const numericPrice = parseFloat(newDetailPrice);
         await PriceEditApiService.createModel(
           newModelName,
           newDetailName,
-          parseFloat(newDetailPrice)
+          numericPrice
         );
       }
       
@@ -146,7 +143,6 @@ const ModelPriceManager = () => {
       setMode("view");
     } catch (error) {
       setError("Failed to create model");
-      console.error("Create error:", error);
     } finally {
       setLoading(false);
     }
@@ -164,7 +160,6 @@ const ModelPriceManager = () => {
       setError(null);
     } catch (error) {
       setError("Failed to delete detail");
-      console.error("Delete error:", error);
     } finally {
       setLoading(false);
     }
@@ -219,7 +214,7 @@ const ModelPriceManager = () => {
                   onDetailNameChange={setNewDetailName}
                   onDetailPriceChange={setNewDetailPrice}
                   onCancel={HANDLE_CANCEL}
-                  onSubmit={HANDLE_CRATE_MODEL}
+                  onSubmit={HANDLE_CREATE_MODEL}
                 />
               </TabsContent>
 

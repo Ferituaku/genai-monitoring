@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
-import { Models, ChatModelData } from "@/lib/PriceEdit/api";
+import { Models } from "@/lib/PriceEdit/api";
 
 interface CreateModelFormProps {
   loading: boolean;
@@ -21,7 +21,7 @@ interface CreateModelFormProps {
   onDetailNameChange: (value: string) => void;
   onDetailPriceChange: (value: string) => void;
   onCancel: () => void;
-  onSubmit: (modelName: string, detailName: string, price: number | ChatModelData) => void;
+  onSubmit: () => void;
 }
 
 const CREATE_MODEL_FORM: React.FC<CreateModelFormProps> = ({
@@ -36,31 +36,22 @@ const CREATE_MODEL_FORM: React.FC<CreateModelFormProps> = ({
   onCancel,
   onSubmit,
 }) => {
-  // state model chat
   const [promptPrice, setPromptPrice] = useState("");
   const [completionPrice, setCompletionPrice] = useState("");
   const isChatModel = newModelName === "chat";
   
-  // Reset prompt while model selected
   useEffect(() => {
     if (isChatModel) {
-      setPromptPrice(newDetailPrice);
-      setCompletionPrice(newDetailPrice);
+      setPromptPrice(newDetailPrice || "");
+      setCompletionPrice(newDetailPrice || "");
     }
   }, [isChatModel, newDetailPrice]);
   
-  // Handler submit
-  const handleSubmit = () => {
-    if (isChatModel) {
-      // Chat model
-      onSubmit(newModelName, newDetailName, {
-        promptPrice: parseFloat(promptPrice || "0"),
-        completionPrice: parseFloat(completionPrice || "0")
-      });
-    } else {
-      onSubmit(newModelName, newDetailName, parseFloat(newDetailPrice));
+  useEffect(() => {
+    if (isChatModel && promptPrice && completionPrice) {
+      onDetailPriceChange(promptPrice);
     }
-  };
+  }, [isChatModel, promptPrice, completionPrice, onDetailPriceChange]);
 
   return (
     <div className="space-y-6">
@@ -78,7 +69,7 @@ const CREATE_MODEL_FORM: React.FC<CreateModelFormProps> = ({
             <SelectItem value="chat">chat</SelectItem>
             <SelectItem value="audio">audio</SelectItem>
             <SelectItem value="embeddings">embeddings</SelectItem>
-            <SelectItem value="images">images</SelectItem>
+            <SelectItem value="images" disabled>images (coming soon)</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -138,7 +129,7 @@ const CREATE_MODEL_FORM: React.FC<CreateModelFormProps> = ({
           Cancel
         </Button>
         <Button
-          onClick={handleSubmit}
+          onClick={onSubmit}
           disabled={
             !newModelName || 
             !newDetailName || 
