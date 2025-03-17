@@ -10,11 +10,20 @@ class Request(Resource):
     
     def get(self):
         try:
-            params = request.args.to_dict(flat=False)  # Mendukung multiple values untuk filter
+            params = request.args.to_dict(flat=False)  
             from_date = request.args.get('from')
             to_date = request.args.get('to')
+            
+            # Param pagination
+            page = int(request.args.get('page', 1))
+            page_size = int(request.args.get('page_size', 10))
+            
+            # Validate pagination
+            if page < 1:
+                page = 1
+            if page_size < 1 or page_size > 100:  # Limit page size 100
+                page_size = 10
 
-            # Konversi tanggal
             try:
                 if from_date and to_date:
                     start_date = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
@@ -28,7 +37,7 @@ class Request(Resource):
             start_date_str = start_date.strftime('%Y-%m-%d %H:%M:%S')
             end_date_str = end_date.strftime('%Y-%m-%d %H:%M:%S')
 
-            # Pemetaan filter ke dalam database
+            #  Mapping filter
             filter_mappings = {
                 'app_name': "ResourceAttributes['service.name']",
                 'deployment_environment': "ResourceAttributes['deployment.environment']",
@@ -39,6 +48,35 @@ class Request(Resource):
                 'status_code': 'StatusCode'
             }
 
+            # Query total data
+            count_query = f"""
+            SELECT COUNT(*) as total
+            FROM otel_traces
+            WHERE Timestamp BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
+            """
+
+            params_query = {'start_date': start_date_str, 'end_date': end_date_str}
+
+            for key, column in filter_mappings.items():
+                snake_key = self.camel_to_snake(key)
+                values = params.get(key) or params.get(snake_key)  # Support camelCase and snake_case
+
+                if key == 'status_code' and not values:
+                    count_query += " AND StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET')"
+                elif values:
+                    placeholders = ', '.join([f"%({key}_{i})s" for i in range(len(values))])
+                    count_query += f" AND {column} IN ({placeholders})"
+                    for i, v in enumerate(values):
+                        params_query[f"{key}_{i}"] = v
+
+            # Eksekusi query count
+            count_result = self.client.query(count_query, params_query)
+            total_count = count_result.result_rows[0][0] if count_result.result_rows else 0
+            
+            # Count total pages
+            total_pages = (total_count + page_size - 1) // page_size if total_count > 0 else 1
+
+            # Query data
             query = f"""
             SELECT 
                 ServiceName, Timestamp, TraceId, SpanId, ParentSpanId, TraceState, SpanName, SpanKind,
@@ -48,27 +86,35 @@ class Request(Resource):
             WHERE Timestamp BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
             """
 
-            params_query = {'start_date': start_date_str, 'end_date': end_date_str}
-
             for key, column in filter_mappings.items():
                 snake_key = self.camel_to_snake(key)
-                values = params.get(key) or params.get(snake_key)  # Mendukung camelCase dan snake_case
+                values = params.get(key) or params.get(snake_key)
 
                 if key == 'status_code' and not values:
                     query += " AND StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET')"
                 elif values:
                     placeholders = ', '.join([f"%({key}_{i})s" for i in range(len(values))])
                     query += f" AND {column} IN ({placeholders})"
-                    for i, v in enumerate(values):
-                        params_query[f"{key}_{i}"] = v
 
-            query += " ORDER BY Timestamp DESC LIMIT 50"
+            query += " ORDER BY Timestamp DESC"
+            
+            # Limit and offset pagination
+            offset = (page - 1) * page_size
+            query += f" LIMIT {page_size} OFFSET {offset}"
 
             result = self.client.query(query, params_query)
             traces = result.result_rows if hasattr(result, 'result_rows') else []
 
             if not traces:
-                return jsonify([])
+                return jsonify({
+                    "data": [],
+                    "pagination": {
+                        "total": total_count,
+                        "page": page,
+                        "pageSize": page_size,
+                        "totalPages": total_pages
+                    }
+                })
 
             formatted_traces = [
                 {
@@ -96,7 +142,16 @@ class Request(Resource):
                 for row in traces
             ]
 
-            return jsonify(formatted_traces)
+            return jsonify({
+                "data": formatted_traces,
+                "pagination": {
+                    "total": total_count,
+                    "page": page,
+                    "pageSize": page_size,
+                    "totalPages": total_pages
+                }
+            })
+            
         except Exception as e:
             abort(500, f"Internal server error: {str(e)}")
 

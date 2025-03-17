@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Application } from "@/types/catalogue";
 import {
@@ -31,16 +31,36 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
+import { LogoService } from "@/lib/CatalogueService/logo-service";
 
 interface ApplicationCardProps {
   application: Application;
 }
 
 export const ApplicationCard = ({ application }: ApplicationCardProps) => {
-  const [logo, setLogo] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [isLogoValid, setIsLogoValid] = useState<boolean>(false);
   const [isLogoHovered, setIsLogoHovered] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const logoService = new LogoService();
+
+  // Check if logo exists and set URL on component mount
+  useEffect(() => {
+    const checkLogo = async () => {
+      if (application.HasLogo) {
+        const url = logoService.getLogoUrl(application.ProjectName);
+        setLogoUrl(url);
+        
+        // Verify the logo URL is valid
+        const isValid = await logoService.isImageUrlValid(url);
+        setIsLogoValid(isValid);
+      }
+    };
+    
+    checkLogo();
+  }, [application.HasLogo, application.ProjectName]);
 
   // Format date to a readable format
   const formatDate = (dateString: string): string => {
@@ -54,102 +74,92 @@ export const ApplicationCard = ({ application }: ApplicationCardProps) => {
   };
 
   // Handle file upload
-  // const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const file = e.target.files?.[0];
-  //   if (!file) return;
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  //   // Check if file is an image
-  //   if (!file.type.startsWith("image/")) {
-  //     toast({
-  //       title: "Error",
-  //       description: "Please upload an image file",
-  //       variant: "destructive",
-  //     });
-  //     return;
-  //   }
+    // Check if file is an image
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Error",
+        description: "Please upload an image file",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  //   // Check file size (max 2MB)
-  //   if (file.size > 2 * 1024 * 1024) {
-  //     toast({
-  //       title: "Error",
-  //       description: "File size should be less than 2MB",
-  //       variant: "destructive",
-  //     });
-  //     return;
-  //   }
+    // Check file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "Error",
+        description: "File size should be less than 2MB",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  //   try {
-  //     setIsUploading(true);
+    try {
+      setIsUploading(true);
 
-  //     // Create form data
-  //     const formData = new FormData();
-  //     formData.append("logo", file);
-  //     formData.append("appId", application.id || ""); // Assuming application has an id
-
-  //     // Upload to Flask backend
-  //     const response = await fetch("http://localhost:5000/api/upload-logo", {
-  //       method: "POST",
-  //       body: formData,
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error("Failed to upload logo");
-  //     }
-
-  //     const data = await response.json();
-  //     setLogo(data.logoUrl);
-
-  //     toast({
-  //       title: "Success",
-  //       description: "Logo uploaded successfully",
-  //     });
-  //   } catch (error) {
-  //     console.error("Error uploading logo:", error);
-  //     toast({
-  //       title: "Error",
-  //       description: "Failed to upload logo. Please try again.",
-  //       variant: "destructive",
-  //     });
-  //   } finally {
-  //     setIsUploading(false);
-  //   }
-  // };
+      // Upload logo using LogoService
+      const success = await logoService.uploadLogo(application.ProjectName, file);
+      
+      if (success) {
+        // Update logo URL and set as valid
+        const newLogoUrl = logoService.getLogoUrl(application.ProjectName);
+        
+        // Force reload of image by adding timestamp query parameter
+        const timestamp = new Date().getTime();
+        setLogoUrl(`${newLogoUrl}?t=${timestamp}`);
+        setIsLogoValid(true);
+        
+        // Update the application object locally
+        application.HasLogo = true;
+        
+        // Close the sheet modal
+        setIsSheetOpen(false);
+        
+        toast({
+          title: "Success",
+          description: "Logo uploaded successfully",
+        });
+      }
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+      toast({
+        title: "Error",
+        description: "Failed to upload logo. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   // Handle logo deletion
-  // const handleDeleteLogo = async () => {
-  //   if (!logo) return;
+  const handleDeleteLogo = async () => {
+    if (!application.HasLogo) return;
 
-  //   try {
-  //     setIsDeleting(true);
+    try {
+      setIsDeleting(true);
+      
+      // Delete logo using LogoService
+      const success = await logoService.deleteLogo(application.ProjectName);
+      
+      if (success) {
+        setLogoUrl(null);
+        setIsLogoValid(false);
+        
+        // Update the application object locally
+        application.HasLogo = false;
 
-  //     const response = await fetch(
-  //       `http://localhost:5000/api/delete-logo/${application.id}`,
-  //       {
-  //         method: "DELETE",
-  //       }
-  //     );
-
-  //     if (!response.ok) {
-  //       throw new Error("Failed to delete logo");
-  //     }
-
-  //     setLogo(null);
-
-  //     toast({
-  //       title: "Success",
-  //       description: "Logo deleted successfully",
-  //     });
-  //   } catch (error) {
-  //     console.error("Error deleting logo:", error);
-  //     toast({
-  //       title: "Error",
-  //       description: "Failed to delete logo. Please try again.",
-  //       variant: "destructive",
-  //     });
-  //   } finally {
-  //     setIsDeleting(false);
-  //   }
-  // };
+        // Close sheet after deletion
+        setIsSheetOpen(false);
+      }
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Default logo placeholder
   const defaultLogo = (
@@ -159,11 +169,12 @@ export const ApplicationCard = ({ application }: ApplicationCardProps) => {
   );
 
   // Rendered logo
-  const logoElement = logo ? (
+  const logoElement = (isLogoValid && logoUrl) ? (
     <img
-      src={logo}
+      src={logoUrl}
       alt={`${application.ProjectName} logo`}
       className="w-12 h-12 rounded-md object-cover"
+      onError={() => setIsLogoValid(false)}
     />
   ) : (
     defaultLogo
@@ -181,12 +192,13 @@ export const ApplicationCard = ({ application }: ApplicationCardProps) => {
             {logoElement}
 
             {isLogoHovered && (
-              <Sheet>
+              <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                 <SheetTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="absolute inset-1.5 bg-black/30 rounded-md flex items-center justify-center"
+                    onClick={() => setIsSheetOpen(true)}
                   >
                     <Pencil className="h-4 w-4 text-white" />
                   </Button>
@@ -201,35 +213,38 @@ export const ApplicationCard = ({ application }: ApplicationCardProps) => {
 
                   <div className="my-6 flex flex-col items-center space-y-4">
                     <div className="w-24 h-24 rounded-md overflow-hidden border-2 border-dashed border-gray-300 flex items-center justify-center">
-                      {logo ? (
+                      {(isLogoValid && logoUrl) ? (
                         <img
-                          src={logo}
+                          src={logoUrl}
                           alt={`${application.ProjectName} logo`}
                           className="w-full h-full object-cover"
+                          onError={() => setIsLogoValid(false)}
                         />
                       ) : (
-                        defaultLogo
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-2xl">
+                          {application.ProjectName?.charAt(0) || "A"}
+                        </div>
                       )}
                     </div>
 
                     <div className="flex gap-3">
                       <Button
                         variant="outline"
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 relative"
                         disabled={isUploading}
                       >
                         <Upload className="h-4 w-4" />
-                        <span>Upload New Logo</span>
+                        <span>{isUploading ? "Uploading..." : (isLogoValid ? "Change Logo" : "Upload Logo")}</span>
                         <input
                           type="file"
-                          className="inset-0 opacity-0 cursor-pointer"
-                          accept="image/*"
-                          // onChange={handleFileUpload}
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          accept="image/png,image/jpeg,image/jpg"
+                          onChange={handleFileUpload}
                           disabled={isUploading}
                         />
                       </Button>
 
-                      {logo && (
+                      {isLogoValid && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
@@ -245,14 +260,19 @@ export const ApplicationCard = ({ application }: ApplicationCardProps) => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete Logo</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete the logo for{" "}
-                                {application.ProjectName}? This action cannot be
+                                Are you sure you want to delete the logo for {" "}
+                                {application.ProjectName} ? This action cannot be
                                 undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction>Delete</AlertDialogAction>
+                              <AlertDialogAction 
+                                onClick={handleDeleteLogo}
+                                disabled={isDeleting}
+                              >
+                                {isDeleting ? "Deleting..." : "Delete"}
+                              </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
@@ -261,8 +281,8 @@ export const ApplicationCard = ({ application }: ApplicationCardProps) => {
                   </div>
 
                   <SheetFooter>
-                    <Button type="submit" form="logoForm">
-                      Save changes
+                    <Button type="button" onClick={() => setIsSheetOpen(false)}>
+                      Close
                     </Button>
                   </SheetFooter>
                 </SheetContent>
@@ -292,8 +312,8 @@ export const ApplicationCard = ({ application }: ApplicationCardProps) => {
           <div className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             <span>
-              Last Update Environment:{" "}
-              {application.Environment?.toLocaleString() || "0"}
+              Environment:{" "}
+              {application.Environment || "N/A"}
             </span>
           </div>
         </div>

@@ -2,90 +2,121 @@ from flask import jsonify, abort, request
 from flask_restful import Resource
 from datetime import datetime, timedelta, timezone
 from data.configuration.databaseopenlit import client
+import re
 
 class Exception(Resource):
     def __init__(self):
         self.client = client
 
     def get(self):
-        # Parsing query params (camelCase & snake_case support)
-        params = request.args.to_dict()
-        
-        # Date Range Filtering
-        from_date = params.get('from') 
-        to_date = params.get('to') 
-
         try:
-            if from_date and to_date:
-                start_date = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
-                end_date = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
-            else:
-                # Default to last 7 days if no dates provided
-                end_date = datetime.now(timezone.utc)
-                start_date = end_date - timedelta(days=7)
+            # Parsing query params
+            params = request.args.to_dict(flat=False)
+            from_date = request.args.get('from')
+            to_date = request.args.get('to')
             
-            # Format datetime for query
+            # Param pagination
+            page = int(request.args.get('page', 1))
+            page_size = int(request.args.get('page_size', 10))
+            
+            # Validate pagination
+            if page < 1:
+                page = 1
+            if page_size < 1 or page_size > 100:  # Limit page size 100
+                page_size = 10
+
+            try:
+                if from_date and to_date:
+                    start_date = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
+                    end_date = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
+                else:
+                    end_date = datetime.now(timezone.utc)
+                    start_date = end_date - timedelta(days=7)
+            except ValueError:
+                return {"message": "Invalid date format. Use ISO 8601 format."}, 400
+
             start_date_str = start_date.strftime('%Y-%m-%d %H:%M:%S')
             end_date_str = end_date.strftime('%Y-%m-%d %H:%M:%S')
 
+            #  Mapping filter
             filter_mappings = {
-                'appName': "ResourceAttributes['service.name']"
+                'app_name': "ResourceAttributes['service.name']",
+                'deployment_environment': "ResourceAttributes['deployment.environment']",
+                'system': "SpanAttributes['gen_ai.system']",
+                'model': "SpanAttributes['gen_ai.request.model']",
+                'operation_name': "SpanAttributes['gen_ai.operation.name']",
+                'endpoint': "SpanAttributes['gen_ai.endpoint']"
             }
 
-            # Build SQL Query
-            query = f"""
-            SELECT 
-                ServiceName,
-                Timestamp,
-                TraceId,
-                SpanId,
-                ParentSpanId,
-                TraceState,
-                SpanName,
-                SpanKind,
-                ResourceAttributes,
-                ScopeName,
-                ScopeVersion,
-                SpanAttributes,
-                Duration,
-                StatusCode,
-                StatusMessage,
-                Events.Timestamp,
-                Events.Name,
-                Events.Attributes
+            # Query total data
+            count_query = f"""
+            SELECT COUNT(*) as total
             FROM otel_traces
             WHERE Timestamp BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
+            AND StatusCode = 'STATUS_CODE_ERROR'
             """
 
-            params_query = {
-                'start_date': start_date_str,
-                'end_date': end_date_str
-            }
+            params_query = {'start_date': start_date_str, 'end_date': end_date_str}
 
-            # Apply Filters
             for key, column in filter_mappings.items():
-                camel_key = key
-                snake_key = key.replace('CamelCase', '_').lower()
+                snake_key = self.camel_to_snake(key)
+                values = params.get(key) or params.get(snake_key)  # Support camelCase and snake_case
 
-                value = params.get(camel_key) or params.get(snake_key)
-                
-                if value:
-                    query += f" AND {column} = %({key})s"
-                    params_query[key] = value
+                if values:
+                    placeholders = ', '.join([f"%({key}_{i})s" for i in range(len(values))])
+                    count_query += f" AND {column} IN ({placeholders})"
+                    for i, v in enumerate(values):
+                        params_query[f"{key}_{i}"] = v
 
-            query += " AND StatusCode = 'STATUS_CODE_ERROR'"
-            query += " ORDER BY Timestamp DESC LIMIT 50"
+            # Execute count query
+            count_result = self.client.query(count_query, params_query)
+            total_count = count_result.result_rows[0][0] if count_result.result_rows else 0
+            
+            # Count total pages
+            total_pages = (total_count + page_size - 1) // page_size if total_count > 0 else 1
 
-            # Execute query
-            traces = self.client.query(query, params_query).result_rows
+            # Query data
+            query = f"""
+            SELECT 
+                ServiceName, Timestamp, TraceId, SpanId, ParentSpanId, TraceState, SpanName, SpanKind,
+                ResourceAttributes, ScopeName, ScopeVersion, SpanAttributes, Duration, StatusCode,
+                StatusMessage, Events.Timestamp, Events.Name, Events.Attributes
+            FROM otel_traces
+            WHERE Timestamp BETWEEN toDateTime(%(start_date)s) AND toDateTime(%(end_date)s)
+            AND StatusCode = 'STATUS_CODE_ERROR'
+            """
+
+            for key, column in filter_mappings.items():
+                snake_key = self.camel_to_snake(key)
+                values = params.get(key) or params.get(snake_key)
+
+                if values:
+                    placeholders = ', '.join([f"%({key}_{i})s" for i in range(len(values))])
+                    query += f" AND {column} IN ({placeholders})"
+
+            query += " ORDER BY Timestamp DESC"
+            
+            # Limit and offset pagination
+            offset = (page - 1) * page_size
+            query += f" LIMIT {page_size} OFFSET {offset}"
+
+            result = self.client.query(query, params_query)
+            traces = result.result_rows if hasattr(result, 'result_rows') else []
 
             if not traces:
-                return jsonify([])
+                return jsonify({
+                    "data": [],
+                    "pagination": {
+                        "total": total_count,
+                        "page": page,
+                        "pageSize": page_size,
+                        "totalPages": total_pages
+                    }
+                })
 
-            # Format Response
-            formatted_traces = []
-            for row in traces:
-                trace_data = {
+            formatted_traces = [
+                {
+                    "ServiceName": row[0],
                     "Timestamp": row[1].isoformat() if row[1] else None,
                     "TraceId": row[2],
                     "SpanId": row[3],
@@ -93,7 +124,6 @@ class Exception(Resource):
                     "TraceState": row[5],
                     "SpanName": row[6],
                     "SpanKind": row[7],
-                    "ServiceName": row[0], 
                     "ResourceAttributes": row[8] if isinstance(row[8], dict) else {},
                     "ScopeName": row[9],
                     "ScopeVersion": row[10],
@@ -101,18 +131,28 @@ class Exception(Resource):
                     "Duration": str(row[12]) if row[12] else "0",
                     "StatusCode": row[13],
                     "StatusMessage": row[14],
-                    "Events.Timestamp": row[15] if isinstance(row[15], list) else [],
-                    "Events.Name": row[16] if isinstance(row[16], list) else [],
-                    "Events.Attributes": row[17] if isinstance(row[17], list) else []
+                    "Events": {
+                        "Timestamp": row[15] if isinstance(row[15], list) else [],
+                        "Name": row[16] if isinstance(row[16], list) else [],
+                        "Attributes": row[17] if isinstance(row[17], list) else []
+                    }
                 }
-                formatted_traces.append(trace_data)
+                for row in traces
+            ]
 
-            return jsonify(formatted_traces)
-            
-        except ValueError as e:
-            print(f"Date parsing error: {e}")
-            return {"message": f"Invalid date format: {str(e)}"}, 400
+            return jsonify({
+                "data": formatted_traces,
+                "pagination": {
+                    "total": total_count,
+                    "page": page,
+                    "pageSize": page_size,
+                    "totalPages": total_pages
+                }
+            })
             
         except Exception as e:
-            print(f"Error in get: {str(e)}")
-            abort(500, f"Terjadi kesalahan server: {str(e)}")
+            abort(500, f"Internal server error: {str(e)}")
+
+    @staticmethod
+    def camel_to_snake(name):
+        return re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower()

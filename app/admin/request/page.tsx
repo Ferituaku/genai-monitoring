@@ -24,6 +24,7 @@ export default function Request() {
   const [pageSize, setPageSize] = useState("10");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isFiltersApplied, setIsFiltersApplied] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1); // State untuk halaman saat ini
 
   // Sorting states
   const [sortField, setSortField] = useState<SortField>("Timestamp");
@@ -31,22 +32,9 @@ export default function Request() {
 
   // Filter states
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
-  const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>(
-    []
-  );
+  const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>([]);
   const [modelSearchTerm, setModelSearchTerm] = useState("");
   const [environmentSearchTerm, setEnvironmentSearchTerm] = useState("");
-  // const [tokenRange, setTokenRange] = useState<{
-  //   input: TokenRange;
-  //   output: TokenRange;
-  //   total: TokenRange;
-  // }>({
-  //   input: { min: 0, max: 4000 },
-  //   output: { min: 0, max: 4000 },
-  //   total: { min: 0, max: 8000 },
-  // });
-  // const [duration, setDuration] = useState({ min: 0, max: 10000 });
-  // const [isStream, setIsStream] = useState(false);
 
   // Get time frame from URL params
   const searchParams = useSearchParams();
@@ -55,6 +43,7 @@ export default function Request() {
   const handleSearch = useCallback(() => {
     setIsSearching(true);
     setActiveSearchTerm(searchTerm);
+    setCurrentPage(1); // Reset to first page when search is performed
     setTimeout(() => {
       setIsSearching(false);
     }, 500);
@@ -69,26 +58,27 @@ export default function Request() {
     [handleSearch]
   );
 
-  // Fetch data
-  const { traces, loading, error } = useTraceData({
+  // Fetch data dengan paginasi
+  const { traces, loading, error, pagination } = useTraceData({
     timeFrame,
     sortField,
     sortDirection,
     filters: {
       models: selectedModels,
       environments: selectedEnvironments,
-      // tokenRange,
-      // duration,
-      // isStream,
     },
     searchTerm: activeSearchTerm,
+    page: currentPage,
+    pageSize: parseInt(pageSize, 10)
   });
 
   // Apply filters
   const handleApplyFilters = useCallback(() => {
     setIsFiltersApplied(true);
     setIsFilterOpen(false);
+    setCurrentPage(1); // Reset to first page when filters are applied
   }, []);
+
   // Reset filters
   const handleResetFilters = useCallback(() => {
     setSelectedModels([]);
@@ -96,62 +86,19 @@ export default function Request() {
     setSearchTerm("");
     setSortField("Timestamp");
     setSortDirection("desc");
-    // setTokenRange({
-    //   input: { min: 0, max: 4000 },
-    //   output: { min: 0, max: 4000 },
-    //   total: { min: 0, max: 8000 },
-    // });
-    // setDuration({ min: 0, max: 10000 });
-    // setIsStream(false);
     setIsFiltersApplied(true);
     setIsFilterOpen(false);
+    setCurrentPage(1); // Reset to first page when filters are reset
   }, []);
 
-  // Get unique models and environments for filters
-  // const uniqueModels = useMemo(
-  //   () => [
-  //     ...new Set(
-  //       traces
-  //         .map((trace) => trace.SpanAttributes["gen_ai.request.model"])
-  //         .filter(Boolean)
-  //     ),
-  //   ],
-  //   [traces]
-  // );
+  // Reset currentPage 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [pageSize]);
 
-  // const uniqueEnvironments = useMemo(
-  //   () => [
-  //     ...new Set(
-  //       traces
-  //         .map((trace) => trace.ResourceAttributes["deployment.environment"])
-  //         .filter(Boolean)
-  //     ),
-  //   ],
-  //   [traces]
-  // );
-
-  // // Filter models and environments based on search
-  // const filteredUniqueModels = useMemo(
-  //   () =>
-  //     uniqueModels.filter((model) =>
-  //       model.toLowerCase().includes(modelSearchTerm.toLowerCase())
-  //     ),
-  //   [uniqueModels, modelSearchTerm]
-  // );
-
-  // const filteredUniqueEnvironments = useMemo(
-  //   () =>
-  //     uniqueEnvironments.filter((env) =>
-  //       env.toLowerCase().includes(environmentSearchTerm.toLowerCase())
-  //     ),
-  //   [uniqueEnvironments, environmentSearchTerm]
-  // );
-
-  // Get multiple models dan environments (select more than satu)
+  // Get available models and environments
   const [allAvailableModels, setAllAvailableModels] = useState<string[]>([]);
-  const [allAvailableEnvironments, setAllAvailableEnvironments] = useState<
-    string[]
-  >([]);
+  const [allAvailableEnvironments, setAllAvailableEnvironments] = useState<string[]>([]);
 
   useEffect(() => {
     if (traces.length > 0) {
@@ -205,15 +152,21 @@ export default function Request() {
     [allAvailableEnvironments, environmentSearchTerm]
   );
 
-  // Limit traces based on page size
-  const displayedTraces = useMemo(() => {
-    const startIndex = 0;
-    const endIndex = parseInt(pageSize, 10);
-    return traces.slice(startIndex, endIndex);
-  }, [traces, pageSize]);
+  // Handler page change
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
+
+  console.log("Pagination data:", {
+    currentPage,
+    totalPages: pagination?.totalPages,
+    totalItems: pagination?.total,
+    pageSize: parseInt(pageSize, 10),
+    tracesLength: traces.length
+  });
 
   return (
-    <div className="h-full overflow-y-clip">
+    <div className="h-full overflow-visible">
       <div className="fixed top-[70px] p-2 items-center gap-4">
         <DynamicBreadcrumb />
       </div>
@@ -235,12 +188,6 @@ export default function Request() {
           setModelSearchTerm={setModelSearchTerm}
           environmentSearchTerm={environmentSearchTerm}
           setEnvironmentSearchTerm={setEnvironmentSearchTerm}
-          // tokenRange={tokenRange}
-          // setTokenRange={setTokenRange}
-          // duration={duration}
-          // setDuration={setDuration}
-          // isStream={isStream}
-          // setIsStream={setIsStream}
           isFilterOpen={isFilterOpen}
           setIsFilterOpen={setIsFilterOpen}
           onApplyFilters={handleApplyFilters}
@@ -262,12 +209,21 @@ export default function Request() {
           <div className="min-h-screen ml-64 flex items-center justify-center text-red-500">
             {error}
           </div>
-        ) : displayedTraces.length === 0 ? (
+        ) : traces.length === 0 ? (
           <div className="flex bg-white bg-opacity-0 h-screen items-center justify-center text-gray-500">
             No data found
           </div>
         ) : (
-          <RequestTable displayedTraces={displayedTraces} />
+          <div>
+            <RequestTable 
+              displayedTraces={traces}
+              currentPage={currentPage}
+              totalPages={Math.max(1, pagination?.totalPages || 1)}
+              onPageChange={handlePageChange}
+              totalItems={pagination?.total || traces.length}
+              pageSize={parseInt(pageSize, 10)}
+            />
+          </div>
         )}
       </div>
     </div>

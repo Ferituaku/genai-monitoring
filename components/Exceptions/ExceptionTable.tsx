@@ -1,10 +1,11 @@
+import React from 'react';
 import { Card } from "@/components/ui/card";
-import { TraceData } from "@/types/trace";
-import { RequestRow } from "./RequestRow";
-import Pagination from "./Pagination";
+import { ErrorTraceData } from "@/types/exceptions";
+import ExceptionRow from "./ExceptionRow";
+import Pagination from "@/components/Request/Pagination";
 
-interface RequestTableProps {
-  displayedTraces: TraceData[];
+interface ExceptionTableProps {
+  displayedTraces: ErrorTraceData[];
   currentPage?: number;
   totalPages?: number;
   totalItems?: number;
@@ -12,14 +13,14 @@ interface RequestTableProps {
   onPageChange?: (page: number) => void;
 }
 
-export const RequestTable = ({ 
+export const ExceptionTable = ({
   displayedTraces,
   currentPage,
   totalPages,
   totalItems,
   pageSize,
   onPageChange
-}: RequestTableProps) => {
+}: ExceptionTableProps) => {
   return (
     <Card className="rounded-md h-full flex flex-col">
       <div className="sticky top-0 bg-gray-200 z-20">
@@ -30,25 +31,16 @@ export const RequestTable = ({
                 Timestamp
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">
-                Service Name
+                Service
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">
-                Model
+                Operation
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-slate-700">
-                Environment
+                Exception Type
               </th>
               <th className="px-6 py-3 text-right text-sm font-medium text-slate-700">
-                Token Completion
-              </th>
-              <th className="px-6 py-3 text-right text-sm font-medium text-slate-700">
-                Token Prompt
-              </th>
-              <th className="px-6 py-3 text-right text-sm font-medium text-slate-700">
-                Total Token
-              </th>
-              <th className="px-6 py-3 text-right text-sm font-medium text-slate-700">
-                Biaya
+                Duration
               </th>
             </tr>
           </thead>
@@ -56,19 +48,27 @@ export const RequestTable = ({
       </div>
       
       {/* Area scrollable */}
-      <div className="flex-grow overflow-y-auto" style={{ height: 'calc(100vh - 300px)' }}>
+      <div className="flex-grow overflow-y-auto max-h-[calc(100vh-300px)]">
         <table className="w-full">
           <tbody>
-            {displayedTraces.map((trace, index) => (
-              <RequestRow key={`${trace.TraceId}-${index}`} data={trace} />
-            ))}
+            {displayedTraces.length > 0 ? (
+              displayedTraces.map((trace, index) => (
+                <ExceptionRow key={`${trace.TraceId}-${index}`} data={trace} />
+              ))
+            ) : (
+              <tr>
+                <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                  No exception traces found
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
       
       {/* Pagination area */}
       {onPageChange && totalPages && totalPages > 0 && (
-        <div className="sticky bottom-0 border-t border-gray-200 bg-white z-20 px-6 py-2 text-sm">
+        <div className="sticky bottom-0 border-t border-gray-200 bg-white z-20 px-6 py-2">
           <Pagination 
             currentPage={currentPage || 1}
             totalPages={totalPages}
@@ -82,3 +82,5 @@ export const RequestTable = ({
     </Card>
   );
 };
+
+export default ExceptionTable;

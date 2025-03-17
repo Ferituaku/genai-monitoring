@@ -1,3 +1,4 @@
+import React from 'react';
 import { Clock, AlertCircle, Server, FileCode } from "lucide-react";
 
 import {
@@ -18,12 +19,33 @@ const ExceptionRow = ({ data }: { data: ErrorTraceData }) => {
   const duration = `${(parseInt(data.Duration || "0") / 1_000_000_000).toFixed(
     2
   )}s`;
-  const exception = data["Events.Attributes"].find(
-    (event) => event["exception.type"]
-  );
-  const exceptionType = exception
-    ? exception["exception.type"]
-    : "Unknown Exception";
+  
+  // Safely check exception type based on different possible structures
+  const findExceptionType = () => {
+    // For backwards compatibility with the old format
+    if ('Events.Attributes' in data && Array.isArray(data["Events.Attributes"])) {
+      const exception = data["Events.Attributes"].find(
+        (event) => event && typeof event === 'object' && "exception.type" in event
+      );
+      if (exception) return exception["exception.type"];
+    }
+    
+    // For the new format
+    if (data.Events && 
+        data.Events.Attributes && 
+        Array.isArray(data.Events.Attributes)) {
+      for (let i = 0; i < data.Events.Attributes.length; i++) {
+        const eventAttr = data.Events.Attributes[i];
+        if (eventAttr && typeof eventAttr === 'object' && "exception.type" in eventAttr) {
+          return eventAttr["exception.type"];
+        }
+      }
+    }
+    
+    return "Unknown Exception";
+  };
+  
+  const exceptionType = findExceptionType();
 
   return (
     <Sheet>
@@ -114,11 +136,11 @@ const ExceptionRow = ({ data }: { data: ErrorTraceData }) => {
               <h3 className="text-sm font-medium mb-2">Attributes</h3>
               <div className="bg-blue-600/10 p-3 rounded-lg">
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  {Object.entries(data.SpanAttributes).map(([key, value]) => (
-                    <>
+                  {Object.entries(data.SpanAttributes).map(([key, value], idx) => (
+                    <React.Fragment key={idx}>
                       <div className="text-gray-500 sm:text-xs">{key}:</div>
-                      <div>{value}</div>
-                    </>
+                      <div>{typeof value === 'object' ? JSON.stringify(value) : String(value)}</div>
+                    </React.Fragment>
                   ))}
                 </div>
               </div>

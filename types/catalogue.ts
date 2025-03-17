@@ -4,4 +4,5 @@ export interface Application {
   CreatedAt: string;
   LastUpdate: string;
   Environment: string;
+  HasLogo?: boolean;
 }

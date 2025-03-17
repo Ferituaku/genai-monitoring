@@ -51,6 +51,19 @@ def create_tables():
         )
         ''')
 
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS logos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_name TEXT NOT NULL UNIQUE,
+            logo_data BLOB,
+            logo_filename TEXT,
+            logo_mimetype TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT valid_project_name CHECK (length(project_name) >= 2 AND length(project_name) <= 100)
+        )
+        ''')
+
         conn.commit()
 
     finally:

@@ -1,16 +1,28 @@
-// api.ts
 import { Filters } from "@/types/requests";
 import { TimeFrameParams } from "@/types/timeframe";
 import { TraceData } from "@/types/trace";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5101";
 
-interface UseTraceDataParams {
+// Interface for pagination
+export interface PaginatedResponse {
+  data: TraceData[];
+  pagination: {
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  };
+}
+
+interface FetchTracesParams {
   timeFrame: TimeFrameParams;
   filters: Filters;
   sortField?: string;
   sortDirection?: string;
   searchTerm?: string;
+  page?: number;
+  pageSize?: number;
 }
 
 export const fetchTraces = async ({
@@ -19,22 +31,11 @@ export const fetchTraces = async ({
   sortField,
   sortDirection,
   searchTerm,
-}: UseTraceDataParams): Promise<TraceData[]> => {
+  page = 1,
+  pageSize = 10,
+}: FetchTracesParams): Promise<PaginatedResponse | TraceData[]> => {
   try {
     const queryParams = new URLSearchParams();
-
-    // if (timeFrame?.from) {
-    //   const fromDate = new Date(timeFrame.from);
-    //   // Pastikan timezone
-    //   fromDate.setUTCHours(0, 0, 0, 0);
-    //   queryParams.append("from", fromDate.toISOString());
-    // }
-    // if (timeFrame?.to) {
-    //   const toDate = new Date(timeFrame.to);
-    //   // Pastikan timezone
-    //   toDate.setUTCHours(23, 59, 59, 999);
-    //   queryParams.append("to", toDate.toISOString());
-    // }
 
     if (timeFrame?.from) {
       const fromDate = new Date(timeFrame.from).toISOString();
@@ -45,8 +46,9 @@ export const fetchTraces = async ({
       queryParams.append("to", toDate);
     }
 
-    // if (timeFrame?.from) queryParams.append("from", timeFrame.from);
-    // if (timeFrame?.to) queryParams.append("to", timeFrame.to);
+    // Pagination params
+    queryParams.append("page", page.toString());
+    queryParams.append("page_size", pageSize.toString());
 
     if (searchTerm) {
       queryParams.append("app_name", searchTerm);
@@ -63,56 +65,10 @@ export const fetchTraces = async ({
         queryParams.append("deployment_environment", env);
       });
     }
-    // if (filters.tokenRange?.input) {
-    //   queryParams.append(
-    //     "minInputTokens",
-    //     filters.tokenRange.input.min.toString()
-    //   );
-    //   queryParams.append(
-    //     "maxInputTokens",
-    //     filters.tokenRange.input.max.toString()
-    //   );
-    // }
-
-    // if (filters.tokenRange?.output) {
-    //   queryParams.append(
-    //     "minOutputTokens",
-    //     filters.tokenRange.output.min.toString()
-    //   );
-    //   queryParams.append(
-    //     "maxOutputTokens",
-    //     filters.tokenRange.output.max.toString()
-    //   );
-    // }
-
-    // if (filters.tokenRange?.total) {
-    //   queryParams.append(
-    //     "minTotalTokens",
-    //     filters.tokenRange.total.min.toString()
-    //   );
-    //   queryParams.append(
-    //     "maxTotalTokens",
-    //     filters.tokenRange.total.max.toString()
-    //   );
-    // }
-
-    // if (filters.duration) {
-    //   queryParams.append("min_duration", filters.duration.min.toString());
-    //   queryParams.append("min_duration", filters.duration.max.toString());
-    // }
-
-    // if (filters.isStream !== undefined) {
-    //   queryParams.append("isStream", filters.isStream.toString());
-    // }
 
     // Add sorting
     if (sortField) queryParams.append("sortBy", sortField);
     if (sortDirection) queryParams.append("sortOrder", sortDirection);
-
-    console.log(
-      "Fetching with URL:",
-      `${BASE_URL}/api/tracesRequest/?${queryParams}`
-    ); // Debug log
 
     const response = await fetch(
       `${BASE_URL}/api/tracesRequest/?${queryParams}`,
@@ -120,7 +76,6 @@ export const fetchTraces = async ({
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          // Tambahkan header untuk menangani CORS jika diperlukan
           Accept: "application/json",
         },
       }
@@ -128,18 +83,36 @@ export const fetchTraces = async ({
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Response error:", {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorText,
-      });
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    return data;
+
+    if (data.data && data.pagination) {
+      return data as PaginatedResponse;
+    } else if (Array.isArray(data)) {
+      return {
+        data: data,
+        pagination: {
+          total: data.length,
+          page: page,
+          pageSize: pageSize,
+          totalPages: Math.max(1, Math.ceil(data.length / pageSize)),
+        }
+      } as PaginatedResponse;
+    } else {
+      const dataArray = Array.isArray(data) ? data : (data.data || []);
+      return {
+        data: dataArray,
+        pagination: {
+          total: dataArray.length,
+          page: page,
+          pageSize: pageSize,
+          totalPages: Math.max(1, Math.ceil(dataArray.length / pageSize)),
+        }
+      } as PaginatedResponse;
+    }
   } catch (error) {
-    console.error("Error fetching traces:", error);
     throw error;
   }
 };

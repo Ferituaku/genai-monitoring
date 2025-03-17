@@ -1,5 +1,4 @@
-"use client";
-
+import React from "react";
 import {
   MessageSquare,
   Clock,
@@ -23,8 +22,22 @@ import {
 } from "@/components/ui/sheet";
 import { TraceData } from "@/types/trace";
 
+// Extension for TraceData interface to handle alternative formats
+interface ExtendedTraceData extends TraceData {
+  // Alternative format that might appear from the API
+  Events?: {
+    Attributes?: Array<{
+      "gen_ai.prompt"?: string;
+      "gen_ai.completion"?: string;
+      [key: string]: string | undefined;
+    }>;
+    Name?: string[];
+    Timestamp?: string[];
+  };
+}
+
 interface RequestRowProps {
-  data: TraceData;
+  data: ExtendedTraceData;
 }
 
 export const RequestRow = ({ data }: RequestRowProps) => {
@@ -50,15 +63,52 @@ export const RequestRow = ({ data }: RequestRowProps) => {
   const type = data.SpanAttributes["gen_ai.operation.name"] || "";
   const endpoint = data.SpanAttributes["gen_ai.endpoint"] || "";
 
-  // Find prompt and completion from Events.Attributes
-  const prompt =
-    data["Events.Attributes"]?.find((attr) => "gen_ai.prompt" in attr)?.[
-      "gen_ai.prompt"
-    ] || "";
-  const completion =
-    data["Events.Attributes"]?.find((attr) => "gen_ai.completion" in attr)?.[
-      "gen_ai.completion"
-    ] || "";
+  // Function to get prompt and completion by handling both formats
+  const getPromptAndCompletion = (): { prompt: string; completion: string } => {
+    let prompt = "";
+    let completion = "";
+    
+    // Format 1: Using "Events.Attributes" (dot notation)
+    if (data["Events.Attributes"] && Array.isArray(data["Events.Attributes"])) {
+      const promptAttr = data["Events.Attributes"].find(
+        (attr) => "gen_ai.prompt" in attr
+      );
+      const completionAttr = data["Events.Attributes"].find(
+        (attr) => "gen_ai.completion" in attr
+      );
+      
+      if (promptAttr && promptAttr["gen_ai.prompt"]) {
+        prompt = promptAttr["gen_ai.prompt"];
+      }
+      
+      if (completionAttr && completionAttr["gen_ai.completion"]) {
+        completion = completionAttr["gen_ai.completion"];
+      }
+    }
+    
+    // Format 2: Using nested "Events.Attributes" object
+    if (!prompt && data.Events && data.Events.Attributes && Array.isArray(data.Events.Attributes)) {
+      const promptAttr = data.Events.Attributes.find(
+        (attr) => "gen_ai.prompt" in attr
+      );
+      const completionAttr = data.Events.Attributes.find(
+        (attr) => "gen_ai.completion" in attr
+      );
+      
+      if (promptAttr && promptAttr["gen_ai.prompt"]) {
+        prompt = promptAttr["gen_ai.prompt"];
+      }
+      
+      if (completionAttr && completionAttr["gen_ai.completion"]) {
+        completion = completionAttr["gen_ai.completion"];
+      }
+    }
+    
+    return { prompt, completion };
+  };
+
+  // Get prompt and completion
+  const { prompt, completion } = getPromptAndCompletion();
 
   const formatTraceData = () => {
     const root = {
@@ -174,16 +224,14 @@ export const RequestRow = ({ data }: RequestRowProps) => {
   );
 };
 
-// Helper Components
-const InfoBadge = ({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: any;
+// Helper Components with type definitions
+interface InfoBadgeProps {
+  icon: React.ElementType;
   label: string;
   value: string;
-}) => (
+}
+
+const InfoBadge = ({ icon: Icon, label, value }: InfoBadgeProps) => (
   <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
     <Icon className="h-4 w-4 text-white sm:text-xs" />
     <span className="text-sm text-white sm:text-xs">{label}:</span>
@@ -191,19 +239,22 @@ const InfoBadge = ({
   </div>
 );
 
-const DetailSection = ({
-  title,
-  content,
-}: {
+interface DetailSectionProps {
   title: string;
   content: string;
-}) => (
+}
+
+const DetailSection = ({ title, content }: DetailSectionProps) => (
   <div>
     <h3 className="text-sm font-medium mb-2">{title}</h3>
-    <div className="bg-black p-3 rounded-lg">
-      <pre className="text-sm text-white whitespace-pre-wrap">
-        {content || `No ${title.toLowerCase()} available`}
-      </pre>
+    <div className="bg-black p-3 rounded-lg overflow-auto max-h-[400px]">
+      {content ? (
+        <pre className="text-sm text-white whitespace-pre-wrap">{content}</pre>
+      ) : (
+        <div className="text-sm text-gray-400 italic">
+          No {title.toLowerCase()} available
+        </div>
+      )}
     </div>
   </div>
 );
