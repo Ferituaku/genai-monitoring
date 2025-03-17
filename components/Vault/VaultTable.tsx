@@ -1,4 +1,3 @@
-// VaultTable.tsx
 import {
   Table,
   TableBody,
@@ -68,7 +67,7 @@ export const VaultTable = ({
     return <div className="text-center py-4">Loading...</div>;
   }
 
-  // Fungsi untuk memendekkan nilai yang panjang
+  // Fungction to truncate value
   const truncateValue = (value: string) => {
     if (value.length > 20) {
       return value.substring(0, 20) + "...";
@@ -136,11 +135,11 @@ export const VaultTable = ({
         </TableBody>
       </Table>
 
-      {/* Modal untuk menampilkan value lengkap */}
+      {/* Modal value */}
       <Dialog open={isValueModalOpen} onOpenChange={setIsValueModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Value Lengkap</DialogTitle>
+            <DialogTitle>Value</DialogTitle>
           </DialogHeader>
           <div className="mt-4 p-4 bg-gray-100 rounded-md overflow-auto max-h-60">
             <pre className="whitespace-pre-wrap break-all">{selectedValue}</pre>
@@ -153,7 +152,7 @@ export const VaultTable = ({
         </DialogContent>
       </Dialog>
 
-      {/* Alert Dialog untuk konfirmasi penghapusan */}
+      {/* Alert delete */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
