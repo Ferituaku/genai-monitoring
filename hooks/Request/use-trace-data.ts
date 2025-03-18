@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { fetchTraces, PaginatedResponse } from "@/lib/RequestService/api";
 import { Filters } from "@/types/requests";
 import { TimeFrameParams } from "@/types/timeframe";
-import { TraceData } from "@/types/trace";
+import { SortDirection, SortField, TraceData } from "@/types/trace";
 
 // Interface for pagination
 export interface PaginationInfo {
@@ -14,8 +14,8 @@ export interface PaginationInfo {
 
 interface UseTraceDataParams {
   timeFrame: TimeFrameParams;
-  sortField?: string;
-  sortDirection?: string;
+  sortField?: SortField;
+  sortDirection?: SortDirection;
   filters: Filters;
   searchTerm?: string;
   page?: number;
@@ -45,7 +45,7 @@ export const useTraceData = ({
   const loadTraces = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const response = await fetchTraces({
         timeFrame,
         filters,
@@ -55,8 +55,8 @@ export const useTraceData = ({
         page,
         pageSize,
       });
-  
-      if (response && 'data' in response && 'pagination' in response) {
+
+      if (response && "data" in response && "pagination" in response) {
         const paginatedResponse = response as PaginatedResponse;
         setTraces(paginatedResponse.data);
         setPagination({
@@ -74,10 +74,10 @@ export const useTraceData = ({
           total: traceData.length,
           page,
           pageSize,
-          totalPages: calculatedTotalPages || 1, 
+          totalPages: calculatedTotalPages || 1,
         });
       }
-      
+
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");

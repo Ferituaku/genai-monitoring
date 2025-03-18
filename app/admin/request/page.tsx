@@ -3,16 +3,10 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Search, SlidersHorizontal, Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import DynamicBreadcrumb from "@/components/Breadcrum";
 import { RequestTable } from "@/components/Request/RequestTable";
-import { SortDirection, SortField, TraceData } from "@/types/trace";
+import { SortDirection, SortField } from "@/types/trace";
 import { get_time_frame_params } from "@/hooks/TimeFrame/api";
-import { TokenRange } from "@/types/requests";
 import { useTraceData } from "@/hooks/Request/use-trace-data";
 import { RequestControls } from "@/components/Request/RequestControl";
 
@@ -24,7 +18,7 @@ export default function Request() {
   const [pageSize, setPageSize] = useState("10");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isFiltersApplied, setIsFiltersApplied] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1); // State untuk halaman saat ini
+  const [currentPage, setCurrentPage] = useState(1); 
 
   // Sorting states
   const [sortField, setSortField] = useState<SortField>("Timestamp");
@@ -43,7 +37,7 @@ export default function Request() {
   const handleSearch = useCallback(() => {
     setIsSearching(true);
     setActiveSearchTerm(searchTerm);
-    setCurrentPage(1); // Reset to first page when search is performed
+    setCurrentPage(1); 
     setTimeout(() => {
       setIsSearching(false);
     }, 500);
@@ -76,7 +70,7 @@ export default function Request() {
   const handleApplyFilters = useCallback(() => {
     setIsFiltersApplied(true);
     setIsFilterOpen(false);
-    setCurrentPage(1); // Reset to first page when filters are applied
+    setCurrentPage(1); 
   }, []);
 
   // Reset filters

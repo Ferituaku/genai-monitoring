@@ -151,7 +151,7 @@ const Exceptions = () => {
 
   return (
     <div className="h-full overflow-y-clip">
-      <div className="sticky top-1 p-2 bg-white z-10">
+      <div className="sticky top-1 p-2 z-10">
         <DynamicBreadcrumb />
         <div className="pt-4">
           <div className="flex flex-col lg:flex-row gap-4 mb-4 justify-between">

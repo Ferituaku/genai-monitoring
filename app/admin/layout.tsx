@@ -11,11 +11,16 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
+  // const session = await auth();
 
   return (
     <>
       <div className="relative flex h-screen overflow-hidden">
-        <Sidebar onSidebarToggle={setSidebarOpen} defaultOpen={true} />
+        <Sidebar
+          // userRole="admin"
+          onSidebarToggle={setSidebarOpen}
+          defaultOpen={true}
+        />
         <div className="flex flex-col flex-1">
           <NavBar />
           <main

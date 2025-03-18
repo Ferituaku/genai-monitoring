@@ -20,9 +20,7 @@ const ExceptionRow = ({ data }: { data: ErrorTraceData }) => {
     2
   )}s`;
   
-  // Safely check exception type based on different possible structures
   const findExceptionType = () => {
-    // For backwards compatibility with the old format
     if ('Events.Attributes' in data && Array.isArray(data["Events.Attributes"])) {
       const exception = data["Events.Attributes"].find(
         (event) => event && typeof event === 'object' && "exception.type" in event
@@ -30,7 +28,6 @@ const ExceptionRow = ({ data }: { data: ErrorTraceData }) => {
       if (exception) return exception["exception.type"];
     }
     
-    // For the new format
     if (data.Events && 
         data.Events.Attributes && 
         Array.isArray(data.Events.Attributes)) {

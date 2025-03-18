@@ -18,6 +18,9 @@ class Request(Resource):
             page = int(request.args.get('page', 1))
             page_size = int(request.args.get('page_size', 10))
             
+            sort_by = request.args.get('sortBy', 'Timestamp')
+            sort_order = request.args.get('sortOrder', 'desc').lower()
+            
             # Validate pagination
             if page < 1:
                 page = 1
@@ -50,6 +53,14 @@ class Request(Resource):
                 'status_code': 'StatusCode'
             }
 
+            # Mapping untuk sorting
+            sort_field_mappings = {
+                'Timestamp': 'Timestamp',
+                'SpanAttributes.gen_ai.request.model': "SpanAttributes['gen_ai.request.model']",
+                'SpanAttributes.gen_ai.usage.total_tokens': "SpanAttributes['gen_ai.usage.total_tokens']",
+                'SpanAttributes.gen_ai.usage.cost': "SpanAttributes['gen_ai.usage.cost']"
+            }
+
             # Query total data
             count_query = f"""
             SELECT COUNT(*) as total
@@ -61,7 +72,7 @@ class Request(Resource):
 
             for key, column in filter_mappings.items():
                 snake_key = self.camel_to_snake(key)
-                values = params.get(key) or params.get(snake_key)  # Support camelCase and snake_case
+                values = params.get(key) or params.get(snake_key)  
 
                 if key == 'status_code' and not values:
                     count_query += " AND StatusCode IN ('STATUS_CODE_OK', 'STATUS_CODE_UNSET')"
@@ -98,7 +109,23 @@ class Request(Resource):
                     placeholders = ', '.join([f"%({key}_{i})s" for i in range(len(values))])
                     query += f" AND {column} IN ({placeholders})"
 
-            query += " ORDER BY Timestamp DESC"
+            #sorting dinamis
+            if sort_by in sort_field_mappings:
+                sort_field = sort_field_mappings[sort_by]
+                sort_direction = "DESC" if sort_order.lower() == "desc" else "ASC"
+                
+                if sort_by.startswith('SpanAttributes.'):
+                    if "total_tokens" in sort_by:
+                        query += f" ORDER BY ifNull(toFloat64OrZero(JSONExtractRaw({sort_field})), 0) {sort_direction}"
+                    elif "cost" in sort_by:
+                        query += f" ORDER BY ifNull(toFloat64OrZero(JSONExtractRaw({sort_field})), 0) {sort_direction}"
+                    else:
+                        query += f" ORDER BY {sort_field} {sort_direction}"
+                else:
+                    query += f" ORDER BY {sort_field} {sort_direction}"
+            else:
+                # Default sorting
+                query += " ORDER BY Timestamp DESC"
             
             # Limit and offset pagination
             offset = (page - 1) * page_size

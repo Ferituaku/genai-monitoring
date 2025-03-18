@@ -1,6 +1,6 @@
 import { Filters } from "@/types/requests";
 import { TimeFrameParams } from "@/types/timeframe";
-import { TraceData } from "@/types/trace";
+import { SortDirection, SortField, TraceData } from "@/types/trace";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5101";
 
@@ -18,8 +18,8 @@ export interface PaginatedResponse {
 interface FetchTracesParams {
   timeFrame: TimeFrameParams;
   filters: Filters;
-  sortField?: string;
-  sortDirection?: string;
+  sortField?: SortField;
+  sortDirection?: SortDirection;
   searchTerm?: string;
   page?: number;
   pageSize?: number;
@@ -28,8 +28,8 @@ interface FetchTracesParams {
 export const fetchTraces = async ({
   timeFrame,
   filters,
-  sortField,
-  sortDirection,
+  sortField = "Timestamp",
+  sortDirection = "desc",
   searchTerm,
   page = 1,
   pageSize = 10,
@@ -56,7 +56,7 @@ export const fetchTraces = async ({
 
     if (filters.models && filters.models.length > 0) {
       filters.models.forEach((model: string) => {
-        queryParams.append("model", model); 
+        queryParams.append("model", model);
       });
     }
 
@@ -67,8 +67,20 @@ export const fetchTraces = async ({
     }
 
     // Add sorting
-    if (sortField) queryParams.append("sortBy", sortField);
-    if (sortDirection) queryParams.append("sortOrder", sortDirection);
+    // if (sortField) queryParams.append("sortBy", sortField);
+    // if (sortDirection) queryParams.append("sortOrder", sortDirection);
+    // let actualSortField = sortField;
+
+    // if (sortField.includes(".")) {
+    //   actualSortField = sortField;
+    // }
+
+    // Add sorting parameters
+    console.log(
+      `Setting sort params: sortBy=${sortField}, sortOrder=${sortDirection}`
+    );
+    queryParams.append("sortBy", sortField);
+    queryParams.append("sortOrder", sortDirection);
 
     const response = await fetch(
       `${BASE_URL}/api/tracesRequest/?${queryParams}`,
@@ -98,10 +110,10 @@ export const fetchTraces = async ({
           page: page,
           pageSize: pageSize,
           totalPages: Math.max(1, Math.ceil(data.length / pageSize)),
-        }
+        },
       } as PaginatedResponse;
     } else {
-      const dataArray = Array.isArray(data) ? data : (data.data || []);
+      const dataArray = Array.isArray(data) ? data : data.data || [];
       return {
         data: dataArray,
         pagination: {
@@ -109,7 +121,7 @@ export const fetchTraces = async ({
           page: page,
           pageSize: pageSize,
           totalPages: Math.max(1, Math.ceil(dataArray.length / pageSize)),
-        }
+        },
       } as PaginatedResponse;
     }
   } catch (error) {

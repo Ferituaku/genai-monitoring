@@ -22,7 +22,7 @@ export const ExceptionTable = ({
   onPageChange
 }: ExceptionTableProps) => {
   return (
-    <Card className="rounded-md h-full flex flex-col">
+    <Card className="rounded-md h-full flex flex-col ">
       <div className="sticky top-0 bg-gray-200 z-20">
         <table className="w-full">
           <thead>

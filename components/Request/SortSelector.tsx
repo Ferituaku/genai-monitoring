@@ -22,14 +22,18 @@ export const SortSelector = ({
 }: SortSelectorProps) => {
   const handleSortChange = (value: string) => {
     const [field, direction] = value.split("-") as [SortField, SortDirection];
+    //kasi debugging
+    console.log(`Sorting changed to: ${field} - ${direction}`);
     setSortField(field);
     setSortDirection(direction);
   };
+
+  const currentValue = `${sortField}-${sortDirection}`;
+  //kasi debugging
+  console.log(`Current sort value: ${currentValue}`);
+
   return (
-    <Select
-      value={`${sortField}-${sortDirection}`}
-      onValueChange={handleSortChange}
-    >
+    <Select value={currentValue} onValueChange={handleSortChange}>
       <SelectTrigger className="w-20 bg-blue-600 hover:bg-blue-700 text-white border-0">
         <span className="flex items-center gap-2">
           <ArrowUpDown className="h-4 w-4" />
