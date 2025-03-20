@@ -27,7 +27,7 @@ class Dashboard(Resource):
                     abort(400, "Invalid date format. Use ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)")
             else:
                 end_date = datetime.now(timezone.utc)
-                start_date = end_date - timedelta(days=7)
+                start_date = end_date - timedelta(days=1)
 
             # Format datetime for query
             start_date_str = start_date.strftime('%Y-%m-%d %H:%M:%S')

@@ -24,7 +24,7 @@ class Request(Resource):
             # Validate pagination
             if page < 1:
                 page = 1
-            if page_size < 1 or page_size > 100:  # Limit page size 100
+            if page_size < 1 or page_size > 100:  
                 page_size = 10
 
             from_zone = timezone.utc
@@ -36,7 +36,7 @@ class Request(Resource):
                     end_date = datetime.fromisoformat(to_date.replace('Z', '+00:00')).astimezone(to_zone)
                 else:
                     end_date = datetime.now(from_zone).astimezone(to_zone)
-                    start_date = end_date - timedelta(days=7)
+                    start_date = end_date - timedelta(days=1)
             except ValueError:
                 return {"message": "Invalid date format. Use ISO 8601 format."}, 400
 

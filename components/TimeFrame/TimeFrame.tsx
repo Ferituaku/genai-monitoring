@@ -1,4 +1,3 @@
-// components/TimeFrame/TimeFrame.tsx
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
@@ -11,7 +10,13 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
-import { endOfDay, format, parseISO, startOfDay } from "date-fns";
+import {
+  endOfDay,
+  format,
+  parseISO,
+  startOfDay,
+  differenceInDays,
+} from "date-fns";
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 import {
@@ -41,18 +46,67 @@ const TimeFrame: React.FC<TimeFrameProps> = ({ onTimeFrameChange }) => {
     CUSTOM: null,
   } as const;
 
+  // Fungsi pembantu untuk menentukan tab yang aktif berdasarkan rentang tanggal
+  const determineActiveTab = (
+    fromDate: Date,
+    toDate: Date
+  ): keyof typeof TIME_RANGES => {
+    // Deteksi 24H - jika dari awal hari hingga akhir hari yang sama
+    const isSameDay =
+      fromDate.getDate() === toDate.getDate() &&
+      fromDate.getMonth() === toDate.getMonth() &&
+      fromDate.getFullYear() === toDate.getFullYear();
+
+    const isStartOfDay =
+      fromDate.getHours() === 0 && fromDate.getMinutes() === 0;
+
+    const isEndOfDay = toDate.getHours() === 23 && toDate.getMinutes() === 59;
+
+    // Jika tanggal sama dan dari awal hari hingga akhir hari, itu adalah 24H
+    if (isSameDay && isStartOfDay && isEndOfDay) {
+      return "24H";
+    }
+
+    // Untuk timeframe lainnya, kita gunakan logika yang lebih fleksibel
+    const daysDiff = differenceInDays(toDate, fromDate) + 1; // +1 karena inklusif
+
+    if (daysDiff >= 6 && daysDiff <= 7) return "7D";
+    if (daysDiff >= 28 && daysDiff <= 31) return "1M";
+    if (daysDiff >= 89 && daysDiff <= 92) return "3M";
+
+    return "CUSTOM";
+  };
+
+  // Effect pertama untuk menerapkan default timeframe saat pertama kali load
   useEffect(() => {
-    const timeParams = get_time_frame_params(searchParams);
-    const dateRange = {
-      from: parseISO(timeParams.from),
-      to: parseISO(timeParams.to),
-    };
+    if (!searchParams.has("from") && !searchParams.has("to")) {
+      handleTimeframeChange("24H");
+    }
+  }, []);
 
-    setDate(dateRange);
-    setTempDate(dateRange);
+  // Effect kedua untuk update komponen ketika URL berubah
+  useEffect(() => {
+    if (searchParams.has("from") && searchParams.has("to")) {
+      const timeParams = get_time_frame_params(searchParams);
+      const fromDate = parseISO(timeParams.from);
+      const toDate = parseISO(timeParams.to);
 
-    if (onTimeFrameChange) {
-      onTimeFrameChange(timeParams);
+      setDate({
+        from: fromDate,
+        to: toDate,
+      });
+      setTempDate({
+        from: fromDate,
+        to: toDate,
+      });
+
+      // Tentukan tab aktif berdasarkan rentang tanggal menggunakan fungsi pembantu
+      const activeTimeframe = determineActiveTab(fromDate, toDate);
+      setActiveTab(activeTimeframe);
+
+      if (onTimeFrameChange) {
+        onTimeFrameChange(timeParams);
+      }
     }
   }, [searchParams, onTimeFrameChange]);
 
