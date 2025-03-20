@@ -23,8 +23,9 @@ export const get_time_frame_params = (
       )
     );
 
+    const defaultStartDate = startOfDay(utcDate); 
     const defaultEndDate = endOfDay(utcDate);
-    const defaultStartDate = startOfDay(subDays(utcDate, 7));
+    
 
     const from = searchParams.get("from");
     const to = searchParams.get("to");
