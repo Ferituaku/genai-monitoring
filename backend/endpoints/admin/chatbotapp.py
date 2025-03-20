@@ -129,6 +129,8 @@ class ChatHistoryService(Resource):
                     SpanAttributes['Answer'] AS Jawaban
                 FROM openlit.otel_traces
                 WHERE SpanAttributes['UniqueIDChat'] = '{unique_id_chat}'
+                    AND ServiceName = '{service_name}'
+                    AND ResourceAttributes['deployment.environment'] = '{environment}'
                 ORDER BY Timestamp ASC
             """
 
