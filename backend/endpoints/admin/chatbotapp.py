@@ -1,9 +1,9 @@
 from flask import jsonify
 from flask_restful import Resource
 from data.configuration.databaseopenlit import client
+from datetime import datetime, timedelta, timezone
 
 class ProjectChatService(Resource):
-
 
     def get(self):
         try:
@@ -19,13 +19,15 @@ class ProjectChatService(Resource):
                 AND SpanAttributes['UniqueIDChat'] IS NOT NULL
                 AND SpanAttributes['UniqueIDChat'] != ''
             """
-            
+            from_zone = timezone.utc
+            to_zone = timezone(timedelta(hours=7))
             rows = client.query(query).result_rows
             sessions = {}
+
             for row in rows:
                 unique_id = row[2]['UniqueIDChat']
                 chat_id = row[2].get('ChatID')
-                timestamp = row[3]
+                timestamp = row[3].replace(tzinfo=from_zone).astimezone(to_zone)
                 service_name = row[0]
                 environment = row[1]['deployment.environment']
                 
@@ -56,7 +58,7 @@ class ProjectChatService(Resource):
                     'ServiceName': session['ServiceName'],
                     'Environment': session['Environment'],
                     'UniqueIDChat': session['UniqueIDChat'],
-                    'Timestamp': str(session['Timestamp']),
+                    'Timestamp': session['Timestamp'].isoformat(),
                     'TotalMessages': len(session['TotalMessages'])
                 })
 
@@ -139,10 +141,13 @@ class ChatHistoryService(Resource):
             # Hitung total messages
             total_messages = len(chat_history)
 
+            from_zone = timezone.utc
+            to_zone = timezone(timedelta(hours=7))
+
             # Format response
             formatted_history = [
                 {
-                    "Timestamp": str(row[0]),
+                    "Timestamp": row[0].replace(tzinfo=from_zone).astimezone(to_zone).isoformat(),
                     "ChatID": row[1],
                     "Pertanyaan": row[2],
                     "Jawaban": row[3]
