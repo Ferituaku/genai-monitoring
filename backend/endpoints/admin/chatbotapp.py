@@ -119,10 +119,8 @@ class ChatHistoryService(Resource):
     def get(self, unique_id_chat):
         try:
             export_format = request.args.get('export')
-            serviceName = request.args.get('servicename')
-            environment = request.args.get('environment')
 
-            if not unique_id_chat or not serviceName or not environment:
+            if not unique_id_chat:
                 return jsonify({"error": "UniqueIDChat parameter is required"}), 400
 
             service_query = f'''
@@ -170,14 +168,8 @@ class ChatHistoryService(Resource):
                 for row in chat_history
             ]
 
-            # **1. Jika ingin ekspor ke Excel**
-            if export_format == "excel":
-                df = pd.DataFrame(formatted_history)
-                file_path = f"chat_history_{unique_id_chat}.xlsx"
-                df.to_excel(file_path, index=False)
-                return send_file(file_path, as_attachment=True)
 
-            # **2. Jika tidak ada parameter ekspor, kembalikan JSON biasa**
+            # **3. Jika tidak ada parameter ekspor, kembalikan JSON biasa**
             response_data = {
                 "UniqueIDChat": unique_id_chat,
                 "ServiceName": service_name,
