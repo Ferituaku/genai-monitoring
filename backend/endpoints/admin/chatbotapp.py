@@ -1,13 +1,35 @@
-from flask import jsonify
+from flask import jsonify, request,send_file
 from flask_restful import Resource
 from data.configuration.databaseopenlit import client
 from datetime import datetime, timedelta, timezone
+import pandas as pd
+import pdfkit
 
 class ProjectChatService(Resource):
 
     def get(self):
         try:
-            query = """
+            params = request.args.to_dict(flat=False)  
+            from_date = request.args.get('from')
+            to_date = request.args.get('to')
+
+            from_zone = timezone.utc
+            to_zone = timezone(timedelta(hours=7))
+
+            try:
+                if from_date and to_date:
+                    start_date = datetime.fromisoformat(from_date.replace('Z', '+00:00')).astimezone(to_zone)
+                    end_date = datetime.fromisoformat(to_date.replace('Z', '+00:00')).astimezone(to_zone)
+                else:
+                    end_date = datetime.now(from_zone).astimezone(to_zone)
+                    start_date = end_date - timedelta(days=1)
+            except ValueError:
+                return {"message": "Invalid date format. Use ISO 8601 format."}, 400
+
+            start_date_str = start_date.strftime('%Y-%m-%d %H:%M:%S')
+            end_date_str = end_date.strftime('%Y-%m-%d %H:%M:%S')
+
+            query = f'''
             SELECT 
                 ServiceName,
                 ResourceAttributes,
@@ -18,9 +40,9 @@ class ProjectChatService(Resource):
                 AND ResourceAttributes['deployment.environment'] IS NOT NULL
                 AND SpanAttributes['UniqueIDChat'] IS NOT NULL
                 AND SpanAttributes['UniqueIDChat'] != ''
-            """
-            from_zone = timezone.utc
-            to_zone = timezone(timedelta(hours=7))
+                AND Timestamp BETWEEN '{start_date_str}' AND '{end_date_str}'
+            '''
+            
             rows = client.query(query).result_rows
             sessions = {}
 
@@ -31,7 +53,6 @@ class ProjectChatService(Resource):
                 service_name = row[0]
                 environment = row[1]['deployment.environment']
                 
-                # Buat unique key berdasarkan UniqueIDChat, ServiceName, dan Environment
                 session_key = f"{unique_id}-{service_name}-{environment}"
 
                 if session_key not in sessions:
@@ -40,18 +61,15 @@ class ProjectChatService(Resource):
                         'Environment': environment,
                         'UniqueIDChat': unique_id,
                         'Timestamp': timestamp,
-                        'TotalMessages': set()  # Using set to count distinct ChatIDs
+                        'TotalMessages': set()
                     }
                 else:
-                    # Update timestamp jika ada yang lebih lama
                     if timestamp < sessions[session_key]['Timestamp']:
                         sessions[session_key]['Timestamp'] = timestamp
 
-                # Tambahkan ChatID jika ada
                 if chat_id:
                     sessions[session_key]['TotalMessages'].add(chat_id)
 
-            # Format hasil
             result = []
             for session in sessions.values():
                 result.append({
@@ -62,7 +80,6 @@ class ProjectChatService(Resource):
                     'TotalMessages': len(session['TotalMessages'])
                 })
 
-            # Urutkan berdasarkan Timestamp DESC
             result = sorted(result, key=lambda x: x['Timestamp'], reverse=True)
 
             projects = {}
@@ -82,7 +99,6 @@ class ProjectChatService(Resource):
                         "chatSessions": []
                     }
                 
-                # Tambahkan sesi ke proyek
                 if unique_id_chat and unique_id_chat.strip():
                     chat_session = {
                         "UniqueIDChat": unique_id_chat,
@@ -102,28 +118,30 @@ class ProjectChatService(Resource):
 class ChatHistoryService(Resource):
     def get(self, unique_id_chat):
         try:
-            if not unique_id_chat:
+            export_format = request.args.get('export')
+            serviceName = request.args.get('servicename')
+            environment = request.args.get('environment')
+
+            if not unique_id_chat or not serviceName or not environment:
                 return jsonify({"error": "UniqueIDChat parameter is required"}), 400
 
-            # Query untuk mendapatkan informasi service dan environment
-            service_query = f"""
+            service_query = f'''
                 SELECT DISTINCT
                     ServiceName,
                     ResourceAttributes['deployment.environment'] AS Environment
                 FROM openlit.otel_traces
                 WHERE SpanAttributes['UniqueIDChat'] = '{unique_id_chat}'
                 LIMIT 1
-            """
+            '''
             
             service_info = client.query(service_query).result_rows
             
             if not service_info:
                 return jsonify({"error": "Chat session not found"}), 404
-                
+            
             service_name, environment = service_info[0]
 
-            # Query untuk chat history
-            history_query = f"""
+            history_query = f'''
                 SELECT 
                     Timestamp AS Tanggal,
                     SpanAttributes['ChatID'] AS ChatID,
@@ -134,17 +152,14 @@ class ChatHistoryService(Resource):
                     AND ServiceName = '{service_name}'
                     AND ResourceAttributes['deployment.environment'] = '{environment}'
                 ORDER BY Timestamp ASC
-            """
+            '''
 
             chat_history = client.query(history_query).result_rows
-            
-            # Hitung total messages
             total_messages = len(chat_history)
 
             from_zone = timezone.utc
             to_zone = timezone(timedelta(hours=7))
 
-            # Format response
             formatted_history = [
                 {
                     "Timestamp": row[0].replace(tzinfo=from_zone).astimezone(to_zone).isoformat(),
@@ -155,6 +170,14 @@ class ChatHistoryService(Resource):
                 for row in chat_history
             ]
 
+            # **1. Jika ingin ekspor ke Excel**
+            if export_format == "excel":
+                df = pd.DataFrame(formatted_history)
+                file_path = f"chat_history_{unique_id_chat}.xlsx"
+                df.to_excel(file_path, index=False)
+                return send_file(file_path, as_attachment=True)
+
+            # **2. Jika tidak ada parameter ekspor, kembalikan JSON biasa**
             response_data = {
                 "UniqueIDChat": unique_id_chat,
                 "ServiceName": service_name,
@@ -162,10 +185,7 @@ class ChatHistoryService(Resource):
                 "TotalMessages": total_messages,
                 "ChatHistory": formatted_history
             }
-
             return jsonify(response_data)
 
         except Exception as e:
             return jsonify({"error": str(e)}), 500
-
-

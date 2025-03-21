@@ -56,21 +56,30 @@ export class ApiService {
   }
 
   static async get_chat_history(
-    uniqueIdChat: string
+    uniqueIdChat: string,
+    serviceName?: string,
+    environment?: string
   ): Promise<ChatHistoryData> {
     try {
-      const response = await fetch(
-        `${this.API_BASE_URL}/api/chathistory/${uniqueIdChat}`
-      );
-
+      const params = new URLSearchParams();
+      if (serviceName) params.append("servicename", serviceName);
+      if (environment) params.append("environment", environment);
+  
+      const queryString = params.toString();
+      const url = queryString
+        ? `${this.API_BASE_URL}/api/chathistory/${uniqueIdChat}?${queryString}`
+        : `${this.API_BASE_URL}/api/chathistory/${uniqueIdChat}`;
+  
+      const response = await fetch(url);
+  
       if (!response.ok) {
-        throw new Error("Failed to fetch chat history");
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
-
+  
       return await response.json();
     } catch (error) {
       console.error("Error fetching chat history:", error);
       throw error;
     }
-  }
+  }  
 }
