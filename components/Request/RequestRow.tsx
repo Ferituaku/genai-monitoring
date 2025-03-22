@@ -67,7 +67,7 @@ export const RequestRow = ({ data }: RequestRowProps) => {
   const getPromptAndCompletion = (): { prompt: string; completion: string } => {
     let prompt = "";
     let completion = "";
-    
+
     // Format 1: Using "Events.Attributes" (dot notation)
     if (data["Events.Attributes"] && Array.isArray(data["Events.Attributes"])) {
       const promptAttr = data["Events.Attributes"].find(
@@ -76,34 +76,39 @@ export const RequestRow = ({ data }: RequestRowProps) => {
       const completionAttr = data["Events.Attributes"].find(
         (attr) => "gen_ai.completion" in attr
       );
-      
+
       if (promptAttr && promptAttr["gen_ai.prompt"]) {
         prompt = promptAttr["gen_ai.prompt"];
       }
-      
+
       if (completionAttr && completionAttr["gen_ai.completion"]) {
         completion = completionAttr["gen_ai.completion"];
       }
     }
-    
+
     // Format 2: Using nested "Events.Attributes" object
-    if (!prompt && data.Events && data.Events.Attributes && Array.isArray(data.Events.Attributes)) {
+    if (
+      !prompt &&
+      data.Events &&
+      data.Events.Attributes &&
+      Array.isArray(data.Events.Attributes)
+    ) {
       const promptAttr = data.Events.Attributes.find(
         (attr) => "gen_ai.prompt" in attr
       );
       const completionAttr = data.Events.Attributes.find(
         (attr) => "gen_ai.completion" in attr
       );
-      
+
       if (promptAttr && promptAttr["gen_ai.prompt"]) {
         prompt = promptAttr["gen_ai.prompt"];
       }
-      
+
       if (completionAttr && completionAttr["gen_ai.completion"]) {
         completion = completionAttr["gen_ai.completion"];
       }
     }
-    
+
     return { prompt, completion };
   };
 

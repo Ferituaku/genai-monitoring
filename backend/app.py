@@ -20,6 +20,7 @@ from endpoints.general.login import AuthApp
 from endpoints.admin.pricing import PricingAPI
 from endpoints.admin.vault import vault
 from endpoints.admin.appcatalogue import AppCatalogueLogo
+from endpoints.general.filterRequest import FilterOptions
 
 app = Flask(__name__)
 
@@ -37,6 +38,7 @@ api.add_resource(AppCatalogue, "/appcatalogue")
 api.add_resource(AppCatalogueLogo, '/api/applogo', '/api/applogo/<string:project_name>')
 app.register_blueprint(apiKeys, url_prefix='/apiKeys')
 app.register_blueprint(vault, url_prefix='/vault')
+api.add_resource(FilterOptions, '/api/filterOptions')
 AuthApp(app)
 PricingAPI(app)
 

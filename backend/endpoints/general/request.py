@@ -24,7 +24,7 @@ class Request(Resource):
             # Validate pagination
             if page < 1:
                 page = 1
-            if page_size < 1 or page_size > 100:  # Limit page size 100
+            if page_size < 1 or page_size > 100:  
                 page_size = 10
 
             from_zone = timezone.utc

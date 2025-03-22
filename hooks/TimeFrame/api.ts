@@ -23,9 +23,8 @@ export const get_time_frame_params = (
       )
     );
 
-    const defaultStartDate = startOfDay(utcDate); 
     const defaultEndDate = endOfDay(utcDate);
-    
+    const defaultStartDate = startOfDay(utcDate);
 
     const from = searchParams.get("from");
     const to = searchParams.get("to");
@@ -64,7 +63,7 @@ export const get_time_frame_params = (
     );
 
     return {
-      from: startOfDay(subDays(utcNow, 7)).toISOString(),
+      from: startOfDay(utcNow).toISOString(),
       to: endOfDay(utcNow).toISOString(),
     };
   }
@@ -87,8 +86,15 @@ export const get_date_range_from_days = (daysBack: number): TimeFrameParams => {
   const totalOffset = jakartaOffset + localOffset;
   const jakartaNow = new Date(now.getTime() + totalOffset * 60000);
 
+  if (daysBack === 1) {
+    return {
+      from: startOfDay(jakartaNow).toISOString(),
+      to: endOfDay(jakartaNow).toISOString(),
+    };
+  }
+
   return {
-    from: startOfDay(subDays(jakartaNow, daysBack)).toISOString(),
+    from: startOfDay(subDays(jakartaNow, daysBack - 1)).toISOString(),
     to: endOfDay(jakartaNow).toISOString(),
   };
 };
