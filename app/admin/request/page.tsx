@@ -18,7 +18,8 @@ export default function Request() {
   const [pageSize, setPageSize] = useState("10");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isFiltersApplied, setIsFiltersApplied] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1); 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Sorting states
   const [sortField, setSortField] = useState<SortField>("Timestamp");
@@ -26,7 +27,9 @@ export default function Request() {
 
   // Filter states
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
-  const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>([]);
+  const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>(
+    []
+  );
   const [modelSearchTerm, setModelSearchTerm] = useState("");
   const [environmentSearchTerm, setEnvironmentSearchTerm] = useState("");
 
@@ -37,7 +40,7 @@ export default function Request() {
   const handleSearch = useCallback(() => {
     setIsSearching(true);
     setActiveSearchTerm(searchTerm);
-    setCurrentPage(1); 
+    setCurrentPage(1);
     setTimeout(() => {
       setIsSearching(false);
     }, 500);
@@ -63,14 +66,14 @@ export default function Request() {
     },
     searchTerm: activeSearchTerm,
     page: currentPage,
-    pageSize: parseInt(pageSize, 10)
+    pageSize: parseInt(pageSize, 10),
   });
 
   // Apply filters
   const handleApplyFilters = useCallback(() => {
     setIsFiltersApplied(true);
     setIsFilterOpen(false);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   }, []);
 
   // Reset filters
@@ -85,14 +88,16 @@ export default function Request() {
     setCurrentPage(1); // Reset to first page when filters are reset
   }, []);
 
-  // Reset currentPage 
+  // Reset currentPage
   useEffect(() => {
     setCurrentPage(1);
   }, [pageSize]);
 
   // Get available models and environments
   const [allAvailableModels, setAllAvailableModels] = useState<string[]>([]);
-  const [allAvailableEnvironments, setAllAvailableEnvironments] = useState<string[]>([]);
+  const [allAvailableEnvironments, setAllAvailableEnvironments] = useState<
+    string[]
+  >([]);
 
   useEffect(() => {
     if (traces.length > 0) {
@@ -156,7 +161,7 @@ export default function Request() {
     totalPages: pagination?.totalPages,
     totalItems: pagination?.total,
     pageSize: parseInt(pageSize, 10),
-    tracesLength: traces.length
+    tracesLength: traces.length,
   });
 
   return (
@@ -191,6 +196,14 @@ export default function Request() {
           handleSearch={handleSearch}
           handleKeyPress={handleKeyPress}
           isSearching={isSearching}
+          timeFrame={timeFrame}
+          displayedTraces={traces}
+          isExporting={isExporting}
+          setIsExporting={setIsExporting}
+          filters={{
+            models: selectedModels,
+            environments: selectedEnvironments
+          }}
         />
       </div>
 
@@ -209,7 +222,7 @@ export default function Request() {
           </div>
         ) : (
           <div>
-            <RequestTable 
+            <RequestTable
               displayedTraces={traces}
               currentPage={currentPage}
               totalPages={Math.max(1, pagination?.totalPages || 1)}

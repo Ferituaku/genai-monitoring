@@ -74,31 +74,31 @@ const ExceptionRow = ({ data }: { data: ErrorTraceData }) => {
         </SheetHeader>
 
         <div className="flex items-start flex-wrap gap-2 mb-6">
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+          <div className="flex items-center gap-2 bg-red-500 rounded-2xl p-2">
             <Clock className="h-4 w-4 text-white sm:text-xs" />
             <span className="text-md text-white sm:text-xs">Created:</span>
             <span className="text-md text-white sm:text-xs">
               {formatDate(data.Timestamp)}
             </span>
           </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+          <div className="flex items-center gap-2 bg-red-500 rounded-2xl p-2">
             <Server className="h-4 w-4 text-white sm:text-xs" />
             <span className="text-md text-white sm:text-xs">Service:</span>
             <span className="text-md text-white sm:text-xs">
               {data.ServiceName}
             </span>
           </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
+          <div className="flex items-center gap-2 bg-red-500 rounded-2xl p-2">
             <FileCode className="h-4 w-4 text-white sm:text-xs" />
             <span className="text-md text-white sm:text-xs">Operation:</span>
             <span className="text-md text-white sm:text-xs">
               {data.SpanName}
             </span>
           </div>
-          <div className="flex items-center gap-2 bg-blue-600/70 rounded-2xl p-2">
-            <AlertCircle className="h-4 w-4 text-red-500 sm:text-xs" />
+          <div className="flex items-center gap-2 bg-red-500 rounded-2xl p-2">
+            <AlertCircle className="h-4 w-4 text-red sm:text-xs" />
             <span className="text-md text-white sm:text-xs">Status:</span>
-            <span className="text-md text-red-500">ERROR</span>
+            <span className="text-md text-red">ERROR</span>
           </div>
         </div>
 

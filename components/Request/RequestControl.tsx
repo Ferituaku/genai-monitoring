@@ -1,18 +1,20 @@
 // components/Request/RequestControl.tsx
 import { Loader2, Search, SlidersHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { SortField, SortDirection } from "@/types/trace";
+import { SortField, SortDirection, TraceData } from "@/types/trace";
 import { SortSelector } from "./SortSelector";
 import { PageSizeSelector } from "./PageSizeSelector";
 import { FilterPanel } from "./FilterPanel";
 import TimeFrame from "../TimeFrame/TimeFrame";
-import { TokenRange } from "@/types/requests";
+import { Filters, TokenRange } from "@/types/requests";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../ui/collapsible";
 import { Button } from "../ui/button";
+import { ExportButton } from "./ExportButton";
+import { TimeFrameParams } from "@/types/timeframe";
 
 interface RequestControlsProps {
   searchTerm: string;
@@ -54,6 +56,11 @@ interface RequestControlsProps {
   handleSearch: () => void;
   handleKeyPress: (e: React.KeyboardEvent) => void;
   isSearching: boolean;
+  timeFrame: TimeFrameParams;
+  displayedTraces?: TraceData[];
+  isExporting?: boolean;
+  setIsExporting?: (isExporting: boolean) => void;
+  filters: Filters;
 }
 
 export const RequestControls: React.FC<RequestControlsProps> = ({
@@ -88,6 +95,11 @@ export const RequestControls: React.FC<RequestControlsProps> = ({
   resetFilters,
   filteredUniqueModels,
   filteredUniqueEnvironments,
+  timeFrame,
+  displayedTraces,
+  isExporting = false,
+  setIsExporting = () => {},
+  filters
 }) => {
   return (
     <div className="flex flex-col lg:flex-row gap-4 mb-4 justify-between">
@@ -119,6 +131,19 @@ export const RequestControls: React.FC<RequestControlsProps> = ({
         </div>
       </div>
       <div className="flex gap-2 justify-end items-center">
+        <ExportButton
+          timeFrame={timeFrame}
+          filters={filters}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          searchTerm={searchTerm}
+          traces={displayedTraces}
+          onExportStart={() => setIsExporting(true)}
+          onExportComplete={() => setIsExporting(false)}
+          isDisabled={
+            isExporting || isSearching || displayedTraces?.length === 0
+          }
+        />
         <PageSizeSelector pageSize={pageSize} setPageSize={setPageSize} />
         <SortSelector
           sortField={sortField}

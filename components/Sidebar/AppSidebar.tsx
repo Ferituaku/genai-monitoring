@@ -65,6 +65,15 @@ export const AppSidebar = ({
         return "/user1/profile";
     }
   };
+
+  const getUserManagementPath = () => {
+    switch (userRole) {
+      case "admin":
+        return "/admin/user-management";
+      default:
+        return "";
+    }
+  };
   const handleSignOut = () => {
     logout();
   };
@@ -120,7 +129,14 @@ export const AppSidebar = ({
                   Profile
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>User Management</DropdownMenuItem>
+              <DropdownMenuItem>
+                <Link
+                  href={getUserManagementPath()}
+                  className="flex items-center cursor-pointer"
+                >
+                  User Management
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-red-600"
                 onClick={handleSignOut}

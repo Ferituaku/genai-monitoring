@@ -3,6 +3,8 @@ from flask_restful import Resource
 from datetime import datetime, timedelta, timezone
 from data.configuration.databaseopenlit import client
 import re
+import csv
+import io
 
 class Request(Resource):
     def __init__(self):
