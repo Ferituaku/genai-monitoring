@@ -138,7 +138,9 @@ export const generateCSVFromTraces = (traces: TraceData[]): string => {
     const totalTokens =
       trace.SpanAttributes["gen_ai.usage.total_tokens"] || "0";
     const cost = trace.SpanAttributes["gen_ai.usage.cost"] || "0";
-   
+    const prompt = "";
+    const completion = "";
+
     return [
       escapeCSV(timestamp),
       escapeCSV(serviceName),

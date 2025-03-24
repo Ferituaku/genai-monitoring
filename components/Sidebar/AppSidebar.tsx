@@ -62,7 +62,7 @@ export const AppSidebar = ({
       case "user2":
         return "/user2/profile";
       default:
-        return "/user1/profile";
+        return "/admin/profile";
     }
   };
 
@@ -71,7 +71,7 @@ export const AppSidebar = ({
       case "admin":
         return "/admin/user-management";
       default:
-        return "";
+        return "/admin/user-management";
     }
   };
   const handleSignOut = () => {
