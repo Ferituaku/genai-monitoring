@@ -75,9 +75,6 @@ export const useRequestFilters = (): UseRequestFiltersReturn => {
   const filters: Filters = {
     models: selectedModels,
     environments: selectedEnvironments,
-    tokenRange,
-    duration,
-    isStream,
   };
 
   const applyFilters = useCallback(() => {

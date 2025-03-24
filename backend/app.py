@@ -21,6 +21,8 @@ from endpoints.admin.pricing import PricingAPI
 from endpoints.admin.vault import vault
 from endpoints.admin.appcatalogue import AppCatalogueLogo
 from endpoints.general.filterRequest import FilterOptions
+from endpoints.admin.evaluation import GetAllFile, DeleteFileJson, GetJsonById
+from endpoints.admin.mlops_system import UploadDataMlops
 
 app = Flask(__name__)
 
@@ -39,6 +41,10 @@ api.add_resource(AppCatalogueLogo, '/api/applogo', '/api/applogo/<string:project
 app.register_blueprint(apiKeys, url_prefix='/apiKeys')
 app.register_blueprint(vault, url_prefix='/vault')
 api.add_resource(FilterOptions, '/api/filterOptions')
+api.add_resource(UploadDataMlops, '/upload')
+api.add_resource(GetAllFile, '/file_json')
+api.add_resource(DeleteFileJson, '/delete_file')
+api.add_resource(GetJsonById, '/get_json')
 AuthApp(app)
 PricingAPI(app)
 

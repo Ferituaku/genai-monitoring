@@ -2,8 +2,6 @@ from flask import jsonify, request,send_file
 from flask_restful import Resource
 from data.configuration.databaseopenlit import client
 from datetime import datetime, timedelta, timezone
-import pandas as pd
-import pdfkit
 
 class ProjectChatService(Resource):
 

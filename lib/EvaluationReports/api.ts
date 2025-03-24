@@ -54,7 +54,7 @@ export interface UploadPayload {
 }
 
 export class EvaluationService {
-  private static readonly API_BASE_URL = "http://localhost:80";
+  private static readonly API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
   static async getAllFiles(): Promise<EvaluationFile[]> {
     try {

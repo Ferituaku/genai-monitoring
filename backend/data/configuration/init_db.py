@@ -64,6 +64,16 @@ def create_tables():
         )
         ''')
 
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS mlops (
+            id TEXT PRIMARY KEY,
+            project TEXT,
+            filename TEXT,
+            json_data TEXT,
+            create_at DATETIME
+        );
+        ''')
+
         conn.commit()
 
     finally:
