@@ -79,10 +79,13 @@ const TimeFrame: React.FC<TimeFrameProps> = ({ onTimeFrameChange }) => {
 
   // Effect pertama untuk menerapkan default timeframe saat pertama kali load
   useEffect(() => {
-    if (!searchParams.has("from") && !searchParams.has("to")) {
+    const hasAppliedDefault = sessionStorage.getItem('hasAppliedTimeParams');
+    
+    if (!hasAppliedDefault && !searchParams.has("from") && !searchParams.has("to")) {
+      sessionStorage.setItem('hasAppliedTimeParams', 'true');
       handleTimeframeChange("24H");
     }
-  }, []);
+  }, [searchParams]);
 
   // Effect kedua untuk update komponen ketika URL berubah
   useEffect(() => {
@@ -118,7 +121,7 @@ const TimeFrame: React.FC<TimeFrameProps> = ({ onTimeFrameChange }) => {
       if (days !== null) {
         const timeParams = get_date_range_from_days(days);
         const queryString = create_time_frame_query_string(timeParams);
-        router.replace(`?${queryString}`, { scroll: false });
+        router.replace(`?${queryString}`);
 
         if (onTimeFrameChange) {
           onTimeFrameChange(timeParams);
