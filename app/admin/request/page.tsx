@@ -209,7 +209,7 @@ export default function Request() {
 
       <div className="sticky top-20 bg-white rounded-lg shadow-sm">
         {loading ? (
-          <div className="flex h-screen items-center justify-center">
+          <div className="flex min-h-96 items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
           </div>
         ) : error ? (
@@ -217,7 +217,7 @@ export default function Request() {
             {error}
           </div>
         ) : traces.length === 0 ? (
-          <div className="flex bg-white bg-opacity-0 h-screen items-center justify-center text-gray-500">
+          <div className="flex bg-white bg-opacity-0 min-h-96  items-center justify-center text-gray-500">
             No data found
           </div>
         ) : (

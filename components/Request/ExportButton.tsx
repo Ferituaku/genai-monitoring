@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Filters } from "@/types/requests";
 import { TimeFrameParams } from "@/types/timeframe";
 import { SortDirection, SortField, TraceData } from "@/types/trace";
-import { downloadCSV, exportTracesToCSV, generateCSVFromTraces } from "@/lib/RequestService/ExportService";
+import { downloadCSV, exportTracesToCSV, generateCSVFromTraces } from "@/lib/ExportService/ExportService";
 import { toast } from "@/hooks/use-toast";
 
 
