@@ -70,7 +70,9 @@ def create_tables():
             project TEXT,
             filename TEXT,
             json_data TEXT,
-            create_at DATETIME
+            create_at DATETIME,
+            status TEXT,
+            complete_time DATETIME
         );
         ''')
 

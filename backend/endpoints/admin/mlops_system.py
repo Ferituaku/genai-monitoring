@@ -10,7 +10,7 @@ import mlflow
 import openai
 from flask import request
 from flask_restful import Resource
-from endpoints.admin.evaluation import insert_record
+from endpoints.admin.evaluation import insert_record, update_record
 from data.configuration.mlflow_metric import all_metric
 from data.configuration.drift_notif import check_drift, create_payload, send_teams_message
 from data.configuration.config import evaluation
@@ -192,6 +192,25 @@ class UploadDataMlops(Resource):
         return eval_table, eval_df, eval_table_1,eval_table_2, eval_table_3
 
     def bg_process_mlops(self, chatbot_email, chat_api_url, auth_username, auth_password, auth, drift_threshold, scope, data, relevance_metric, accuracy_answer_metric, completeness_metric, clarity_metric, coherence_metric, appropriateness_metric, consistency_metric, criteria_score, json_filename):
+        # Make id first
+        session_id = str(uuid.uuid4())
+        create_at = datetime.datetime.now()
+
+        initial_data = {
+            "status": "processing",
+            "start_time": create_at.isoformat(),
+        }
+
+        insert_record(
+            session_id,
+            scope,
+            f"{json_filename}",
+            initial_data,
+            create_at,
+            "processing"
+        )
+        print("Initial record added with processing status!")
+
         # Run evaluation
         eval_df=self.read_data(data)
         eval_table, eval_df_fix, eval_table_1,eval_table_2, eval_table_3 = self.final_evaluation(eval_df, chatbot_email, chat_api_url, auth_username, auth_password, auth, scope, relevance_metric, accuracy_answer_metric, completeness_metric, clarity_metric, coherence_metric, appropriateness_metric)
@@ -235,22 +254,22 @@ class UploadDataMlops(Resource):
         with mlflow.start_run(run_name=run_name) as run:
             mlflow.log_dict(json_dict, f"{json_filename}")
         print("Final metric done!")
-        
-        session_id = str(uuid.uuid4())
-        create_at = datetime.datetime.now()
-        insert_record(
+
+        # Update database
+        complete_time = datetime.datetime.now()
+
+        update_record(
             session_id,
-            scope,
-            f"{json_filename}",
             json_dict,
-            create_at
+            "completed",
+            complete_time
         )
-        print("Data added successfully in json!")
+        print("Record updated with complete results!")
 
         # Send to teams
-        if data_threshold:
-            payload = create_payload(evaluation.list_mention, data_message, data_threshold, scope)
-            send_teams_message(evaluation.teams_webhook_url, payload)
+        # if data_threshold:
+        #     payload = create_payload(evaluation.list_mention, data_message, data_threshold, scope)
+        #     send_teams_message(evaluation.teams_webhook_url, payload)
                     
     def post(self):
         payload = json.loads(request.data.decode('utf-8'))

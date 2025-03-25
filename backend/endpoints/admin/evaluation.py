@@ -8,13 +8,23 @@ from flask_restful import Resource
 from data.configuration.config import evaluation
 from data.configuration.db import Database
 
-def insert_record(id, project, filename, json_data, create_at):
+def insert_record(id, project, filename, json_data, create_at, status="processing", complete_time=None):
     db = Database()
     conn = db.get_connection()
     cursor = conn.cursor()
     json_string = json.dumps(json_data)
-    insert_record = "INSERT INTO mlops (id, project, filename, json_data, create_at) VALUES (?, ?, ?, ?, ?)"
-    cursor.execute(insert_record, (id, project, filename, json_string, create_at))
+    insert_record = "INSERT INTO mlops (id, project, filename, json_data, create_at, status, complete_time) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    cursor.execute(insert_record, (id, project, filename, json_string, create_at, status, complete_time))
+    conn.commit()
+    conn.close()
+
+def update_record(id, json_data, status="completed", complete_time=None):
+    db = Database()
+    conn = db.get_connection()
+    cursor = conn.cursor()
+    json_string = json.dumps(json_data)
+    update_sql = "UPDATE mlops SET json_data = ?, status = ?, complete_time = ? WHERE id = ?"
+    cursor.execute(update_sql, (json_string, status, complete_time, id))
     conn.commit()
     conn.close()
 
@@ -22,12 +32,13 @@ def get_all_data():
     db = Database()
     conn = db.get_connection()
     cursor = conn.cursor()
-    select_sql = "SELECT id, project, filename, json_data, create_at FROM mlops"
+    select_sql = "SELECT id, project, filename, json_data, create_at, status, complete_time FROM mlops"
     cursor.execute(select_sql)
     mlops_data = cursor.fetchall()
     conn.close()
     data = [
-        {"id": mlops[0], "project": mlops[1], "file_name": mlops[2], "json_data": json.loads(mlops[3]), "create_at": mlops[4]} 
+        {"id": mlops[0], "project": mlops[1], "file_name": mlops[2], "json_data": json.loads(mlops[3]), 
+         "create_at": mlops[4], "status": mlops[5], "complete_time": mlops[6]} 
         for mlops in mlops_data
     ]
     return data
