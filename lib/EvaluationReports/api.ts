@@ -6,6 +6,8 @@ export interface EvaluationFile {
   file_name: string;
   json_data: EvaluationDetail[];
   project: string;
+  status?: string; 
+  complete_time?: string; 
 }
 
 export interface EvaluationDetail {
@@ -51,6 +53,7 @@ export interface UploadPayload {
   openai_api_version: string;
   openai_api_type: string;
   openai_deployment_name: string;
+  json_filename?: string; 
 }
 
 export class EvaluationService {

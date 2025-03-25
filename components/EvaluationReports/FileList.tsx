@@ -13,6 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 
 interface FileListProps {
   files: EvaluationFile[];
@@ -26,7 +27,7 @@ const FileList: React.FC<FileListProps> = ({ files, loading, error, onDelete, on
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<{ id: string; name: string } | null>(null);
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
     try {
       const date = new Date(dateString);
@@ -43,6 +44,19 @@ const FileList: React.FC<FileListProps> = ({ files, loading, error, onDelete, on
     return `${id.substring(0, 7)}...${id.substring(id.length - 5)}`;
   };
 
+  const renderStatus = (status?: string) => {
+    if (!status) return <Badge variant="outline" className="bg-gray-100">Unknown</Badge>;
+    
+    switch (status.toLowerCase()) {
+      case 'processing':
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">Processing</Badge>;
+      case 'completed':
+        return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Completed</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
   const handleDeleteClick = (fileId: string, fileName: string) => {
     setFileToDelete({ id: fileId, name: fileName || 'this file' });
     setDeleteDialogOpen(true);
@@ -54,6 +68,10 @@ const FileList: React.FC<FileListProps> = ({ files, loading, error, onDelete, on
       setDeleteDialogOpen(false);
       setFileToDelete(null);
     }
+  };
+
+  const isProcessing = (file: EvaluationFile) => {
+    return file.status?.toLowerCase() === 'processing';
   };
 
   if (loading) {
@@ -81,13 +99,15 @@ const FileList: React.FC<FileListProps> = ({ files, loading, error, onDelete, on
             <TableHead className="w-[100px]">ID</TableHead>
             <TableHead>Filename</TableHead>
             <TableHead>Scope</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead>Created At</TableHead>
+            <TableHead>Completed At</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           <TableRow>
-            <TableCell colSpan={6} className="text-center py-8">
+            <TableCell colSpan={8} className="text-center py-8">
               No evaluation reports found
             </TableCell>
           </TableRow>
@@ -105,7 +125,9 @@ const FileList: React.FC<FileListProps> = ({ files, loading, error, onDelete, on
             <TableHead className="w-[100px]">ID</TableHead>
             <TableHead>Filename</TableHead>
             <TableHead>Scope</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead>Created At</TableHead>
+            <TableHead>Completed At</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -118,13 +140,17 @@ const FileList: React.FC<FileListProps> = ({ files, loading, error, onDelete, on
               </TableCell>
               <TableCell className="font-medium">{file.file_name || 'Unnamed'}</TableCell>
               <TableCell>{file.project || 'Unknown'}</TableCell>
+              <TableCell>{renderStatus(file.status)}</TableCell>
               <TableCell>{formatDate(file.create_at)}</TableCell>
+              <TableCell>{formatDate(file.complete_time)}</TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={() => onView(file.id)}
+                    disabled={isProcessing(file)}
+                    title={isProcessing(file) ? 'Evaluation still in progress' : 'View results'}
                   >
                     <Eye className="h-4 w-4 mr-1" />
                     View
