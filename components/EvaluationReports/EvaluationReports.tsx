@@ -116,7 +116,7 @@ const EvaluationReports: React.FC = () => {
   const paginatedFiles = filteredFiles.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
-    <div className="min-h-screen">
+    <div className="h-full">
       <div className="top-[70px] p-2 items-center gap-4">
         <DynamicBreadcrumb />
       </div>

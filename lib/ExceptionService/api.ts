@@ -1,4 +1,5 @@
 import { TimeFrameParams } from "@/types/timeframe";
+import { SortDirection, SortField } from "@/types/trace";
 
 export class ExceptionApiService {
   private static readonly API_BASE_URL =
@@ -8,7 +9,9 @@ export class ExceptionApiService {
     params: TimeFrameParams,
     searchQuery?: string,
     page: number = 1,
-    pageSize: number = 10
+    pageSize: number = 10,
+    sortField: SortField = "Timestamp",
+    sortDirection: SortDirection = "desc"
   ) {
     try {
       const queryParams = new URLSearchParams();
@@ -28,6 +31,9 @@ export class ExceptionApiService {
       // Add pagination parameters
       queryParams.append("page", page.toString());
       queryParams.append("page_size", pageSize.toString());
+
+      queryParams.append("sort_field", sortField);
+      queryParams.append("sort_direction", sortDirection);
 
       const url = `${this.API_BASE_URL}/api/tracesExceptions${
         queryParams.toString() ? `?${queryParams.toString()}` : ""

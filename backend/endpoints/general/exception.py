@@ -19,11 +19,30 @@ class Exception(Resource):
             page = int(request.args.get('page', 1))
             page_size = int(request.args.get('page_size', 10))
             
+            sort_field = request.args.get('sort_field', 'Timestamp')
+            sort_direction = request.args.get('sort_direction', 'desc').lower()
+            
             # Validate pagination
             if page < 1:
                 page = 1
             if page_size < 1 or page_size > 100:  # Limit page size 100
                 page_size = 10
+            
+            # Mapping untuk sorting
+            sort_field_mappings = {
+                'Timestamp': 'Timestamp',
+                'ServiceName': 'ServiceName',
+                'SpanName': 'SpanName',
+                'SpanAttributes.gen_ai.request.model': "SpanAttributes['gen_ai.request.model']",
+                'SpanAttributes.gen_ai.operation.name': "SpanAttributes['gen_ai.operation.name']",
+                'ResourceAttributes.service.name': "ResourceAttributes['service.name']"
+            }
+
+            # Validasi sorting
+            if sort_field not in sort_field_mappings:
+                sort_field = 'Timestamp'
+            if sort_direction not in ['asc', 'desc']:
+                sort_direction = 'desc'
 
             from_zone = timezone.utc
             to_zone = timezone(timedelta(hours=7))
@@ -96,8 +115,20 @@ class Exception(Resource):
                 if values:
                     placeholders = ', '.join([f"%({key}_{i})s" for i in range(len(values))])
                     query += f" AND {column} IN ({placeholders})"
-
-            query += " ORDER BY Timestamp DESC"
+            if sort_field in sort_field_mappings:
+                mapped_sort_field = sort_field_mappings[sort_field]
+                sort_dir = "DESC" if sort_direction.lower() == "desc" else "ASC"
+                
+                if sort_field.startswith('SpanAttributes.') or sort_field.startswith('ResourceAttributes.'):
+                    if "total_tokens" in sort_field or "cost" in sort_field:
+                        query += f" ORDER BY ifNull(toFloat64OrZero(JSONExtractRaw({mapped_sort_field})), 0) {sort_dir}"
+                    else:
+                        query += f" ORDER BY {mapped_sort_field} {sort_dir}"
+                else:
+                    query += f" ORDER BY {mapped_sort_field} {sort_dir}"
+            else:
+                # Default sorting
+                query += " ORDER BY Timestamp DESC"
             
             # Limit and offset pagination
             offset = (page - 1) * page_size
