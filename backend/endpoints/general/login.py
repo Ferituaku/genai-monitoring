@@ -8,35 +8,35 @@ from functools import wraps
 import os
 from dotenv import load_dotenv
 from data.configuration.db import Database
-from datetime import datetime, timedelta
 import pytz
 
 # Gunakan timezone WIB
 wib = pytz.timezone('Asia/Jakarta')
 
-class GoogleOAuth:
+class SSOAuth:
     def __init__(self, app, oauth):
         self.app = app
         self.oauth = oauth
-        self.google = self._setup_google()
+        self.sso_client = self._setup_sso()
 
-    def _setup_google(self):
+    def _setup_sso(self):
         return self.oauth.register(
-            name='google',
-            client_id=self.app.config['GOOGLE_CLIENT_ID'],
-            client_secret=self.app.config['GOOGLE_CLIENT_SECRET'],
-            server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+            name='sso',
+            client_id=self.app.config['SSO_CLIENT_ID'],
+            client_secret=self.app.config['SSO_CLIENT_SECRET'],
+            server_metadata_url=self.app.config['SSO_METADATA_URL'],
             client_kwargs={
                 'scope': 'openid email profile',
                 'prompt': 'select_account'
             },
-            access_token_url='https://oauth2.googleapis.com/token',
-            authorize_url='https://accounts.google.com/o/oauth2/v2/auth',
-            api_base_url='https://www.googleapis.com/oauth2/v2/',
+            access_token_url=self.app.config['SSO_TOKEN_URL'],
+            authorize_url=self.app.config['SSO_AUTHORIZE_URL'],
+            api_base_url=self.app.config['SSO_API_BASE_URL'],
         )
 
     def logout(self):
         session.pop('state', None)
+
 
 class UserManager:
     def __init__(self, db):
@@ -48,11 +48,13 @@ class UserManager:
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT NOT NULL UNIQUE,
-            google_id TEXT UNIQUE,
+            sso_id TEXT UNIQUE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_login TIMESTAMP,
             name TEXT,
-            avatar_url TEXT
+            avatar_url TEXT,
+            roles TEXT,
+            department TEXT
         )
         '''
         self.db.execute_query(query)
@@ -66,7 +68,7 @@ class UserManager:
     def update_user(self, email, user_data):
         query = '''
             UPDATE users 
-            SET google_id = ?, name = ?, avatar_url = ?, last_login = ? 
+            SET sso_id = ?, name = ?, avatar_url = ?, last_login = ?, roles = ?, department = ? 
             WHERE email = ?
         '''
         self.db.execute_query(query, (
@@ -74,22 +76,27 @@ class UserManager:
             user_data.get('name', ''),
             user_data.get('picture', ''),
             datetime.utcnow(),
+            user_data.get('roles', ''),
+            user_data.get('department', ''),
             email
         ))
 
     def create_user(self, user_data):
         query = '''
-            INSERT INTO users (email, google_id, name, avatar_url, last_login)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO users (email, sso_id, name, avatar_url, last_login, roles, department)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         '''
         self.db.execute_query(query, (
             user_data.get('email'),
             user_data.get('sub'),
             user_data.get('name', ''),
             user_data.get('picture', ''),
-            datetime.utcnow()
+            datetime.utcnow(),
+            user_data.get('roles', ''),
+            user_data.get('department', '')
         ))
         return self.get_user_by_email(user_data.get('email'))
+
 
 class JWTManager:
     def __init__(self, secret_key):
@@ -100,6 +107,7 @@ class JWTManager:
         return jwt.encode({
             'user_id': user_data['id'],
             'email': user_data['email'],
+            'roles': user_data.get('roles', ''),
             'exp': datetime.now(wib) + timedelta(hours=24)
         }, self.secret_key)
 
@@ -136,8 +144,21 @@ class JWTManager:
 
         return decorated
 
+    def role_required(self, role):
+        def decorator(f):
+            @wraps(f)
+            @self.token_required
+            def decorated_function(token_data, *args, **kwargs):
+                roles = token_data.get('roles', '').split(',')
+                if role in roles:
+                    return f(token_data, *args, **kwargs)
+                return jsonify({'message': 'Akses ditolak, peran tidak memadai!'}), 403
+            return decorated_function
+        return decorator
+
+
 class AuthApp:
-    def __init__(self,app):
+    def __init__(self, app):
         load_dotenv()
         self.app = app
         CORS(self.app)
@@ -145,15 +166,21 @@ class AuthApp:
         # Config
         self.app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key')
         self.app.config['SESSION_TYPE'] = 'filesystem'
-        self.app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID')
-        self.app.config['GOOGLE_CLIENT_SECRET'] = os.getenv('GOOGLE_CLIENT_SECRET')
+        
+        # SSO Configuration
+        self.app.config['SSO_CLIENT_ID'] = os.getenv('SSO_CLIENT_ID')
+        self.app.config['SSO_CLIENT_SECRET'] = os.getenv('SSO_CLIENT_SECRET')
+        self.app.config['SSO_METADATA_URL'] = os.getenv('SSO_METADATA_URL', '')
+        self.app.config['SSO_TOKEN_URL'] = os.getenv('SSO_TOKEN_URL', '')
+        self.app.config['SSO_AUTHORIZE_URL'] = os.getenv('SSO_AUTHORIZE_URL', '')
+        self.app.config['SSO_API_BASE_URL'] = os.getenv('SSO_API_BASE_URL', '')
         
         Session(self.app)
         
         # Initialize components
         self.db = Database()
         self.oauth = OAuth(self.app)
-        self.google_oauth = GoogleOAuth(self.app, self.oauth)
+        self.sso_auth = SSOAuth(self.app, self.oauth)
         self.user_manager = UserManager(self.db)
         self.jwt_manager = JWTManager(self.app.config['SECRET_KEY'])
         
@@ -162,25 +189,25 @@ class AuthApp:
 
     def _register_routes(self):
         # Auth routes
-        @self.app.route('/login/google')
-        def google_login():
+        @self.app.route('/login/sso')
+        def sso_login():
             session['state'] = os.urandom(16).hex()
-            return self.google_oauth.google.authorize_redirect(
-                redirect_uri=url_for('google_authorize', _external=True),
+            return self.sso_auth.sso_client.authorize_redirect(
+                redirect_uri=url_for('sso_authorize', _external=True),
                 state=session['state']
             )
 
-        @self.app.route('/login/google/authorize')
-        def google_authorize():
+        @self.app.route('/login/sso/authorize')
+        def sso_authorize():
             try:
                 if 'state' not in session:
                     return jsonify({'message': 'State tidak ditemukan!'}), 400
                 
-                token = self.google_oauth.google.authorize_access_token()
+                token = self.sso_auth.sso_client.authorize_access_token()
                 if not token:
                     return jsonify({'message': 'Gagal mendapatkan token!'}), 401
                 
-                resp = self.google_oauth.google.get('userinfo')
+                resp = self.sso_auth.sso_client.get('userinfo')
                 if not resp:
                     return jsonify({'message': 'Gagal mendapatkan info user!'}), 401
                 
@@ -192,15 +219,20 @@ class AuthApp:
                 
                 if existing_user:
                     self.user_manager.update_user(user_info.get('email'), user_info)
-                    user_id = existing_user['id']
+                    user_data = {
+                        'id': existing_user['id'],
+                        'email': user_info.get('email'),
+                        'roles': user_info.get('roles', '')
+                    }
                 else:
                     new_user = self.user_manager.create_user(user_info)
-                    user_id = new_user['id']
+                    user_data = {
+                        'id': new_user['id'],
+                        'email': user_info.get('email'),
+                        'roles': user_info.get('roles', '')
+                    }
 
-                token = self.jwt_manager.generate_token({
-                    'id': user_id,
-                    'email': user_info.get('email')
-                })
+                token = self.jwt_manager.generate_token(user_data)
                 
                 frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
                 return redirect(f'{frontend_url}/auth/callback?token={token}')
@@ -215,7 +247,19 @@ class AuthApp:
             try:
                 token = request.headers['Authorization'].split(" ")[1]
                 self.jwt_manager.blacklist_token(token)  # Blacklist token
-                self.google_oauth.logout()
+                self.sso_auth.logout()
+                
+                # Redirect ke SSO logout URL jika ada
+                sso_logout_url = os.getenv('SSO_LOGOUT_URL')
+                frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+                
+                if sso_logout_url:
+                    return jsonify({
+                        'message': 'Logout berhasil',
+                        'status': 'success',
+                        'redirectUrl': f'{sso_logout_url}?redirect_uri={frontend_url}'
+                    })
+                
                 return jsonify({
                     'message': 'Logout berhasil',
                     'status': 'success'
@@ -236,7 +280,8 @@ class AuthApp:
                 data = self.jwt_manager.decode_token(token)
                 new_token = self.jwt_manager.generate_token({
                     'id': data['user_id'],
-                    'email': data['email']
+                    'email': data['email'],
+                    'roles': data.get('roles', '')
                 })
                 return jsonify({'token': new_token})
             except:
@@ -253,11 +298,19 @@ class AuthApp:
         @self.app.route('/check-auth', methods=['GET'])
         @self.jwt_manager.token_required
         def check_auth(token_data):
-            return jsonify({'message': 'Token valid!'})
+            return jsonify({
+                'message': 'Token valid!', 
+                'user_id': token_data['user_id'],
+                'email': token_data['email'],
+                'roles': token_data.get('roles', '')
+            })
 
     def run(self):
         self.app.run(debug=True)
 
+
 if __name__ == '__main__':
-    auth_app = AuthApp()
+    from flask import Flask
+    app = Flask(__name__)
+    auth_app = AuthApp(app)
     auth_app.run()
