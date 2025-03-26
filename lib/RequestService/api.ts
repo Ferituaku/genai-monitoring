@@ -4,7 +4,7 @@ import { SortDirection, SortField, TraceData } from "@/types/trace";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5101";
 
-// Interface for pagination
+// Interface untuk pagination
 export interface PaginatedResponse {
   data: TraceData[];
   pagination: {
@@ -13,6 +13,12 @@ export interface PaginatedResponse {
     pageSize: number;
     totalPages: number;
   };
+}
+
+// Interface untuk filter options
+export interface FilterOptionsResponse {
+  models: string[];
+  environments: string[];
 }
 
 interface FetchTracesParams {
@@ -36,7 +42,6 @@ export const fetchTraces = async ({
 }: FetchTracesParams): Promise<PaginatedResponse | TraceData[]> => {
   try {
     const queryParams = new URLSearchParams();
-
     if (timeFrame?.from) {
       const fromDate = new Date(timeFrame.from).toISOString();
       queryParams.append("from", fromDate);
@@ -45,35 +50,22 @@ export const fetchTraces = async ({
       const toDate = new Date(timeFrame.to).toISOString();
       queryParams.append("to", toDate);
     }
-
     // Pagination params
     queryParams.append("page", page.toString());
     queryParams.append("page_size", pageSize.toString());
-
     if (searchTerm) {
       queryParams.append("app_name", searchTerm);
     }
-
     if (filters.models && filters.models.length > 0) {
       filters.models.forEach((model: string) => {
         queryParams.append("model", model);
       });
     }
-
     if (filters.environments && filters.environments.length > 0) {
       filters.environments.forEach((env: string) => {
         queryParams.append("deployment_environment", env);
       });
     }
-
-    // Add sorting
-    // if (sortField) queryParams.append("sortBy", sortField);
-    // if (sortDirection) queryParams.append("sortOrder", sortDirection);
-    // let actualSortField = sortField;
-
-    // if (sortField.includes(".")) {
-    //   actualSortField = sortField;
-    // }
 
     // Add sorting parameters
     console.log(
@@ -81,7 +73,7 @@ export const fetchTraces = async ({
     );
     queryParams.append("sortBy", sortField);
     queryParams.append("sortOrder", sortDirection);
-
+    
     const response = await fetch(
       `${BASE_URL}/api/tracesRequest/?${queryParams}`,
       {
@@ -92,14 +84,13 @@ export const fetchTraces = async ({
         },
       }
     );
-
+    
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-
+    
     const data = await response.json();
-
     if (data.data && data.pagination) {
       return data as PaginatedResponse;
     } else if (Array.isArray(data)) {
@@ -126,5 +117,31 @@ export const fetchTraces = async ({
     }
   } catch (error) {
     throw error;
+  }
+};
+
+export const fetchFilterOptions = async (): Promise<FilterOptionsResponse> => {
+  try {
+    const response = await fetch(`${BASE_URL}/api/filterOptions`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data as FilterOptionsResponse;
+  } catch (error) {
+    console.error("Error fetching filter options:", error);
+    // Return empty arrays as default if there's an error
+    return {
+      models: [],
+      environments: []
+    };
   }
 };

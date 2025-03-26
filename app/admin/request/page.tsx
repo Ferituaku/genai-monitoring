@@ -9,6 +9,7 @@ import { SortDirection, SortField } from "@/types/trace";
 import { get_time_frame_params } from "@/hooks/TimeFrame/api";
 import { useTraceData } from "@/hooks/Request/use-trace-data";
 import { RequestControls } from "@/components/Request/RequestControl";
+import { useFilterOptions } from "@/hooks/Request/use-filter-options";
 
 export default function Request() {
   // Basic states
@@ -27,11 +28,16 @@ export default function Request() {
 
   // Filter states
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
-  const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>(
-    []
-  );
+  const [selectedEnvironments, setSelectedEnvironments] = useState<string[]>([]);
   const [modelSearchTerm, setModelSearchTerm] = useState("");
   const [environmentSearchTerm, setEnvironmentSearchTerm] = useState("");
+
+  // Get filter options from API
+  const { 
+    availableModels, 
+    availableEnvironments, 
+    loading: loadingFilters 
+  } = useFilterOptions();
 
   // Get time frame from URL params
   const searchParams = useSearchParams();
@@ -83,7 +89,7 @@ export default function Request() {
     setSearchTerm("");
     setSortField("Timestamp");
     setSortDirection("desc");
-    setIsFiltersApplied(true);
+    setIsFiltersApplied(false);
     setIsFilterOpen(false);
     setCurrentPage(1); // Reset to first page when filters are reset
   }, []);
@@ -93,62 +99,22 @@ export default function Request() {
     setCurrentPage(1);
   }, [pageSize]);
 
-  // Get available models and environments
-  const [allAvailableModels, setAllAvailableModels] = useState<string[]>([]);
-  const [allAvailableEnvironments, setAllAvailableEnvironments] = useState<
-    string[]
-  >([]);
-
-  useEffect(() => {
-    if (traces.length > 0) {
-      // Extract all unique models and environments
-      const models = [
-        ...new Set(
-          traces
-            .map((trace) => trace.SpanAttributes["gen_ai.request.model"])
-            .filter(Boolean)
-        ),
-      ];
-
-      const environments = [
-        ...new Set(
-          traces
-            .map((trace) => trace.ResourceAttributes["deployment.environment"])
-            .filter(Boolean)
-        ),
-      ];
-
-      if (
-        models.length > 0 &&
-        JSON.stringify(models) !== JSON.stringify(allAvailableModels)
-      ) {
-        setAllAvailableModels(models);
-      }
-
-      if (
-        environments.length > 0 &&
-        JSON.stringify(environments) !==
-          JSON.stringify(allAvailableEnvironments)
-      ) {
-        setAllAvailableEnvironments(environments);
-      }
-    }
-  }, [traces, allAvailableModels, allAvailableEnvironments]);
-
+  // Filter models based on search term
   const filteredUniqueModels = useMemo(
     () =>
-      allAvailableModels.filter((model) =>
+      availableModels.filter((model) =>
         model.toLowerCase().includes(modelSearchTerm.toLowerCase())
       ),
-    [allAvailableModels, modelSearchTerm]
+    [availableModels, modelSearchTerm]
   );
 
+  // Filter environments based on search term
   const filteredUniqueEnvironments = useMemo(
     () =>
-      allAvailableEnvironments.filter((env) =>
+      availableEnvironments.filter((env) =>
         env.toLowerCase().includes(environmentSearchTerm.toLowerCase())
       ),
-    [allAvailableEnvironments, environmentSearchTerm]
+    [availableEnvironments, environmentSearchTerm]
   );
 
   // Handler page change
@@ -204,6 +170,7 @@ export default function Request() {
             models: selectedModels,
             environments: selectedEnvironments
           }}
+          isLoadingFilters={loadingFilters}
         />
       </div>
 

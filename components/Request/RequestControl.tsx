@@ -33,20 +33,6 @@ interface RequestControlsProps {
   setModelSearchTerm: (term: string) => void;
   environmentSearchTerm: string;
   setEnvironmentSearchTerm: (term: string) => void;
-  // tokenRange: {
-  //   input: TokenRange;
-  //   output: TokenRange;
-  //   total: TokenRange;
-  // };
-  // setTokenRange: (range: {
-  //   input: TokenRange;
-  //   output: TokenRange;
-  //   total: TokenRange;
-  // }) => void;
-  // duration: { min: number; max: number };
-  // setDuration: (duration: { min: number; max: number }) => void;
-  // isStream: boolean;
-  // setIsStream: (isStream: boolean) => void;
   isFilterOpen: boolean;
   setIsFilterOpen: (open: boolean) => void;
   onApplyFilters: () => void;
@@ -61,6 +47,7 @@ interface RequestControlsProps {
   isExporting?: boolean;
   setIsExporting?: (isExporting: boolean) => void;
   filters: Filters;
+  isLoadingFilters?: boolean;
 }
 
 export const RequestControls: React.FC<RequestControlsProps> = ({
@@ -83,12 +70,6 @@ export const RequestControls: React.FC<RequestControlsProps> = ({
   setModelSearchTerm,
   environmentSearchTerm,
   setEnvironmentSearchTerm,
-  // tokenRange,
-  // setTokenRange,
-  // duration,
-  // setDuration,
-  // isStream,
-  // setIsStream,
   isFilterOpen,
   setIsFilterOpen,
   onApplyFilters,
@@ -99,7 +80,8 @@ export const RequestControls: React.FC<RequestControlsProps> = ({
   displayedTraces,
   isExporting = false,
   setIsExporting = () => {},
-  filters
+  filters,
+  isLoadingFilters = false
 }) => {
   return (
     <div className="flex flex-col lg:flex-row gap-4 mb-4 justify-between">
@@ -161,26 +143,27 @@ export const RequestControls: React.FC<RequestControlsProps> = ({
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="absolute right-0 mt-2 w-80 bg-white border rounded-lg shadow-lg p-4 z-50">
-            <FilterPanel
-              selectedModels={selectedModels}
-              setSelectedModels={setSelectedModels}
-              selectedEnvironments={selectedEnvironments}
-              setSelectedEnvironments={setSelectedEnvironments}
-              modelSearchTerm={modelSearchTerm}
-              setModelSearchTerm={setModelSearchTerm}
-              environmentSearchTerm={environmentSearchTerm}
-              setEnvironmentSearchTerm={setEnvironmentSearchTerm}
-              // tokenRange={tokenRange}
-              // setTokenRange={setTokenRange}
-              // duration={duration}
-              // setDuration={setDuration}
-              // isStream={isStream}
-              // setIsStream={setIsStream}
-              resetFilters={resetFilters}
-              onApply={onApplyFilters}
-              filteredUniqueModels={filteredUniqueModels}
-              filteredUniqueEnvironments={filteredUniqueEnvironments}
-            />
+            {isLoadingFilters ? (
+              <div className="flex items-center justify-center p-4">
+                <Loader2 className="h-6 w-6 animate-spin text-blue-500 mr-2" />
+                <span>Loading filter options...</span>
+              </div>
+            ) : (
+              <FilterPanel
+                selectedModels={selectedModels}
+                setSelectedModels={setSelectedModels}
+                selectedEnvironments={selectedEnvironments}
+                setSelectedEnvironments={setSelectedEnvironments}
+                modelSearchTerm={modelSearchTerm}
+                setModelSearchTerm={setModelSearchTerm}
+                environmentSearchTerm={environmentSearchTerm}
+                setEnvironmentSearchTerm={setEnvironmentSearchTerm}
+                resetFilters={resetFilters}
+                onApply={onApplyFilters}
+                filteredUniqueModels={filteredUniqueModels}
+                filteredUniqueEnvironments={filteredUniqueEnvironments}
+              />
+            )}
           </CollapsibleContent>
         </Collapsible>
       </div>

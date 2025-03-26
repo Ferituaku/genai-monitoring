@@ -3,14 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Slider } from "../ui/slider";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
-import { Filtering } from "./RequestFilter";
 import { TokenRange } from "@/types/requests";
 
 interface FilterPanelProps {
@@ -22,20 +21,6 @@ interface FilterPanelProps {
   setModelSearchTerm: (value: string) => void;
   environmentSearchTerm: string;
   setEnvironmentSearchTerm: (value: string) => void;
-  // tokenRange: {
-  //   input: TokenRange;
-  //   output: TokenRange;
-  //   total: TokenRange;
-  // };
-  // setTokenRange: (value: {
-  //   input: TokenRange;
-  //   output: TokenRange;
-  //   total: TokenRange;
-  // }) => void;
-  // duration: { min: number; max: number };
-  // setDuration: (value: { min: number; max: number }) => void;
-  // isStream: boolean;
-  // setIsStream: (value: boolean) => void;
   onApply: () => void;
   resetFilters: () => void;
   filteredUniqueModels: string[];
@@ -51,12 +36,6 @@ export const FilterPanel = ({
   setModelSearchTerm,
   environmentSearchTerm,
   setEnvironmentSearchTerm,
-  // tokenRange,
-  // setTokenRange,
-  // duration,
-  // setDuration,
-  // isStream,
-  // setIsStream,
   onApply,
   resetFilters,
   filteredUniqueModels,
@@ -87,7 +66,9 @@ export const FilterPanel = ({
                   }
                 }}
               />
-              <Label>{model}</Label>
+              <Label className="text-sm cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap" title={model}>
+                {model}
+              </Label>
             </div>
           ))}
         </div>
@@ -116,85 +97,13 @@ export const FilterPanel = ({
                   }
                 }}
               />
-              <Label>{env}</Label>
+              <Label className="text-sm cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap" title={env}>
+                {env}
+              </Label>
             </div>
           ))}
         </div>
       </div>
-
-      {/* <div>
-        <Label>Token Range</Label>
-        <div className="space-y-4">
-          <div>
-            <Label className="text-sm">Input Tokens</Label>
-            <Slider
-              min={0}
-              max={4000}
-              step={100}
-              value={[tokenRange.input.min, tokenRange.input.max]}
-              onValueChange={([min, max]) =>
-                setTokenRange({
-                  ...tokenRange,
-                  input: { min, max },
-                })
-              }
-              className="mt-2"
-            />
-          </div>
-          <div>
-            <Label className="text-sm">Output Tokens</Label>
-            <Slider
-              min={0}
-              max={4000}
-              step={100}
-              value={[tokenRange.output.min, tokenRange.output.max]}
-              onValueChange={([min, max]) =>
-                setTokenRange({
-                  ...tokenRange,
-                  output: { min, max },
-                })
-              }
-              className="mt-2"
-            />
-          </div>
-          <div>
-            <Label className="text-sm">Total Tokens</Label>
-            <Slider
-              min={0}
-              max={8000}
-              step={100}
-              value={[tokenRange.total.min, tokenRange.total.max]}
-              onValueChange={([min, max]) =>
-                setTokenRange({
-                  ...tokenRange,
-                  total: { min, max },
-                })
-              }
-              className="mt-2"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <Label>Duration (ms)</Label>
-        <Slider
-          min={0}
-          max={10000}
-          step={100}
-          value={[duration.min, duration.max]}
-          onValueChange={([min, max]) => setDuration({ min, max })}
-          className="mt-2"
-        />
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          checked={isStream}
-          onCheckedChange={(checked) => setIsStream(checked as boolean)}
-        />
-        <Label>Stream</Label>
-      </div> */}
 
       <div className="flex gap-2 pt-4">
         <Button variant="outline" onClick={resetFilters} className="flex-1">
