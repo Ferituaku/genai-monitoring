@@ -61,7 +61,7 @@ export default function Request() {
     [handleSearch]
   );
 
-  // Fetch data dengan paginasi
+  // Fetch data with pagination
   const { traces, loading, error, pagination } = useTraceData({
     timeFrame,
     sortField,
@@ -75,15 +75,31 @@ export default function Request() {
     pageSize: parseInt(pageSize, 10),
   });
 
+  // State for pending filters
+  const [pendingModels, setPendingModels] = useState<string[]>([]);
+  const [pendingEnvironments, setPendingEnvironments] = useState<string[]>([]);
+
+  // Inisiate filter options
+  useEffect(() => {
+    if (isFilterOpen) {
+      setPendingModels(selectedModels);
+      setPendingEnvironments(selectedEnvironments);
+    }
+  }, [isFilterOpen, selectedModels, selectedEnvironments]);
+
   // Apply filters
   const handleApplyFilters = useCallback(() => {
+    setSelectedModels(pendingModels);
+    setSelectedEnvironments(pendingEnvironments);
     setIsFiltersApplied(true);
     setIsFilterOpen(false);
     setCurrentPage(1);
-  }, []);
+  }, [pendingModels, pendingEnvironments]);
 
   // Reset filters
   const handleResetFilters = useCallback(() => {
+    setPendingModels([]);
+    setPendingEnvironments([]);
     setSelectedModels([]);
     setSelectedEnvironments([]);
     setSearchTerm("");
@@ -159,6 +175,10 @@ export default function Request() {
           resetFilters={handleResetFilters}
           filteredUniqueModels={filteredUniqueModels}
           filteredUniqueEnvironments={filteredUniqueEnvironments}
+          pendingModels={pendingModels}
+          setPendingModels={setPendingModels}
+          pendingEnvironments={pendingEnvironments}
+          setPendingEnvironments={setPendingEnvironments}
           handleSearch={handleSearch}
           handleKeyPress={handleKeyPress}
           isSearching={isSearching}

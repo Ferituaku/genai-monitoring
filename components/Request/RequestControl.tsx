@@ -1,4 +1,3 @@
-// components/Request/RequestControl.tsx
 import { Loader2, Search, SlidersHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SortField, SortDirection, TraceData } from "@/types/trace";
@@ -48,6 +47,10 @@ interface RequestControlsProps {
   setIsExporting?: (isExporting: boolean) => void;
   filters: Filters;
   isLoadingFilters?: boolean;
+  pendingModels: string[];
+  setPendingModels: (models: string[]) => void;
+  pendingEnvironments: string[];
+  setPendingEnvironments: (environments: string[]) => void;
 }
 
 export const RequestControls: React.FC<RequestControlsProps> = ({
@@ -81,7 +84,11 @@ export const RequestControls: React.FC<RequestControlsProps> = ({
   isExporting = false,
   setIsExporting = () => {},
   filters,
-  isLoadingFilters = false
+  isLoadingFilters = false,
+  pendingModels,
+  setPendingModels,
+  pendingEnvironments,
+  setPendingEnvironments
 }) => {
   return (
     <div className="flex flex-col lg:flex-row gap-4 mb-4 justify-between">
@@ -150,10 +157,10 @@ export const RequestControls: React.FC<RequestControlsProps> = ({
               </div>
             ) : (
               <FilterPanel
-                selectedModels={selectedModels}
-                setSelectedModels={setSelectedModels}
-                selectedEnvironments={selectedEnvironments}
-                setSelectedEnvironments={setSelectedEnvironments}
+                selectedModels={pendingModels}
+                setSelectedModels={setPendingModels}
+                selectedEnvironments={pendingEnvironments}
+                setSelectedEnvironments={setPendingEnvironments}
                 modelSearchTerm={modelSearchTerm}
                 setModelSearchTerm={setModelSearchTerm}
                 environmentSearchTerm={environmentSearchTerm}
