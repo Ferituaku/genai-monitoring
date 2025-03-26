@@ -6,8 +6,8 @@ export interface EvaluationFile {
   file_name: string;
   json_data: EvaluationDetail[];
   project: string;
-  status?: string; 
-  complete_time?: string; 
+  status?: string;
+  complete_time?: string;
 }
 
 export interface EvaluationDetail {
@@ -53,7 +53,7 @@ export interface UploadPayload {
   openai_api_version: string;
   openai_api_type: string;
   openai_deployment_name: string;
-  json_filename?: string; 
+  json_filename?: string;
 }
 
 export class EvaluationService {
@@ -72,7 +72,7 @@ export class EvaluationService {
   static async deleteFile(fileId: string): Promise<any> {
     try {
       const response = await axios.post(`${this.API_BASE_URL}/delete_file`, {
-        fileId: fileId
+        fileId: fileId,
       });
       return response.data;
     } catch (error) {
@@ -81,14 +81,16 @@ export class EvaluationService {
     }
   }
 
-  static async getFileDetails(fileId: string): Promise<{ json_data: EvaluationDetail[] }> {
+  static async getFileDetails(
+    fileId: string
+  ): Promise<{ json_data: EvaluationDetail[] }> {
     try {
       console.log(`Fetching details for file ID: ${fileId}`);
-      
+
       const response = await axios.post(`${this.API_BASE_URL}/get_json`, {
-        fileId: fileId
+        fileId: fileId,
       });
-      
+
       return response.data;
     } catch (error) {
       console.error("Error fetching file details:", error);
@@ -102,6 +104,19 @@ export class EvaluationService {
       return response.data;
     } catch (error) {
       console.error("Error uploading evaluation:", error);
+      throw error;
+    }
+  }
+  static async exportToCSV(fileId: string): Promise<Blob> {
+    try {
+      const response = await axios.post(
+        `${this.API_BASE_URL}/export_csv`,
+        { fileId: fileId },
+        { responseType: "blob" }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error exporting to CSV:", error);
       throw error;
     }
   }

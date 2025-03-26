@@ -1,9 +1,10 @@
 import os
+import io
 import pandas as pd
 import json
 import sqlite3
 import shutil
-from flask import request, jsonify
+from flask import request, jsonify, send_file, Response
 from flask_restful import Resource
 from data.configuration.config import evaluation
 from data.configuration.db import Database
@@ -93,3 +94,50 @@ class GetJsonById(Resource):
             return jsonify(data)
         else:
             return {"error": "Missing required parameter: fileId"}, 400
+        
+class ExportFileToCSV(Resource):
+    def post(self):
+        try:
+            payload = json.loads(request.data.decode('utf-8'))
+            if 'fileId' not in payload:
+                return {"error": "Missing required parameter: fileId"}, 400
+                
+            file_id = payload['fileId']
+            
+            # Get file data from database
+            db = Database()
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            select_sql = "SELECT json_data, filename FROM mlops WHERE id = ?"
+            cursor.execute(select_sql, (file_id,))
+            result = cursor.fetchone()
+            conn.close()
+            
+            if not result:
+                return {"error": f"File with ID {file_id} not found"}, 404
+                
+            json_data = json.loads(result[0])
+            filename = result[1]
+            
+            # Convert JSON to DataFrame
+            df = pd.DataFrame(json_data)
+            
+            # Create CSV
+            csv_buffer = io.StringIO()
+            df.to_csv(csv_buffer, index=False)
+            csv_buffer.seek(0)
+            
+            # Set headers for response
+            headers = {
+                "Content-Disposition": f"attachment; filename={filename}_export.csv",
+                "Content-Type": "text/csv"
+            }
+            
+            return Response(
+                csv_buffer.getvalue(),
+                mimetype="text/csv",
+                headers=headers
+            )
+            
+        except Exception as e:
+            return {"error": str(e)}, 500

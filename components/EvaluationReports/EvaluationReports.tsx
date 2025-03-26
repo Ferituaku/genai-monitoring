@@ -5,7 +5,11 @@ import DynamicBreadcrumb from "@/components/Breadcrum";
 import { Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { EvaluationService, EvaluationFile, EvaluationDetail } from "@/lib/EvaluationReports/api";
+import {
+  EvaluationService,
+  EvaluationFile,
+  EvaluationDetail,
+} from "@/lib/EvaluationReports/api";
 import SearchBar from "./SearchBar";
 import FileList from "./FileList";
 import UploadForm from "./UploadForm";
@@ -26,7 +30,9 @@ const EvaluationReports: React.FC = () => {
   // State untuk detail file
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
-  const [fileDetails, setFileDetails] = useState<EvaluationDetail[] | null>(null);
+  const [fileDetails, setFileDetails] = useState<EvaluationDetail[] | null>(
+    null
+  );
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
@@ -62,8 +68,8 @@ const EvaluationReports: React.FC = () => {
   const handleViewDetails = async (fileId: string) => {
     try {
       setDetailsLoading(true);
-      
-      const file = evaluationFiles.find(f => f.id === fileId);
+
+      const file = evaluationFiles.find((f) => f.id === fileId);
       if (!file) throw new Error("File tidak ditemukan");
 
       setSelectedFileId(fileId);
@@ -90,9 +96,13 @@ const EvaluationReports: React.FC = () => {
   const filteredFiles = evaluationFiles.filter((file) => {
     if (!file) return false;
 
-    const idMatch = file.id?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false;
-    const filenameMatch = file.file_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false;
-    const projectMatch = file.project?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false;
+    const idMatch =
+      file.id?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false;
+    const filenameMatch =
+      file.file_name?.toLowerCase().includes(searchQuery.toLowerCase()) ??
+      false;
+    const projectMatch =
+      file.project?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false;
 
     return idMatch || filenameMatch || projectMatch;
   });
@@ -113,7 +123,10 @@ const EvaluationReports: React.FC = () => {
   }, [totalPages]);
 
   // Menentukan file yang akan ditampilkan pada halaman saat ini
-  const paginatedFiles = filteredFiles.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const paginatedFiles = filteredFiles.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   return (
     <div className="h-full">
@@ -169,6 +182,7 @@ const EvaluationReports: React.FC = () => {
       <DetailsView
         isOpen={detailsOpen}
         filename={selectedFileName}
+        fileId={selectedFileId}
         details={fileDetails}
         loading={detailsLoading}
         onOpenChange={setDetailsOpen}

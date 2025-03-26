@@ -22,7 +22,7 @@ from endpoints.admin.pricing import PricingAPI
 from endpoints.admin.vault import vault
 from endpoints.admin.appcatalogue import AppCatalogueLogo
 from endpoints.general.filterRequest import FilterOptions
-from endpoints.admin.evaluation import GetAllFile, DeleteFileJson, GetJsonById
+from endpoints.admin.evaluation import GetAllFile, DeleteFileJson, GetJsonById, ExportFileToCSV
 from endpoints.admin.mlops_system import UploadDataMlops
 
 app = Flask(__name__)
@@ -45,6 +45,7 @@ api.add_resource(FilterOptions, '/api/filterOptions')
 api.add_resource(UploadDataMlops, '/upload')
 api.add_resource(GetAllFile, '/file_json')
 api.add_resource(DeleteFileJson, '/delete_file')
+api.add_resource(ExportFileToCSV, '/export_csv') 
 api.add_resource(GetJsonById, '/get_json')
 # openlit.init(pricing_json="https://raw.githubusercontent.com/AhlisDinalBahtiar/price-ai/refs/heads/main/pricing.json")
 AuthApp(app)
