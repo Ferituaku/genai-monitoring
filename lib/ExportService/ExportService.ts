@@ -1,4 +1,3 @@
-// lib/RequestService/exportService.ts
 import { Filters } from "@/types/requests";
 import { TimeFrameParams } from "@/types/timeframe";
 import { SortDirection, SortField, TraceData } from "@/types/trace";
@@ -13,6 +12,18 @@ interface ExportTracesParams {
   searchTerm?: string;
 }
 
+interface ExtendedTraceData extends TraceData {
+  Events?: {
+    Attributes?: Array<{
+      "gen_ai.prompt"?: string;
+      "gen_ai.completion"?: string;
+      [key: string]: string | undefined;
+    }>;
+    Name?: string[];
+    Timestamp?: string[];
+  };
+}
+
 export const exportTracesToCSV = async ({
   timeFrame,
   filters,
@@ -23,179 +34,213 @@ export const exportTracesToCSV = async ({
   try {
     const queryParams = new URLSearchParams();
 
-    // ambil parameter yang sama dari timeframe parameters
+    // Add time frame parameters with optional checks
     if (timeFrame?.from) {
-      const fromDate = new Date(timeFrame.from).toISOString();
-      queryParams.append("from", fromDate);
+      queryParams.append("from", new Date(timeFrame.from).toISOString());
     }
     if (timeFrame?.to) {
-      const toDate = new Date(timeFrame.to).toISOString();
-      queryParams.append("to", toDate);
+      queryParams.append("to", new Date(timeFrame.to).toISOString());
     }
 
-    // ini sebernaernya untuk limit pagination tapi sementara sesuaiin sama yang page yg dishow
+    // Pagination with configurable size
     queryParams.append("page", "1");
-    queryParams.append("page_size", "1000"); // Get a large number of records
+    queryParams.append("page_size", "5000"); // Increased limit for more comprehensive export
 
+    // Flexible search term handling
     if (searchTerm) {
-      queryParams.append("app_name", searchTerm);
+      queryParams.append("search", searchTerm); // More generic search parameter
     }
 
-    if (filters.models && filters.models.length > 0) {
-      filters.models.forEach((model: string) => {
-        queryParams.append("model", model);
-      });
+    // Robust model filtering
+    if (filters.models?.length) {
+      filters.models.forEach((model) => queryParams.append("model", model));
     }
 
-    if (filters.environments && filters.environments.length > 0) {
-      filters.environments.forEach((env: string) => {
-        queryParams.append("deployment_environment", env);
-      });
+    // Robust environment filtering
+    if (filters.environments?.length) {
+      filters.environments.forEach((env) =>
+        queryParams.append("deployment_environment", env)
+      );
     }
 
-    // Add sorting parameters
+    // Sorting parameters
     queryParams.append("sortBy", sortField);
     queryParams.append("sortOrder", sortDirection);
 
-    // Add export flag
+    // Export flag
     queryParams.append("export", "true");
 
-    // Fetch the CSV data
+    // Enhanced fetch with error handling
     const response = await fetch(
       `${BASE_URL}/api/tracesRequest/export?${queryParams}`,
-      {
+      { 
         method: "GET",
+        headers: {
+          'Accept': 'text/csv',
+          'Content-Type': 'application/json'
+        }
       }
     );
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`Export failed: ${response.status} - ${errorText}`);
     }
 
-    // Get the blob from the response
+    // Download the CSV with improved naming
     const blob = await response.blob();
-
-    // Create a download link
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
+
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const defaultFileName = `trace-export-${timestamp}.csv`;
+    
     a.href = url;
-    a.download = `trace-requests-export-${timestamp}.csv`;
+    a.download = defaultFileName;
+
     document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
 
     // Clean up
     window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
   } catch (error) {
-    console.error("Error exporting data:", error);
+    console.error("Comprehensive error in data export:", error);
     throw error;
   }
 };
 
-// Alternative method if you want to generate CSV on frontend
 export const generateCSVFromTraces = (traces: TraceData[]): string => {
   if (!traces || traces.length === 0) {
     return "No data available";
   }
 
-  // Define the headers for your CSV
+  // Comprehensive headers
   const headers = [
     "Timestamp",
-    "Service Name",
-    "Model",
+    "Service Name", 
+    "Model", 
     "Environment",
-    "Token Completion",
-    "Token Prompt",
-    "Total Token",
+    "Prompt Tokens", 
+    "Completion Tokens",  
+    "Total Tokens", 
     "Cost",
-    "Prompt",
-    "Completion",
+    "Status Code",
+    "Prompt", 
+    "Completion"
   ];
 
-  const escapeCSV = (value: string) => {
-    // If value contains commas, quotes, or newlines, wrap it in quotes
-    if (/[",\n\r]/.test(value)) {
-      // Double up any quotes within the value
-      return `"${value.replace(/"/g, '""')}"`;
+  const escapeCSV = (value: string | number | undefined): string => {
+    if (value === undefined || value === null) return "";
+
+    const stringValue = String(value).trim();
+
+    // Enhanced CSV escaping
+    if (/[",\n\r]/.test(stringValue)) {
+      return `"${stringValue.replace(/"/g, '""')}"`;
     }
-    return value;
+    return stringValue;
   };
 
-  // Create CSV rows from the trace data
+  // More robust row generation
   const rows = traces.map((trace) => {
-    const timestamp = trace.Timestamp
-      ? new Date(trace.Timestamp).toLocaleString()
-      : "";
-    const serviceName = trace.ServiceName || "";
-    const model = trace.SpanAttributes["gen_ai.request.model"] || "";
-    const environment =
-      trace.ResourceAttributes["deployment.environment"] || "";
-    const completionTokens =
-      trace.SpanAttributes["gen_ai.usage.completion_tokens"] || "0";
-    const promptTokens =
-      trace.SpanAttributes["gen_ai.usage.prompt_tokens"] || "0";
-    const totalTokens =
-      trace.SpanAttributes["gen_ai.usage.total_tokens"] || "0";
-    const cost = trace.SpanAttributes["gen_ai.usage.cost"] || "0";
-    const prompt = "";
-    const completion = "";
+    const getAttributeValue = (attribute: string, defaultValue = "") =>
+      trace.SpanAttributes[attribute] || defaultValue;
+
+    // Improved token and status code handling with explicit fallbacks
+    const completionTokens = getAttributeValue("gen_ai.usage.output_tokens", "0");
+    const promptTokens = getAttributeValue("gen_ai.usage.input_tokens", "0");
+    const totalTokens = getAttributeValue("gen_ai.usage.total_tokens", "0");
+    const cost = getAttributeValue("gen_ai.usage.cost", "0");
+    const statusCode = getAttributeValue("http.status_code", "N/A");
+
+    const { prompt, completion } = getPromptAndCompletion(trace);
 
     return [
-      escapeCSV(timestamp),
-      escapeCSV(serviceName),
-      escapeCSV(model),
-      escapeCSV(environment),
-      escapeCSV(completionTokens),
+      escapeCSV(trace.Timestamp ? new Date(trace.Timestamp).toLocaleString() : ""),
+      escapeCSV(trace.ServiceName),
+      escapeCSV(getAttributeValue("gen_ai.request.model")),
+      escapeCSV(trace.ResourceAttributes?.["deployment.environment"] || ""),
       escapeCSV(promptTokens),
+      escapeCSV(completionTokens),
       escapeCSV(totalTokens),
       escapeCSV(cost),
+      escapeCSV(statusCode),
       escapeCSV(prompt),
-      escapeCSV(completion),
+      escapeCSV(completion)
     ].join(",");
   });
 
-  // Combine headers and rows
-  return [headers.map(escapeCSV).join(","), ...rows].join("\n");
+  // Combine headers and rows with BOM for Excel compatibility
+  return ["\uFEFF" + headers.map(escapeCSV).join(","), ...rows].join("\n");
 };
 
-// export const downloadCSV = (csvContent: string, filename: string): void => {
-//   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-//   const url = URL.createObjectURL(blob);
-//   const link = document.createElement("a");
+export const downloadCSV = (csvContent: string, filename?: string): void => {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const defaultFilename = `traces-export-${timestamp}.csv`;
 
-//   link.setAttribute("href", url);
-//   link.setAttribute("download", filename);
-//   link.style.visibility = "hidden";
-
-//   document.body.appendChild(link);
-//   link.click();
-//   document.body.removeChild(link);
-// };
-
-export const downloadCSV = (csvContent: string, filename: string): void => {
-  // Add BOM (Byte Order Mark) for Excel to correctly recognize UTF-8
-  const BOM = "\uFEFF";
-  const csvContentWithBOM = BOM + csvContent;
-
-  // Create blob with proper MIME type for Excel
-  const blob = new Blob([csvContentWithBOM], {
-    type: "text/csv;charset=utf-8;",
+  // Create blob with proper MIME type and UTF-8 encoding
+  const blob = new Blob([csvContent], {
+    type: "text/csv;charset=utf-8;"
   });
 
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
 
   link.setAttribute("href", url);
-  link.setAttribute("download", filename);
+  link.setAttribute("download", filename || defaultFilename);
   link.style.visibility = "hidden";
 
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 
-  // Clean up
-  setTimeout(() => {
-    URL.revokeObjectURL(url);
-  }, 100);
+  // Improved cleanup
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+};
+
+// Enhanced helper function to extract prompt and completion
+const getPromptAndCompletion = (
+  data: ExtendedTraceData
+): { prompt: string; completion: string } => {
+  let prompt = "";
+  let completion = "";
+
+  const extractFromAttributes = (
+    attrs?: Array<{ [key: string]: string | undefined }>
+  ) => {
+    if (!attrs) return { prompt: "", completion: "" };
+
+    const promptAttr = attrs.find((attr) => attr["gen_ai.prompt"]);
+    const completionAttr = attrs.find((attr) => attr["gen_ai.completion"]);
+
+    return {
+      prompt: promptAttr?.["gen_ai.prompt"] || "",
+      completion: completionAttr?.["gen_ai.completion"] || "",
+    };
+  };
+
+  // Multiple fallback mechanisms
+  const extractionMethods = [
+    () => extractFromAttributes(data["Events.Attributes"]),
+    () => extractFromAttributes(data.Events?.Attributes),
+    () => ({
+      prompt: data.SpanAttributes?.["gen_ai.prompt"] || "",
+      completion: data.SpanAttributes?.["gen_ai.completion"] || "",
+    }),
+  ];
+
+  for (const method of extractionMethods) {
+    const result = method();
+    if (result.prompt || result.completion) {
+      prompt = result.prompt;
+      completion = result.completion;
+      break;
+    }
+  }
+
+  return { 
+    prompt: prompt.trim(), 
+    completion: completion.trim() 
+  };
 };
