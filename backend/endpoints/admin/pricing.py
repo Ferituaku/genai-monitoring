@@ -172,6 +172,7 @@ class PricingAPI:
         self.app.route('/data/<model>', methods=['POST'])(self.add_data_to_model)
         self.app.route('/data/<model>/<data_model>', methods=['PUT'])(self.update_data_model)
         self.app.route('/data/<model>/<data_model>', methods=['DELETE'])(self.delete_data_model)
+        self.app.route('/raw/pricing.json', methods=['GET'])(self.get_raw_json)
 
     def get_all_data(self):
         """GET /data endpoint."""
@@ -229,6 +230,11 @@ class PricingAPI:
             "message": message,
             model: self.pricing_manager.get_model_data(model)
         }), 200
+    
+    def get_raw_json(self):
+        """GET /raw/pricing.json endpoint."""
+        # Return data sebagai raw JSON tanpa wrapping
+        return jsonify(self.pricing_manager.get_all_data()), 200, {'Content-Type': 'application/json'}
 
     def run(self, debug=True, port=5101 ):
         """Run the Flask application."""

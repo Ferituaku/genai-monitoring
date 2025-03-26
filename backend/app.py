@@ -8,6 +8,7 @@ from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
 # from flask_compress import Compress
+# import openlit 
 
 from endpoints.general.dashboard import Dashboard
 from endpoints.general.request import Request
@@ -45,6 +46,7 @@ api.add_resource(UploadDataMlops, '/upload')
 api.add_resource(GetAllFile, '/file_json')
 api.add_resource(DeleteFileJson, '/delete_file')
 api.add_resource(GetJsonById, '/get_json')
+# openlit.init(pricing_json="https://raw.githubusercontent.com/AhlisDinalBahtiar/price-ai/refs/heads/main/pricing.json")
 AuthApp(app)
 PricingAPI(app)
 
