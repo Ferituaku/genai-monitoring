@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { TraceData } from "@/types/trace";
 import { RequestRow } from "./RequestRow";
-import Pagination from "./Pagination";
+import Pagination from "../Pagination/Pagination";
 
 interface RequestTableProps {
   displayedTraces: TraceData[];

@@ -11,12 +11,16 @@ import DynamicBreadcrumb from "@/components/Breadcrum";
 import { VaultTable } from "@/components/Vault/VaultTable";
 import { AddKeyModal } from "@/components/Vault/AddKeyVault";
 import { EditKeyModal } from "@/components/Vault/EditKeyModal";
+import Pagination from "@/components/Pagination/Pagination";
 
 export default function VaultPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingKey, setEditingKey] = useState("");
   const [editingValue, setEditingValue] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5; // Jumlah item per halaman
+
   const { toast } = useToast();
 
   const {
@@ -47,13 +51,11 @@ export default function VaultPage() {
         title: "Success",
         description: result.message,
       });
-      // Refresh data
       fetchVaultData();
     }
   };
 
   const handleEdit = (key: string) => {
-    // Find the current value of the key
     const item = vaultData.find(item => item.key === key);
     if (item) {
       setEditingKey(key);
@@ -76,7 +78,6 @@ export default function VaultPage() {
         title: "Success",
         description: result.message,
       });
-      // Refresh data
       fetchVaultData();
     }
   };
@@ -94,10 +95,13 @@ export default function VaultPage() {
         title: "Success",
         description: result.message,
       });
-      // Refresh data
       fetchVaultData();
     }
   };
+
+  const totalItems = vaultData.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const paginatedData = vaultData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   if (error) {
     return <div className="text-center text-red-500 p-4">{error}</div>;
@@ -122,13 +126,24 @@ export default function VaultPage() {
         <Card>
           <CardContent>
             <VaultTable
-              data={vaultData}
+              data={paginatedData}
               onEdit={handleEdit}
               onDelete={handleDelete}
               isLoading={isLoading}
             />
           </CardContent>
         </Card>
+
+        {/* Pagination */}
+        <div className="mt-4 flex justify-center">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={totalItems}
+            pageSize={pageSize}
+          />
+        </div>
         
         {/* Add Modal */}
         <AddKeyModal

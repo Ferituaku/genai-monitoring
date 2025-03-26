@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from "@/components/ui/card";
 import { ErrorTraceData } from "@/types/exceptions";
 import ExceptionRow from "./ExceptionRow";
-import Pagination from "@/components/Request/Pagination";
+import Pagination from "@/components/Pagination/Pagination";
 
 interface ExceptionTableProps {
   displayedTraces: ErrorTraceData[];
