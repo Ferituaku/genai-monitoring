@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { ErrorTraceData } from "@/types/exceptions";
 import ExceptionRow from "./ExceptionRow";
@@ -19,8 +19,45 @@ export const ExceptionTable = ({
   totalPages,
   totalItems,
   pageSize,
-  onPageChange
+  onPageChange,
 }: ExceptionTableProps) => {
+  const tableBodyRef = useRef<HTMLDivElement>(null);
+  const [tableHeight, setTableHeight] = useState<string>("auto");
+
+  // Calculate and set the appropriate table height
+  useEffect(() => {
+    const calculateTableHeight = () => {
+      if (!tableBodyRef.current) return;
+
+      // Get viewport height
+      const viewportHeight = window.innerHeight;
+
+      // Get header and pagination heights
+      const headerHeight = 53;
+      const paginationHeight = 50;
+
+      const topOffset = 200;
+      const maxAvailableHeight =
+        viewportHeight - (topOffset + headerHeight + paginationHeight);
+
+      const minRequiredHeight = displayedTraces.length * 50;
+
+      if (minRequiredHeight < maxAvailableHeight) {
+        setTableHeight("auto");
+      } else {
+        setTableHeight(`${maxAvailableHeight}px`);
+      }
+    };
+
+    calculateTableHeight();
+
+    // Recalculate on window resize
+    window.addEventListener("resize", calculateTableHeight);
+    return () => {
+      window.removeEventListener("resize", calculateTableHeight);
+    };
+  }, [displayedTraces.length]);
+
   return (
     <Card className="rounded-md h-full flex flex-col ">
       <div className="sticky top-0 bg-gray-200 z-20">
@@ -46,9 +83,18 @@ export const ExceptionTable = ({
           </thead>
         </table>
       </div>
-      
+
       {/* Area scrollable */}
-      <div className="flex-grow overflow-y-auto max-h-[calc(100vh-300px)]">
+      <div
+        ref={tableBodyRef}
+        className="overflow-y-auto w-full"
+        style={{
+          height: tableHeight,
+          minHeight: displayedTraces.length > 0 ? "100px" : "200px", // Minimum height to prevent collapse
+          maxHeight: "calc(100vh - 300px)", // Maximum height as a fallback
+        }}
+      >
+        {" "}
         <table className="w-full">
           <tbody>
             {displayedTraces.length > 0 ? (
@@ -57,7 +103,7 @@ export const ExceptionTable = ({
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={5} className="pt-20 py-4 text-center text-gray-500">
                   No exception traces found
                 </td>
               </tr>
@@ -65,17 +111,17 @@ export const ExceptionTable = ({
           </tbody>
         </table>
       </div>
-      
+
       {/* Pagination area */}
       {onPageChange && totalPages && totalPages > 0 && (
         <div className="sticky bottom-0 border-t border-gray-200 bg-white z-20 px-6 py-2">
-          <Pagination 
+          <Pagination
             currentPage={currentPage || 1}
             totalPages={totalPages}
             onPageChange={onPageChange}
             totalItems={totalItems || displayedTraces.length}
             pageSize={pageSize || 10}
-            compact={true} 
+            compact={true}
           />
         </div>
       )}
