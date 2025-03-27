@@ -31,12 +31,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import Pagination from "@/components/Pagination/Pagination";
 
 export default function ApiKeysPage() {
   const [API_KEYS, SET_API_KEYS] = useState<ApiKey[]>([]);
   const [LOADING, SET_LOADING] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [keyToDelete, setKeyToDelete] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5; // Number of items per page
+
   const { toast } = useToast();
 
   const FETCH_API_KEY = async () => {
@@ -57,6 +61,10 @@ export default function ApiKeysPage() {
   useEffect(() => {
     FETCH_API_KEY();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [API_KEYS]);
 
   const HANDLE_COPY_APIKEY = (apiKey: string) => {
     navigator.clipboard.writeText(apiKey);
@@ -95,6 +103,21 @@ export default function ApiKeysPage() {
     }
   };
 
+  // Pagination calculations
+  const totalItems = API_KEYS.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const paginatedKeys = API_KEYS.slice(
+    (currentPage - 1) * pageSize, 
+    currentPage * pageSize
+  );
+
+  // Adjust current page if it exceeds total pages
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(Math.max(totalPages, 1));
+    }
+  }, [totalPages]);
+
   if (LOADING) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
@@ -125,14 +148,14 @@ export default function ApiKeysPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {API_KEYS.length === 0 ? (
+              {paginatedKeys.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center">
                     No API keys available
                   </TableCell>
                 </TableRow>
               ) : (
-                API_KEYS.map((key) => (
+                paginatedKeys.map((key) => (
                   <TableRow key={key.api_key}>
                     <TableCell className="font-medium">{key.name}</TableCell>
                     <TableCell>
@@ -169,6 +192,19 @@ export default function ApiKeysPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Pagination Component */}
+      {totalPages > 1 && (
+        <div className="mt-4 flex justify-center">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      )}
 
       <GenerateApiKeyDialog onKeyCreated={FETCH_API_KEY} />
 
