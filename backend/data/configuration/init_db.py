@@ -41,13 +41,12 @@ def create_tables():
 
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sso_id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
             email TEXT NOT NULL UNIQUE,
-            google_id TEXT UNIQUE,
+            role TEXT DEFAULT 'user',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            last_login TIMESTAMP,
-            name TEXT,
-            avatar_url TEXT
+            last_login TIMESTAMP 
         )
         ''')
 
