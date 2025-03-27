@@ -19,7 +19,7 @@ export default function VaultPage() {
   const [editingKey, setEditingKey] = useState("");
   const [editingValue, setEditingValue] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 5; // Jumlah item per halaman
+  const pageSize = 2; // Jumlah item per halaman
 
   const { toast } = useToast();
 
@@ -37,26 +37,23 @@ export default function VaultPage() {
     fetchVaultData();
   }, [fetchVaultData]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [vaultData]);
+
   const handleAddKey = async (formData: VaultFormData) => {
     const result = await addVaultEntry(formData);
     if (result.error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.error,
-      });
+      toast({ variant: "destructive", title: "Error", description: result.error });
     } else {
       setIsAddModalOpen(false);
-      toast({
-        title: "Success",
-        description: result.message,
-      });
+      toast({ title: "Success", description: result.message });
       fetchVaultData();
     }
   };
 
   const handleEdit = (key: string) => {
-    const item = vaultData.find(item => item.key === key);
+    const item = vaultData.find((item) => item.key === key);
     if (item) {
       setEditingKey(key);
       setEditingValue(item.value);
@@ -67,17 +64,10 @@ export default function VaultPage() {
   const handleEditSubmit = async (newValue: string) => {
     const result = await updateVaultEntry(editingKey, newValue);
     if (result.error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.error,
-      });
+      toast({ variant: "destructive", title: "Error", description: result.error });
     } else {
       setIsEditModalOpen(false);
-      toast({
-        title: "Success",
-        description: result.message,
-      });
+      toast({ title: "Success", description: result.message });
       fetchVaultData();
     }
   };
@@ -85,16 +75,9 @@ export default function VaultPage() {
   const handleDelete = async (key: string) => {
     const result = await deleteVaultEntry(key);
     if (result.error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.error,
-      });
+      toast({ variant: "destructive", title: "Error", description: result.error });
     } else {
-      toast({
-        title: "Success",
-        description: result.message,
-      });
+      toast({ title: "Success", description: result.message });
       fetchVaultData();
     }
   };
@@ -102,6 +85,12 @@ export default function VaultPage() {
   const totalItems = vaultData.length;
   const totalPages = Math.ceil(totalItems / pageSize);
   const paginatedData = vaultData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(Math.max(totalPages, 1));
+    }
+  }, [totalPages]);
 
   if (error) {
     return <div className="text-center text-red-500 p-4">{error}</div>;
@@ -113,38 +102,35 @@ export default function VaultPage() {
         <DynamicBreadcrumb />
       </div>
       <div className="p-6 pt-5">
-        <div className="flex justify-end p-4">
-          <Button
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2"
-            variant="default"
-          >
-            <Plus className="h-4 w-4" />
-            Add New Vault
+        <div className="flex justify-end p-3">
+          <Button onClick={() => setIsAddModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" /> Add Key
           </Button>
         </div>
         <Card>
-          <CardContent>
+          <CardContent className="p-4">
             <VaultTable
-              data={paginatedData}
+              data={paginatedData} // Data berdasarkan pagination
+              isLoading={isLoading}
               onEdit={handleEdit}
               onDelete={handleDelete}
-              isLoading={isLoading}
             />
           </CardContent>
         </Card>
 
-        {/* Pagination */}
-        <div className="mt-4 flex justify-center">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            totalItems={totalItems}
-            pageSize={pageSize}
-          />
-        </div>
-        
+        {/* Komponen Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-4 flex justify-center">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
+      </div>
         {/* Add Modal */}
         <AddKeyModal
           isOpen={isAddModalOpen}
@@ -161,6 +147,6 @@ export default function VaultPage() {
           currentValue={editingValue}
         />
       </div>
-    </div>
+  
   );
 }
