@@ -17,17 +17,17 @@ import DetailsView from "./DetailsView";
 import Pagination from "@/components/Pagination/Pagination";
 
 const EvaluationReports: React.FC = () => {
-  // State untuk daftar file
+  // State files 
   const [evaluationFiles, setEvaluationFiles] = useState<EvaluationFile[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // State untuk pagination
+  // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 5; // Jumlah file per halaman
+  const pageSize = 10; // Jumlah file per halaman
 
-  // State untuk detail file
+  // State for detail file
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
   const [fileDetails, setFileDetails] = useState<EvaluationDetail[] | null>(
@@ -36,7 +36,7 @@ const EvaluationReports: React.FC = () => {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
-  // State untuk form upload
+  // State for form upload
   const [uploadOpen, setUploadOpen] = useState(false);
 
   useEffect(() => {
@@ -92,7 +92,7 @@ const EvaluationReports: React.FC = () => {
     }
   };
 
-  // Filter files berdasarkan search query
+  // Filter files by search query
   const filteredFiles = evaluationFiles.filter((file) => {
     if (!file) return false;
 
@@ -107,22 +107,22 @@ const EvaluationReports: React.FC = () => {
     return idMatch || filenameMatch || projectMatch;
   });
 
-  // Reset ke halaman pertama jika hasil pencarian berubah
+  // Reset to first page when search query changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  // Hitung total halaman
+  // Total pages
   const totalPages = Math.ceil(filteredFiles.length / pageSize);
 
-  // Jika currentPage melebihi totalPages setelah perubahan data, perbaiki
+  // If current page is greater than total pages, set current page to last page
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(Math.max(totalPages, 1));
     }
   }, [totalPages]);
 
-  // Menentukan file yang akan ditampilkan pada halaman saat ini
+  // Get paginated files
   const paginatedFiles = filteredFiles.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
@@ -148,7 +148,7 @@ const EvaluationReports: React.FC = () => {
         <Card>
           <CardContent className="p-4">
             <FileList
-              files={paginatedFiles} // Menampilkan file yang sudah difilter berdasarkan pagination
+              files={paginatedFiles}
               loading={loading}
               error={error}
               onDelete={handleDelete}
@@ -163,8 +163,8 @@ const EvaluationReports: React.FC = () => {
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              totalItems={filteredFiles.length} // Tambahkan totalItems
-              pageSize={pageSize} // Tambahkan pageSize
+              totalItems={filteredFiles.length} 
+              pageSize={pageSize}
               onPageChange={setCurrentPage}
             />
           </div>
