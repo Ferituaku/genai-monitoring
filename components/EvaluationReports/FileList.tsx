@@ -159,6 +159,7 @@ const FileList: React.FC<FileListProps> = ({ files, loading, error, onDelete, on
                     variant="destructive" 
                     size="sm"
                     onClick={() => handleDeleteClick(file.id, file.file_name || '')}
+                    disabled={isProcessing(file)}
                   >
                     <Trash2 className="h-4 w-4 mr-1" />
                     Delete

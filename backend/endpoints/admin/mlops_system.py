@@ -267,9 +267,9 @@ class UploadDataMlops(Resource):
         print("Record updated with complete results!")
 
         # Send to teams
-        # if data_threshold:
-        #     payload = create_payload(evaluation.list_mention, data_message, data_threshold, scope)
-        #     send_teams_message(evaluation.teams_webhook_url, payload)
+        if data_threshold:
+            payload = create_payload(evaluation.list_mention, data_message, data_threshold, scope)
+            send_teams_message(evaluation.teams_webhook_url, payload)
                     
     def post(self):
         payload = json.loads(request.data.decode('utf-8'))
