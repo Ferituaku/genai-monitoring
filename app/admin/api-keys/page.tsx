@@ -214,7 +214,7 @@ export default function ApiKeysPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this API key?
+              Are you sure you want to delete this API key and Vault data?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
