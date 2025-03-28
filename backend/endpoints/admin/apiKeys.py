@@ -63,6 +63,10 @@ class service:
         result = self.db.fetch_one(check_query, (api_key,))
         if not result or result[0] == 0:
             raise ValueError("API key tidak ditemukan atau sudah dihapus")
+        
+        # First, delete the vault 
+        delete_vault_query = 'DELETE FROM vault WHERE api_key = ?'
+        self.db.execute_query(delete_vault_query, (api_key,))
 
         query = '''
         UPDATE api_keys SET is_deleted = 1, deleted_at = datetime('now') WHERE api_key = ?
